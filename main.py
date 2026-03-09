@@ -25,8 +25,12 @@ MAJORS = {
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
 
 # ── APP ───────────────────────────────────────────────────────────────────────
-app = FastAPI(title="AU Degree Audit", docs_url=None, redoc_url=None)
+app = FastAPI(title="AU Degree Audit", docs_url="/docs", redoc_url=None)
 security = HTTPBasic()
+
+# ── ROUTER (all majors, minors, liberal arts) ─────────────────────────────────
+from engines.audit_routes import router
+app.include_router(router)
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
 def verify(credentials: HTTPBasicCredentials = Depends(security)):
@@ -103,45 +107,34 @@ async def generate(
     catalog_year: str = Form(...),
     transcript:   UploadFile = File(...),
 ):
-    # Validate inputs
     if major not in MAJORS:
         raise HTTPException(400, "Invalid major")
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
-    # Check pull limit
     log = load_log()
     if log["total"] >= MAX_PULLS:
         raise HTTPException(429, "Annual pull limit reached. Contact Indy Collab to renew.")
 
-    # Save uploaded CSV to temp file
     csv_bytes = await transcript.read()
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
         tmp_in.write(csv_bytes)
         tmp_csv = tmp_in.name
 
-    # Output PDF path
     safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
     tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
     try:
         mod = load_engine(major)
-
-        # Patch catalog year into engine before running
-        # Engines expose: parse_csv(path), audit(courses), build(res, name, label, out)
         courses = mod.parse_csv(tmp_csv)
         res     = mod.audit(courses)
-
         major_label = MAJORS[major]["label"]
         mod.build(res, student_name, major_label, tmp_pdf)
 
-        # Patch catalog year text in PDF is handled inside engine via catalog_year param
-        # For now we pass it via a module-level override if the engine supports it
         if hasattr(mod, 'set_catalog_year'):
             mod.set_catalog_year(catalog_year)
             mod.build(res, student_name, major_label, tmp_pdf)
 
-        # Record pull
         total = record_pull(user, student_name, MAJORS[major]["label"], catalog_year)
 
         filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
