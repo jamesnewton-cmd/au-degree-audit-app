@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selah Academic Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --selah-red:    #9B1B2A;
+    --selah-black:  #1A1A1A;
+    --selah-cream:  #F9F6F1;
+    --selah-warm:   #F0E8E0;
+    --selah-border: #DDDAD5;
+    --selah-text:   #1A1A1A;
+    --selah-muted:  #6B6157;
+    --success:    #2D6A4F;
+    --error:      #9B2335;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--selah-cream);
+    color: var(--selah-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--selah-black);
+    padding: 0 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    border-bottom: 3px solid var(--selah-red);
+  }
+
+  .header-brand { display: flex; align-items: center; gap: 1rem; }
+
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--selah-red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; color: var(--selah-black); font-weight: 700;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; color: #fff; letter-spacing: 0.01em;
+  }
+  .header-title span { color: var(--selah-red); }
+
+  .header-nav a {
+    color: #C8B99A; text-decoration: none;
+    font-size: 0.85rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .header-nav a:hover { color: var(--selah-red); }
+
+  /* ── MODAL OVERLAY ── */
+  #pwOverlay {
+    position: fixed; inset: 0;
+    background: rgba(26,18,8,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  #pwOverlay.hidden { display: none; }
+
+  .pw-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2.5rem;
+    width: 100%; max-width: 380px;
+    border-top: 4px solid var(--selah-red);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .pw-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; margin-bottom: 0.4rem;
+  }
+  .pw-card p { color: var(--selah-muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+  .pw-card input[type="password"] {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid var(--selah-border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+  .pw-card input[type="password"]:focus {
+    outline: none; border-color: var(--selah-red);
+  }
+  .pw-error {
+    color: var(--error); font-size: 0.82rem;
+    margin-bottom: 0.8rem; display: none;
+  }
+  .btn-pw {
+    width: 100%; padding: 0.85rem;
+    background: var(--selah-red); color: #fff;
+    border: none; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-pw:hover { background: #7a1522; }
+
+  /* ── MAIN ── */
+  main {
+    flex: 1; display: flex;
+    align-items: flex-start; justify-content: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--selah-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(26,18,8,0.08);
+    width: 100%; max-width: 580px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--selah-black);
+    padding: 2rem 2.5rem 1.8rem;
+    position: relative; overflow: hidden;
+  }
+  .card-header::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--selah-red);
+  }
+  .card-header::after {
+    content: 'AU'; position: absolute;
+    right: -10px; top: -10px;
+    font-family: 'Playfair Display', serif;
+    font-size: 7rem; color: rgba(212,160,23,0.06);
+    font-weight: 700; pointer-events: none; line-height: 1;
+  }
+  .card-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; color: #fff;
+    line-height: 1.2; margin-bottom: 0.4rem;
+  }
+  .card-header h1 em { color: var(--selah-red); font-style: normal; }
+  .card-header p { color: #A89880; font-size: 0.85rem; font-weight: 300; }
+
+  .card-body { padding: 2rem 2.5rem 2.5rem; }
+
+  /* ── FORM ── */
+  .field { margin-bottom: 1.4rem; }
+
+  label {
+    display: block; font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--selah-muted); margin-bottom: 0.45rem;
+  }
+
+  input[type="text"], select {
+    width: 100%; padding: 0.7rem 1rem;
+    border: 1.5px solid var(--selah-border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; color: var(--selah-text);
+    background: var(--selah-cream);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+  }
+  input[type="text"]:focus, select:focus {
+    outline: none; border-color: var(--selah-red);
+    box-shadow: 0 0 0 3px rgba(155,27,42,0.1);
+    background: #fff;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238C7B5E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem; cursor: pointer;
+  }
+
+  /* ── PROGRAM SEARCH ── */
+  .search-wrap { position: relative; margin-bottom: 0.4rem; }
+  .search-wrap input {
+    width: 100%; padding: 0.7rem 1rem 0.7rem 2.4rem;
+    border: 1.5px solid var(--selah-border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; color: var(--selah-text);
+    background: var(--selah-cream);
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus {
+    outline: none; border-color: var(--selah-red); background: #fff;
+  }
+  .search-icon {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--selah-muted); font-size: 0.9rem; pointer-events: none;
+  }
+  .search-count {
+    font-size: 0.75rem; color: var(--selah-muted);
+    text-align: right; margin-bottom: 0.3rem;
+  }
+
+  /* ── FILE DROP ── */
+  .file-drop {
+    border: 2px dashed var(--selah-border);
+    border-radius: 8px; padding: 1.8rem 1rem;
+    text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--selah-cream);
+    position: relative;
+  }
+  .file-drop:hover, .file-drop.dragover {
+    border-color: var(--selah-red); background: #FDF8EF;
+  }
+  .file-drop input[type="file"] {
+    position: absolute; inset: 0; opacity: 0;
+    cursor: pointer; width: 100%; height: 100%;
+  }
+  .file-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+  .file-drop-text { font-size: 0.9rem; color: var(--selah-muted); line-height: 1.5; }
+  .file-drop-text strong { color: var(--selah-red); font-weight: 600; }
+  .file-name {
+    margin-top: 0.6rem; font-size: 0.82rem;
+    color: var(--success); font-weight: 500; display: none;
+  }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* ── SUBMIT ── */
+  .btn-generate {
+    width: 100%; padding: 0.9rem;
+    background: var(--selah-red); color: #fff;
+    border: none; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.04em; cursor: pointer;
+    transition: all 0.2s; margin-top: 0.5rem;
+    display: flex; align-items: center;
+    justify-content: center; gap: 0.5rem;
+  }
+  .btn-generate:hover:not(:disabled) {
+    background: #7a1522; transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(155,27,42,0.3);
+  }
+  .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* ── STATUS ── */
+  .status-bar {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.2rem;
+    background: var(--selah-warm); border-radius: 8px;
+    margin-bottom: 1.6rem; border: 1px solid var(--selah-border);
+  }
+  .status-bar-label {
+    font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--selah-muted); font-weight: 600;
+  }
+  .status-bar-value { font-size: 0.88rem; font-weight: 600; color: var(--selah-text); }
+  .status-bar-value.warn { color: #B45309; }
+  .status-bar-value.ok   { color: var(--success); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(4rem);
+    background: var(--selah-black); color: #fff;
+    padding: 0.9rem 1.6rem; border-radius: 8px;
+    font-size: 0.88rem; font-weight: 500;
+    border-left: 4px solid var(--selah-red);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease; z-index: 100;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.error { border-left-color: var(--error); }
+
+  /* ── SPINNER ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider { height: 1px; background: var(--selah-border); margin: 1.5rem 0; }
+
+  footer {
+    text-align: center; padding: 1.2rem;
+    font-size: 0.78rem; color: var(--selah-muted);
+    border-top: 1px solid var(--selah-border);
+    background: var(--selah-warm);
+  }
+  footer a { color: var(--selah-red); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD MODAL -->
+<div id="pwOverlay">
+  <div class="pw-card">
+    <h2>Welcome Back</h2>
+    <p>Enter your access password to continue.</p>
+    <input type="password" id="pwInput" placeholder="Password" autocomplete="current-password">
+    <div class="pw-error" id="pwError">Incorrect password. Please try again.</div>
+    <button class="btn-pw" id="pwSubmit">Continue →</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-brand">
+    <div class="header-logo">S</div>
+    <div class="header-title">Selah &nbsp;·&nbsp; <span>Academic Solutions</span></div>
+  </div>
+  <nav class="header-nav">
+    <a href="/dashboard">Dashboard →</a>
+  </nav>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-header">
+      <h1>Generate a<br><em>Graduation Audit</em></h1>
+      <p>Upload a student transcript CSV to generate a PDF audit report.</p>
+    </div>
+
+    <div class="card-body">
+
+      <div class="status-bar" id="statusBar">
+        <span class="status-bar-label">Audits Available</span>
+        <span class="status-bar-value ok" id="statusVal">Loading…</span>
+      </div>
+
+      <form id="auditForm">
+
+        <div class="field">
+          <label>Student Name</label>
+          <input type="text" name="student_name" placeholder="First Last" required autocomplete="off">
+        </div>
+
+        <div class="field-row">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Major / Program</label>
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="majorSearch" placeholder="Search programs…" autocomplete="off">
+            </div>
+            <div class="search-count" id="searchCount"></div>
+            <select name="major" id="majorSelect" required size="1">
+              <option value="" disabled selected>Select catalog year first</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Catalog Year</label>
+            <select name="catalog_year" id="yearSelect" required>
+              <option value="" disabled selected>Select year</option>
+              <option value="2022-23">2022–23</option>
+              <option value="2023-24">2023–24</option>
+              <option value="2024-25">2024–25</option>
+              <option value="2025-26">2025–26</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Transcript CSV</label>
+          <div class="file-drop" id="fileDrop">
+            <input type="file" name="transcript" accept=".csv" required id="fileInput">
+            <span class="file-icon">📄</span>
+            <div class="file-drop-text">
+              <strong>Click to upload</strong> or drag & drop<br>
+              CSV export from student information system
+            </div>
+            <div class="file-name" id="fileName"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <button type="submit" class="btn-generate" id="submitBtn">
+          <div class="spinner" id="spinner"></div>
+          <span id="btnText">Generate Audit PDF</span>
+        </button>
+
+      </form>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<footer>
+  Powered by <a href="https://indycollab.com" target="_blank">Indy Collab, LLC</a> &nbsp;·&nbsp;
+  Selah Academic Solutions &nbsp;·&nbsp; Audit Engine v2
+</footer>
+
+<script>
+// ── Password management ──────────────────────────────────
+let SESSION_PW = sessionStorage.getItem('auditpw') || '';
+
+function getAuthHeader() {
+  return 'Basic ' + btoa(':' + SESSION_PW);
+}
+
+const overlay   = document.getElementById('pwOverlay');
+const pwInput   = document.getElementById('pwInput');
+const pwSubmit  = document.getElementById('pwSubmit');
+const pwError   = document.getElementById('pwError');
+
+if (SESSION_PW) {
+  overlay.classList.add('hidden');
+  init();
+} else {
+  overlay.classList.remove('hidden');
+  pwInput.focus();
+}
+
+async function tryPassword() {
+  const pw = pwInput.value.trim();
+  if (!pw) return;
+  SESSION_PW = pw;
+  try {
+    const res = await fetch('/status', {
+      headers: { 'Authorization': 'Basic ' + btoa(':' + pw) }
+    });
+    if (res.status === 401) {
+      SESSION_PW = '';
+      pwError.style.display = 'block';
+      pwInput.value = '';
+      pwInput.focus();
+      return;
+    }
+    sessionStorage.setItem('auditpw', pw);
+    overlay.classList.add('hidden');
+    const data = await res.json();
+    updateStatus(data);
+    loadPrograms();
+  } catch(e) {
+    pwError.textContent = 'Connection error. Please try again.';
+    pwError.style.display = 'block';
+  }
+}
+
+pwSubmit.addEventListener('click', tryPassword);
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
+
+function init() {
+  loadStatus();
+  loadPrograms();
+}
+
+// ── Program search & populate ────────────────────────────
+let allPrograms = {}; // key -> label, merged FSB + non-FSB
+
+async function loadPrograms() {
+  const year = document.getElementById('yearSelect').value || '2022-23';
+  try {
+    const res = await fetch(`/programs/all/${year}`, {
+      headers: { 'Authorization': getAuthHeader() }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const fsb = data.fsb_programs[year] || {};
+    const nonFsb = data.non_fsb_programs || {};
+    // Merge: FSB label->key, nonFSB key->label (flip to key->label)
+    allPrograms = {};
+    Object.entries(fsb).forEach(([label, key]) => { allPrograms[key] = label; });
+    Object.entries(nonFsb).forEach(([key, label]) => { allPrograms[key] = label; });
+    filterMajors('');
+  } catch(e) {}
+}
+
+function filterMajors(query) {
+  const majorSelect = document.getElementById('majorSelect');
+  const searchCount = document.getElementById('searchCount');
+  const q = query.toLowerCase();
+  const sorted = Object.entries(allPrograms)
+    .filter(([key, label]) => !q || label.toLowerCase().includes(q) || key.toLowerCase().includes(q))
+    .sort((a, b) => a[1].localeCompare(b[1]));
+
+  const prev = majorSelect.value;
+  majorSelect.innerHTML = '<option value="" disabled selected>Select a program</option>';
+  sorted.forEach(([key, label]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = label;
+    if (key === prev) opt.selected = true;
+    majorSelect.appendChild(opt);
+  });
+
+  const total = Object.keys(allPrograms).length;
+  searchCount.textContent = q ? `${sorted.length} of ${total} programs` : `${total} programs available`;
+}
+
+document.getElementById('majorSearch').addEventListener('input', e => {
+  filterMajors(e.target.value);
+});
+
+document.getElementById('yearSelect').addEventListener('change', loadPrograms);
+
+// ── Status ───────────────────────────────────────────────
+function updateStatus(data) {
+  const el = document.getElementById('statusVal');
+  const remaining = data.remaining_pulls;
+  el.textContent = remaining + ' of ' + data.max_pulls + ' remaining';
+  el.className = 'status-bar-value ' + (remaining < 100 ? 'warn' : 'ok');
+}
+
+async function loadStatus() {
+  try {
+    const res = await fetch('/status', { headers: { 'Authorization': getAuthHeader() } });
+    if (!res.ok) return;
+    updateStatus(await res.json());
+  } catch(e) {}
+}
+
+// ── File drop UI ─────────────────────────────────────────
+const drop      = document.getElementById('fileDrop');
+const fileInput = document.getElementById('fileInput');
+const fileName  = document.getElementById('fileName');
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) {
+    fileName.textContent = '✓ ' + fileInput.files[0].name;
+    fileName.style.display = 'block';
+  }
+});
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.remove('dragover');
+}));
+drop.addEventListener('drop', ev => {
+  const f = ev.dataTransfer.files[0];
+  if (f && f.name.endsWith('.csv')) {
+    const dt = new DataTransfer(); dt.items.add(f);
+    fileInput.files = dt.files;
+    fileName.textContent = '✓ ' + f.name;
+    fileName.style.display = 'block';
+  }
+});
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error show' : 'show';
+  setTimeout(() => t.className = isError ? 'error' : '', 3500);
+}
+
+// ── Form submit ───────────────────────────────────────────
+document.getElementById('auditForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const btn     = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+  const major   = document.getElementById('majorSelect').value;
+
+  // Determine endpoint: non-fsb programs use /audit/non-fsb, FSB use /generate
+  const FSB_KEYS = ['management','sport_marketing','marketing','accounting','finance',
+    'business_analytics','engineering_management','global_business',
+    'music_entertainment_business','business_integrative_leadership'];
+  const endpoint = FSB_KEYS.includes(major) ? '/generate' : '/audit/non-fsb';
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'Generating…';
+
+  const form = new FormData(e.target);
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Authorization': getAuthHeader() },
+      body: form
+    });
+
+    if (res.status === 401) {
+      sessionStorage.removeItem('auditpw');
+      SESSION_PW = '';
+      overlay.classList.remove('hidden');
+      pwError.style.display = 'block';
+      return;
+    }
+    if (res.status === 429) {
+      toast('Annual pull limit reached. Contact Indy Collab.', true); return;
+    }
+    if (!res.ok) {
+      const err = await res.json();
+      toast(err.detail || 'Generation failed.', true); return;
+    }
+
+    const blob = await res.blob();
+    const cd   = res.headers.get('Content-Disposition') || '';
+    const fnMatch = cd.match(/filename=(.+)/);
+    const dlName  = fnMatch ? fnMatch[1] : 'audit.pdf';
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = dlName;
+    a.click(); URL.revokeObjectURL(url);
+
+    const remaining = res.headers.get('X-Pulls-Remaining');
+    toast('✓ Audit generated! ' + (remaining ? remaining + ' pulls remaining.' : ''));
+    loadStatus();
+
+  } catch(err) {
+    toast('Network error. Please try again.', true);
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Generate Audit PDF';
+  }
+});
+</script>
+</body>
+</html>
