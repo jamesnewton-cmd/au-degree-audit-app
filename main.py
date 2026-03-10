@@ -211,7 +211,7 @@ async def generate(
         pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
 
         gen = PDFGenerator()
-        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes)
+        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes, raw_courses=course_dicts)
         with open(tmp_pdf, "wb") as f:
             f.write(pdf_bytes)
 
@@ -286,7 +286,7 @@ async def generate_non_fsb(
         pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
 
         gen = AuditPDFGenerator()
-        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes)
+        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes, raw_courses=course_dicts)
         with open(tmp_pdf, "wb") as f:
             f.write(pdf_bytes)
 
