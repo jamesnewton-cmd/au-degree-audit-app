@@ -95,7 +95,14 @@ class CourseRecord:
 
     @property
     def passing(self) -> bool:
-        return self.numeric_grade >= 1.0 and self.grade.upper() not in ("F", "W", "WF")
+        g = self.grade.upper()
+        # Transfer credit, CR (credit/pass), S (satisfactory) all count as passing
+        if g in ("T", "CR", "P", "S"):
+            return True
+        # In-progress or blank do not count as passing yet
+        if g in ("IP", ""):
+            return False
+        return self.numeric_grade >= 1.0 and g not in ("F", "W", "WF")
 
 
 @dataclass

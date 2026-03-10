@@ -105,6 +105,63 @@ def dashboard(user=Depends(verify)):
     html = html.replace("{{PCT}}", str(pct))
     return HTMLResponse(html)
 
+import csv as csv_module
+
+def normalize_course_code(code: str) -> str:
+    """Normalize Student First course codes to match audit engine format.
+    Student First uses BSNS-2010, engine expects BSNS 2010."""
+    code = code.strip().upper()
+    # Standard dept-number format: BSNS-2010 -> BSNS 2010
+    # But keep ELCT-1000-... and LAWK-... as-is (they won't match requirements)
+    if code.startswith("ELCT-") or code.startswith("LAWK"):
+        return code
+    return code.replace("-", " ", 1)  # Only replace first hyphen
+
+def parse_student_first_csv(csv_content: str) -> list[dict]:
+    """Parse a Student First CSV export into course dicts for the audit engine."""
+    COMPLETED_STATUSES = {"CG"}
+    ENROLLED_STATUSES  = {"AC", "AS", "ID"}
+    courses = []
+    try:
+        reader = csv_module.DictReader(io.StringIO(csv_content))
+        for row in reader:
+            raw_code = (row.get("Course Code") or "").strip()
+            status   = (row.get("Status") or "").strip().upper()
+            letter   = (row.get("Letter Grade") or "").strip().upper()
+            credits_str = (row.get("Credits") or "0").strip()
+            name     = (row.get("Course Name") or "").strip()
+            term     = (row.get("Term") or "").strip()
+            if not raw_code:
+                continue
+            try:
+                credits = float(credits_str)
+            except ValueError:
+                credits = 0.0
+            is_transfer = (term == "Transfer Credit" or letter == "T")
+            is_enrolled = status in ENROLLED_STATUSES
+            if status not in COMPLETED_STATUSES and not is_transfer:
+                if is_enrolled:
+                    effective_grade = "IP"
+                else:
+                    continue  # Future/planned - skip
+            else:
+                effective_grade = letter if letter else ("T" if is_transfer else "")
+            # Normalize code format: BSNS-2010 -> BSNS 2010
+            normalized_code = normalize_course_code(raw_code)
+            courses.append({
+                "code": normalized_code,
+                "name": name,
+                "credits": credits,
+                "grade": effective_grade,
+                "term": term,
+                "is_transfer": is_transfer,
+                "is_exception": False,
+            })
+    except Exception as e:
+        raise HTTPException(400, f"CSV parse error: {str(e)}")
+    return courses
+
+
 @app.post("/generate")
 async def generate(
     student_name:   str = Form(...),
@@ -114,30 +171,35 @@ async def generate(
     advisor_notes:  str = Form(""),
     waiver_notes:   str = Form(""),
 ):
-    if major not in MAJORS:
-        raise HTTPException(400, "Invalid major")
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
     log = load_log()
     if log["total"] >= MAX_PULLS:
-        raise HTTPException(429, "Annual pull limit reached. Contact Indy Collab to renew.")
+        raise HTTPException(429, "Annual pull limit reached. Contact Selah Academic Solutions to renew.")
 
     csv_bytes = await transcript.read()
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
-        tmp_in.write(csv_bytes)
-        tmp_csv = tmp_in.name
+    csv_content = csv_bytes.decode("utf-8-sig", errors="replace")
 
     safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
     tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
     try:
-        mod = load_engine(major)
-        courses = mod.parse_csv(tmp_csv)
-        res     = mod.audit(courses)
-        major_label = MAJORS[major]["label"]
+        from engines.audit_engine import run_audit_from_dict, AuditResult
+        from engines.pdf_generator import PDFGenerator
 
-        # Calculate progress - handle both AuditResult object and dict
+        course_dicts = parse_student_first_csv(csv_content)
+        if not course_dicts:
+            raise HTTPException(400, "No courses found in CSV. Check file format.")
+
+        res = run_audit_from_dict(
+            courses=course_dicts,
+            catalog_year=catalog_year,
+            major_key=major,
+            student_name=student_name,
+        )
+
+        # Calculate progress
         if hasattr(res, 'liberal_arts'):
             all_reqs = res.liberal_arts + res.business_core + res.major_requirements + res.minor_requirements
         elif isinstance(res, dict):
@@ -148,13 +210,13 @@ async def generate(
         satisfied_reqs = sum(1 for r in all_reqs if (r.status if hasattr(r, 'status') else r.get('status','')) == "Satisfied")
         pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
 
-        mod.build(res, student_name, major_label, tmp_pdf)
+        gen = PDFGenerator()
+        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes)
+        with open(tmp_pdf, "wb") as f:
+            f.write(pdf_bytes)
 
-        if hasattr(mod, 'set_catalog_year'):
-            mod.set_catalog_year(catalog_year)
-            mod.build(res, student_name, major_label, tmp_pdf)
-
-        total = record_pull("advisor", student_name, MAJORS[major]["label"], catalog_year)
+        major_label = res.major if hasattr(res, 'major') else major
+        total = record_pull("advisor", student_name, major_label, catalog_year)
 
         filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
         return FileResponse(
@@ -171,10 +233,10 @@ async def generate(
                 "Access-Control-Expose-Headers": "X-Pulls-Used,X-Pulls-Remaining,X-Progress-Pct,X-Progress-Satisfied,X-Progress-Total,X-Pdf-Path,Content-Disposition",
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
-    finally:
-        os.unlink(tmp_csv)
 
 @app.get("/ping")
 def ping():
