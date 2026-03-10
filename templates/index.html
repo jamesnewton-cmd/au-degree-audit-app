@@ -718,7 +718,16 @@
           <label style="font-size:0.78rem;font-weight:600;color:#2e7d32;display:block;margin-bottom:0.4rem;">EMAIL AUDIT TO STUDENT</label>
           <div class="email-row">
             <input type="email" id="studentEmail" placeholder="student@anderson.edu">
-            <button class="btn-email" id="emailBtn" onclick="sendAuditEmail()">Send PDF</button>
+            <button class="btn-email" id="emailBtn" onclick="sendAuditEmail('student')">Send PDF</button>
+          </div>
+        </div>
+
+        <!-- Email to advisor -->
+        <div style="margin-bottom:0.75rem;">
+          <label style="font-size:0.78rem;font-weight:600;color:#2e7d32;display:block;margin-bottom:0.4rem;">EMAIL AUDIT TO ADVISOR</label>
+          <div class="email-row">
+            <input type="email" id="advisorEmail" placeholder="advisor@anderson.edu">
+            <button class="btn-email" id="emailAdvisorBtn" onclick="sendAuditEmail('advisor')">Send PDF</button>
           </div>
         </div>
 
@@ -985,7 +994,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       const res = await fetch(endpoint, { method: 'POST', body: form });
       if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
       if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
-      if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
+      if (!res.ok) { try { const err = await res.json(); toast(typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail) || 'Generation failed.', true); } catch(e) { toast('Generation failed. Check server logs.', true); } return; }
       const blob = await res.blob();
       const cd = res.headers.get('Content-Disposition') || '';
       const fnMatch = cd.match(/filename=(.+)/);
@@ -1032,6 +1041,9 @@ function showPostActions(studentName, pct, satisfied, total, pdfPath) {
   // Pre-fill student email guess
   const emailGuess = studentName.toLowerCase().replace(/\s+/g, '.') + '@anderson.edu';
   document.getElementById('studentEmail').value = emailGuess;
+  document.getElementById('advisorEmail').value = '';
+  document.getElementById('emailBtn').disabled = false; document.getElementById('emailBtn').textContent = 'Send PDF';
+  document.getElementById('emailAdvisorBtn').disabled = false; document.getElementById('emailAdvisorBtn').textContent = 'Send PDF';
   // Load audit history
   loadHistory(studentName);
 }
@@ -1051,23 +1063,26 @@ async function loadHistory(studentName) {
   } catch(e) {}
 }
 
-async function sendAuditEmail() {
-  const email = document.getElementById('studentEmail').value.trim();
-  if (!email) { toast('Enter a student email address.', true); return; }
-  const btn = document.getElementById('emailBtn');
+async function sendAuditEmail(recipient) {
+  const isAdvisor = recipient === 'advisor';
+  const emailInput = document.getElementById(isAdvisor ? 'advisorEmail' : 'studentEmail');
+  const btn = document.getElementById(isAdvisor ? 'emailAdvisorBtn' : 'emailBtn');
+  const email = emailInput.value.trim();
+  if (!email) { toast('Enter an email address.', true); return; }
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const form = new FormData();
     form.set('student_email', email);
     form.set('student_name', lastStudentName);
     form.set('pdf_path', lastPdfPath);
+    form.set('recipient_type', recipient);
     const res = await fetch('/email-audit', { method: 'POST', body: form });
     const data = await res.json();
     if (res.ok) {
       toast('✓ Audit emailed to ' + email);
       btn.textContent = '✓ Sent';
     } else {
-      toast(data.detail || 'Email failed.', true);
+      toast(typeof data.detail === 'string' ? data.detail : 'Email failed.', true);
       btn.disabled = false; btn.textContent = 'Send PDF';
     }
   } catch(e) {
