@@ -238,6 +238,80 @@ async def generate(
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
 
+
+
+@app.post("/audit/non-fsb")
+async def generate_non_fsb(
+    student_name:   str = Form(...),
+    major:          str = Form(...),
+    catalog_year:   str = Form(...),
+    transcript:     UploadFile = File(...),
+    advisor_notes:  str = Form(""),
+    waiver_notes:   str = Form(""),
+):
+    if catalog_year not in CATALOG_YEARS:
+        raise HTTPException(400, "Invalid catalog year")
+
+    log = load_log()
+    if log["total"] >= MAX_PULLS:
+        raise HTTPException(429, "Annual pull limit reached. Contact Selah Academic Solutions to renew.")
+
+    csv_bytes = await transcript.read()
+    csv_content = csv_bytes.decode("utf-8-sig", errors="replace")
+    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
+    tmp_pdf = tempfile.mktemp(suffix=".pdf")
+
+    try:
+        from engines.audit_engine import run_audit_from_dict, AuditResult
+        from engines.pdf_generator import AuditPDFGenerator
+
+        course_dicts = parse_student_first_csv(csv_content)
+        if not course_dicts:
+            raise HTTPException(400, "No courses found in CSV. Check file format.")
+
+        res = run_audit_from_dict(
+            courses=course_dicts,
+            catalog_year=catalog_year,
+            major_key=major,
+            student_name=student_name,
+        )
+
+        all_reqs = []
+        if hasattr(res, 'liberal_arts'):
+            all_reqs = res.liberal_arts + res.business_core + res.major_requirements + res.minor_requirements
+        elif isinstance(res, dict):
+            all_reqs = res.get('liberal_arts', []) + res.get('business_core', []) + res.get('major_requirements', []) + res.get('minor_requirements', [])
+        total_reqs = len(all_reqs)
+        satisfied_reqs = sum(1 for r in all_reqs if (r.status if hasattr(r, 'status') else r.get('status','')) == "Satisfied")
+        pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
+
+        gen = AuditPDFGenerator()
+        pdf_bytes = gen.generate(res, advisor_notes=advisor_notes, waiver_notes=waiver_notes)
+        with open(tmp_pdf, "wb") as f:
+            f.write(pdf_bytes)
+
+        major_label = res.major if hasattr(res, 'major') else major
+        total = record_pull("advisor", student_name, major_label, catalog_year)
+        filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
+        return FileResponse(
+            tmp_pdf,
+            media_type="application/pdf",
+            filename=filename,
+            headers={
+                "X-Pulls-Used": str(total),
+                "X-Pulls-Remaining": str(MAX_PULLS - total),
+                "X-Progress-Pct": str(pct),
+                "X-Progress-Satisfied": str(satisfied_reqs),
+                "X-Progress-Total": str(total_reqs),
+                "X-Pdf-Path": tmp_pdf,
+                "Access-Control-Expose-Headers": "X-Pulls-Used,X-Pulls-Remaining,X-Progress-Pct,X-Progress-Satisfied,X-Progress-Total,X-Pdf-Path,Content-Disposition",
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Audit generation failed: {str(e)}")
+
 @app.get("/ping")
 def ping():
     return {"ok": True}

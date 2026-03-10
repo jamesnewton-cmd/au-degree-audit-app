@@ -308,7 +308,7 @@ class AuditPDFGenerator:
         from reportlab.platypus import Table, TableStyle
         data = [
             [Paragraph(f"<b>{title}</b>", self.styles["cell_label"])],
-            [Paragraph(notes, self.styles["cell_normal"])],
+            [Paragraph(notes, self.styles["cell_label"])],
         ]
         t = Table(data, colWidths=["100%"])
         t.setStyle(TableStyle([
