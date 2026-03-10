@@ -24,12 +24,6 @@ from requirements.liberal_arts_requirements import (
 
 VALID_CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
 
-def _fc(code: str) -> str:
-    """BSNS 3420 -> BSNS-3420"""
-    if not code: return ""
-    parts = str(code).strip().split()
-    return f"{parts[0]}-{parts[1]}" if len(parts) == 2 else str(code)
-
 # Map display names → internal keys for the UI/API
 MAJOR_DISPLAY_NAMES = {
     "2022-23": {
@@ -101,14 +95,7 @@ class CourseRecord:
 
     @property
     def passing(self) -> bool:
-        g = self.grade.upper()
-        # Transfer credit, CR (credit/pass), S (satisfactory) all count as passing
-        if g in ("T", "CR", "P", "S"):
-            return True
-        # In-progress or blank do not count as passing yet
-        if g in ("IP", ""):
-            return False
-        return self.numeric_grade >= 1.0 and g not in ("F", "W", "WF")
+        return self.numeric_grade >= 1.0 and self.grade.upper() not in ("F", "W", "WF")
 
 
 @dataclass
@@ -445,7 +432,7 @@ class AuditEngine:
                 code = course["code"]
                 status = "Satisfied" if code in completed_codes else "Not Satisfied"
                 results.append(RequirementResult(
-                    label=f"{_fc(code)} {course.get('name', '')}",
+                    label=f"{code} — {course.get('name', '')}",
                     status=status,
                     satisfying_course=code if status == "Satisfied" else None,
                     credits_required=course.get("credits", 3),
@@ -458,7 +445,7 @@ class AuditEngine:
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
             results.append(RequirementResult(
-                label=f"{_fc(code)} {course.get('name', '')}",
+                label=f"{code} — {course.get('name', '')}",
                 status=status,
                 satisfying_course=code if status == "Satisfied" else None,
                 credits_required=course["credits"],
@@ -472,7 +459,7 @@ class AuditEngine:
             math_options = [c["code"] for c in math_req["choose_one"]]
             math_found = [c for c in math_options if c in completed_codes]
             results.append(RequirementResult(
-                label=f"MATH-1300 Finite Mathematics (or MATH-1400/2010)",
+                label=f"Math Requirement (one of: {', '.join(math_options)})",
                 status="Satisfied" if math_found else "Not Satisfied",
                 satisfying_course=math_found[0] if math_found else None,
                 notes=math_req["note"],
@@ -500,7 +487,7 @@ class AuditEngine:
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
             results.append(RequirementResult(
-                label=f"{_fc(code)} {course.get('name', '')}",
+                label=f"{code} — {course.get('name', '')}",
                 status=status,
                 satisfying_course=code if status == "Satisfied" else None,
                 credits_required=course.get("credits", 3),
@@ -514,7 +501,7 @@ class AuditEngine:
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
             results.append(RequirementResult(
-                label=f"{_fc(code)} {course.get('name', '')}",
+                label=f"{code} — {course.get('name', '')}",
                 status=status,
                 satisfying_course=code if status == "Satisfied" else None,
                 credits_required=course.get("credits", 3),

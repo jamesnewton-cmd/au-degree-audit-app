@@ -403,71 +403,6 @@
     .header-brand-text { display: none; }
   }
 
-
-  /* ── PROGRESS BAR ─────────────────────────────────────────────────────────── */
-  .progress-wrap { margin: 0.5rem 0 0; }
-  .progress-track {
-    background: var(--border); border-radius: 8px; height: 10px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 8px;
-    background: linear-gradient(90deg, var(--maroon), var(--orange));
-    transition: width 0.6s ease;
-  }
-  .progress-label {
-    font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem;
-    display: flex; justify-content: space-between;
-  }
-  .progress-pct { font-weight: 700; color: var(--maroon); }
-
-  /* ── NOTES FIELDS ─────────────────────────────────────────────────────────── */
-  textarea.notes-field {
-    width: 100%; min-height: 64px; resize: vertical;
-    border: 1.5px solid var(--border); border-radius: 8px;
-    padding: 0.55rem 0.75rem; font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem; color: var(--text); background: var(--cream);
-    transition: border-color 0.15s;
-  }
-  textarea.notes-field:focus { outline: none; border-color: var(--orange); }
-
-  /* ── POST-GENERATE ACTIONS ────────────────────────────────────────────────── */
-  .post-actions {
-    display: none; margin-top: 1rem;
-    background: #f0faf0; border: 1.5px solid #a5d6a7;
-    border-radius: 10px; padding: 1rem 1.1rem;
-  }
-  .post-actions.visible { display: block; }
-  .post-actions-title {
-    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #2e7d32; margin-bottom: 0.75rem;
-  }
-  .email-row { display: flex; gap: 0.5rem; align-items: center; }
-  .email-row input {
-    flex: 1; border: 1.5px solid var(--border); border-radius: 7px;
-    padding: 0.5rem 0.75rem; font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem; background: #fff;
-  }
-  .email-row input:focus { outline: none; border-color: var(--orange); }
-  .btn-email {
-    background: var(--maroon); color: #fff; border: none;
-    border-radius: 7px; padding: 0.5rem 1rem; font-size: 0.85rem;
-    font-weight: 600; cursor: pointer; white-space: nowrap;
-    transition: background 0.15s;
-  }
-  .btn-email:hover { background: #8b1320; }
-  .btn-email:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  /* ── AUDIT HISTORY ────────────────────────────────────────────────────────── */
-  .history-list {
-    margin-top: 0.5rem; max-height: 120px; overflow-y: auto;
-    font-size: 0.78rem; color: var(--muted);
-  }
-  .history-item {
-    padding: 0.3rem 0; border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between;
-  }
-  .history-item:last-child { border: none; }
-
 </style>
 </head>
 <body>
@@ -684,60 +619,12 @@
 
         <div class="divider"></div>
 
-        <!-- EXCEPTION / WAIVER NOTES -->
-        <div class="section-label">Exception / Waiver Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:0.75rem;">(optional)</span></div>
-        <div class="field">
-          <textarea class="notes-field" id="waiverNotes" name="waiver_notes" placeholder="e.g. Course substitution approved by Dean on 3/1/26…"></textarea>
-        </div>
-
-        <!-- ADVISOR NOTES -->
-        <div class="section-label">Advisor Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:0.75rem;">(optional — prints on PDF)</span></div>
-        <div class="field">
-          <textarea class="notes-field" id="advisorNotes" name="advisor_notes" placeholder="e.g. Student plans to enroll in BSNS-4800 next semester…"></textarea>
-        </div>
-
         <button type="submit" class="btn-generate" id="submitBtn">
           <div class="spinner" id="spinner"></div>
           <span id="btnText">Generate Audit PDF</span>
         </button>
 
       </form>
-
-      <!-- POST-GENERATE ACTIONS -->
-      <div class="post-actions" id="postActions">
-        <div class="post-actions-title">✓ Audit Generated — Next Steps</div>
-
-        <!-- Progress indicator -->
-        <div class="progress-wrap" id="progressWrap" style="margin-bottom:0.8rem;">
-          <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-          <div class="progress-label"><span id="progressText"></span><span class="progress-pct" id="progressPct"></span></div>
-        </div>
-
-        <!-- Email to student -->
-        <div style="margin-bottom:0.75rem;">
-          <label style="font-size:0.78rem;font-weight:600;color:#2e7d32;display:block;margin-bottom:0.4rem;">EMAIL AUDIT TO STUDENT</label>
-          <div class="email-row">
-            <input type="email" id="studentEmail" placeholder="student@anderson.edu">
-            <button class="btn-email" id="emailBtn" onclick="sendAuditEmail('student')">Send PDF</button>
-          </div>
-        </div>
-
-        <!-- Email to advisor -->
-        <div style="margin-bottom:0.75rem;">
-          <label style="font-size:0.78rem;font-weight:600;color:#2e7d32;display:block;margin-bottom:0.4rem;">EMAIL AUDIT TO ADVISOR</label>
-          <div class="email-row">
-            <input type="email" id="advisorEmail" placeholder="advisor@anderson.edu">
-            <button class="btn-email" id="emailAdvisorBtn" onclick="sendAuditEmail('advisor')">Send PDF</button>
-          </div>
-        </div>
-
-        <!-- Audit history for this student -->
-        <div id="historySection" style="display:none;">
-          <label style="font-size:0.78rem;font-weight:600;color:#2e7d32;display:block;margin-bottom:0.3rem;">PREVIOUS AUDITS FOR THIS STUDENT</label>
-          <div class="history-list" id="historyList"></div>
-        </div>
-      </div>
-
     </div>
   </div>
 </main>
@@ -994,7 +881,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       const res = await fetch(endpoint, { method: 'POST', body: form });
       if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
       if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
-      if (!res.ok) { try { const err = await res.json(); toast(typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail) || 'Generation failed.', true); } catch(e) { toast('Generation failed. Check server logs.', true); } return; }
+      if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
       const blob = await res.blob();
       const cd = res.headers.get('Content-Disposition') || '';
       const fnMatch = cd.match(/filename=(.+)/);
@@ -1002,19 +889,9 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       const a = document.createElement('a');
       a.href = url; a.download = fnMatch ? fnMatch[1] : 'audit.pdf';
       a.click(); URL.revokeObjectURL(url);
-
       const remaining = res.headers.get('X-Pulls-Remaining');
-      const pct = parseInt(res.headers.get('X-Progress-Pct') || '0');
-      const satisfied = parseInt(res.headers.get('X-Progress-Satisfied') || '0');
-      const totalReqs = parseInt(res.headers.get('X-Progress-Total') || '0');
-      const pdfPath = res.headers.get('X-Pdf-Path') || '';
-      const fullName = document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim();
-
       toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
       loadStatus();
-      showPostActions(fullName, pct, satisfied, totalReqs, pdfPath);
-
-      // Clear form
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
       ['major1Val','major2Val','minor1Val','minor2Val'].forEach(id => document.getElementById(id).value = '');
@@ -1026,71 +903,6 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
 });
 
 // Load JSZip dynamically for batch mode
-// ── Post-generate: show panel, progress, history ──────────────────────────────
-let lastPdfPath = '';
-let lastStudentName = '';
-
-function showPostActions(studentName, pct, satisfied, total, pdfPath) {
-  lastPdfPath = pdfPath || '';
-  lastStudentName = studentName;
-  document.getElementById('postActions').classList.add('visible');
-  // Progress bar
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressText').textContent = satisfied + ' of ' + total + ' requirements satisfied';
-  // Pre-fill student email guess
-  const emailGuess = studentName.toLowerCase().replace(/\s+/g, '.') + '@anderson.edu';
-  document.getElementById('studentEmail').value = emailGuess;
-  document.getElementById('advisorEmail').value = '';
-  document.getElementById('emailBtn').disabled = false; document.getElementById('emailBtn').textContent = 'Send PDF';
-  document.getElementById('emailAdvisorBtn').disabled = false; document.getElementById('emailAdvisorBtn').textContent = 'Send PDF';
-  // Load audit history
-  loadHistory(studentName);
-}
-
-async function loadHistory(studentName) {
-  try {
-    const res = await fetch('/history/' + encodeURIComponent(studentName));
-    if (!res.ok) return;
-    const data = await res.json();
-    const history = data.history || [];
-    if (history.length > 1) {
-      document.getElementById('historySection').style.display = 'block';
-      document.getElementById('historyList').innerHTML = history.slice(0,-1).reverse().map(h =>
-        `<div class="history-item"><span>${h.ts?.slice(0,16).replace('T',' ')} — ${h.major}</span><span>${h.catalog}</span></div>`
-      ).join('');
-    }
-  } catch(e) {}
-}
-
-async function sendAuditEmail(recipient) {
-  const isAdvisor = recipient === 'advisor';
-  const emailInput = document.getElementById(isAdvisor ? 'advisorEmail' : 'studentEmail');
-  const btn = document.getElementById(isAdvisor ? 'emailAdvisorBtn' : 'emailBtn');
-  const email = emailInput.value.trim();
-  if (!email) { toast('Enter an email address.', true); return; }
-  btn.disabled = true; btn.textContent = 'Sending…';
-  try {
-    const form = new FormData();
-    form.set('student_email', email);
-    form.set('student_name', lastStudentName);
-    form.set('pdf_path', lastPdfPath);
-    form.set('recipient_type', recipient);
-    const res = await fetch('/email-audit', { method: 'POST', body: form });
-    const data = await res.json();
-    if (res.ok) {
-      toast('✓ Audit emailed to ' + email);
-      btn.textContent = '✓ Sent';
-    } else {
-      toast(typeof data.detail === 'string' ? data.detail : 'Email failed.', true);
-      btn.disabled = false; btn.textContent = 'Send PDF';
-    }
-  } catch(e) {
-    toast('Email error. Check server config.', true);
-    btn.disabled = false; btn.textContent = 'Send PDF';
-  }
-}
-
 function loadJSZip() {
   return new Promise((resolve, reject) => {
     if (window.JSZip) { resolve(window.JSZip); return; }
