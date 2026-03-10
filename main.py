@@ -101,7 +101,6 @@ def dashboard(user=Depends(verify)):
 
 @app.post("/generate")
 async def generate(
-    user=Depends(verify),
     student_name: str = Form(...),
     major:        str = Form(...),
     catalog_year: str = Form(...),
@@ -135,7 +134,7 @@ async def generate(
             mod.set_catalog_year(catalog_year)
             mod.build(res, student_name, major_label, tmp_pdf)
 
-        total = record_pull(user, student_name, MAJORS[major]["label"], catalog_year)
+        total = record_pull("advisor", student_name, MAJORS[major]["label"], catalog_year)
 
         filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
         return FileResponse(

@@ -554,7 +554,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
   const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
 
   try {
-    const res = await fetch(endpoint, { method: 'POST', headers: { 'Authorization': getAuthHeader() }, body: form });
+    const res = await fetch(endpoint, { method: 'POST', body: form });
     if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
     if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
     if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
