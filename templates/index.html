@@ -157,6 +157,36 @@
   }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
+  /* RADIO BUTTONS */
+  .radio-group {
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+  }
+  .radio-option {
+    display: flex; align-items: center;
+    cursor: pointer; margin: 0;
+    text-transform: none; letter-spacing: 0; font-weight: 400;
+    font-size: 0.94rem; color: var(--text);
+  }
+  .radio-option input[type="radio"] { display: none; }
+  .radio-option span {
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    color: var(--muted);
+    transition: all 0.18s; white-space: nowrap;
+  }
+  .radio-option input[type="radio"]:checked + span {
+    background: var(--maroon); color: #fff;
+    border-color: var(--maroon);
+    font-weight: 600;
+  }
+  .radio-option:hover span {
+    border-color: var(--orange); color: var(--text);
+  }
+
   /* AUTOCOMPLETE */
   .ac-wrap { position: relative; }
   .ac-wrap input[type="text"] { padding-left: 2.3rem; }
@@ -250,6 +280,12 @@
     text-align: center; padding: 1.1rem;
     font-size: 0.76rem; color: var(--muted);
     border-top: 1px solid var(--border); background: var(--cream2);
+    position: relative; overflow: hidden;
+  }
+  footer::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--maroon), var(--orange), var(--maroon));
   }
   footer a { color: var(--maroon); text-decoration: none; }
 </style>
@@ -318,18 +354,34 @@
         <div class="section-label">Student Information</div>
         <div class="field-row">
           <div class="field">
-            <label>Student Name</label>
-            <input type="text" name="student_name" placeholder="First Last" required autocomplete="off">
+            <label>First Name</label>
+            <input type="text" name="first_name" id="firstName" placeholder="First" required autocomplete="off">
           </div>
           <div class="field">
-            <label>Catalog Year</label>
-            <select name="catalog_year" id="yearSelect" required>
-              <option value="" disabled selected>Select year</option>
-              <option value="2022-23">2022–23</option>
-              <option value="2023-24">2023–24</option>
-              <option value="2024-25">2024–25</option>
-              <option value="2025-26">2025–26</option>
-            </select>
+            <label>Last Name</label>
+            <input type="text" name="last_name" id="lastName" placeholder="Last" required autocomplete="off">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Catalog Year</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="catalog_year" value="2022-23" id="year2022">
+              <span>2022–23</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="catalog_year" value="2023-24" id="year2023">
+              <span>2023–24</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="catalog_year" value="2024-25" id="year2024">
+              <span>2024–25</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="catalog_year" value="2025-26" id="year2025">
+              <span>2025–26</span>
+            </label>
           </div>
         </div>
 
@@ -449,7 +501,8 @@ let majorPrograms = {};
 let minorPrograms = {};
 
 async function loadPrograms() {
-  const year = document.getElementById('yearSelect').value || '2022-23';
+  const checkedYear = document.querySelector('input[name="catalog_year"]:checked');
+  const year = checkedYear ? checkedYear.value : '2022-23';
   try {
     const res = await fetch(`/programs/all/${year}`, { headers: { 'Authorization': getAuthHeader() } });
     if (!res.ok) return;
@@ -468,7 +521,7 @@ async function loadPrograms() {
     });
   } catch(e) {}
 }
-document.getElementById('yearSelect').addEventListener('change', loadPrograms);
+document.querySelectorAll('input[name="catalog_year"]').forEach(r => r.addEventListener('change', loadPrograms));
 
 // ── Autocomplete factory ──────────────────────────────────────────────────────
 function makeAC(inputId, dropId, tagId, hiddenId, getPool) {
@@ -566,6 +619,9 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
 
   const form = new FormData(e.target);
   // Override major field with major1 value
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  form.set('student_name', firstName + ' ' + lastName);
   form.set('major', major1);
 
   const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
@@ -587,7 +643,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     const remaining = res.headers.get('X-Pulls-Remaining');
     toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
     loadStatus();
-    document.getElementById('auditForm').reset();
+    document.getElementById('auditForm').reset(); document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
     document.getElementById('major1Val').value = '';
     document.getElementById('major1Tag').innerHTML = '';
     document.getElementById('major2Val').value = '';
