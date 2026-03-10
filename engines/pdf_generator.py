@@ -159,7 +159,7 @@ class AuditPDFGenerator:
     # PUBLIC
     # ─────────────────────────────────────────────
 
-    def generate(self, audit_result: AuditResult) -> bytes:
+    def generate(self, audit_result: AuditResult, advisor_notes: str = "", waiver_notes: str = "") -> bytes:
         """Generate PDF bytes from an AuditResult."""
         buf = BytesIO()
         doc = SimpleDocTemplate(
@@ -174,6 +174,7 @@ class AuditPDFGenerator:
 
         story += self._build_header(audit_result)
         story += self._build_gpa_bar(audit_result)
+        story += self._build_progress_bar(audit_result)
         story.append(Spacer(1, 0.12 * inch))
 
         if audit_result.liberal_arts:
@@ -193,6 +194,14 @@ class AuditPDFGenerator:
             story.append(Spacer(1, 0.1 * inch))
 
         story += self._build_action_plan(audit_result)
+
+        if waiver_notes and waiver_notes.strip():
+            story.append(Spacer(1, 0.1 * inch))
+            story += self._build_notes_box("Exception / Waiver Notes", waiver_notes, AU_GOLD)
+
+        if advisor_notes and advisor_notes.strip():
+            story.append(Spacer(1, 0.1 * inch))
+            story += self._build_notes_box("Advisor Notes", advisor_notes, AU_MED_GRAY)
 
         story.append(Spacer(1, 0.15 * inch))
         story.append(self._build_footer(audit_result))
@@ -246,6 +255,69 @@ class AuditPDFGenerator:
 
         elements.append(HRFlowable(width="100%", thickness=1, color=AU_MED_GRAY, spaceBefore=6, spaceAfter=4))
         return elements
+
+    # ─────────────────────────────────────────────
+    # PROGRESS BAR
+    # ─────────────────────────────────────────────
+
+    def _build_progress_bar(self, r: AuditResult) -> list:
+        all_reqs = r.liberal_arts + r.business_core + r.major_requirements + r.minor_requirements
+        total = len(all_reqs)
+        if total == 0:
+            return []
+        satisfied = sum(1 for req in all_reqs if req.status == "Satisfied")
+        pct = round(satisfied / total * 100)
+        color = colors.HexColor("#2e7d32") if pct == 100 else AU_GOLD if pct >= 75 else colors.HexColor("#e65100")
+
+        from reportlab.platypus import HRFlowable
+        from reportlab.lib.units import inch
+
+        class ProgressBarFlowable(Flowable):
+            def __init__(self, pct, satisfied, total, bar_color):
+                Flowable.__init__(self)
+                self.pct = pct
+                self.satisfied = satisfied
+                self.total = total
+                self.bar_color = bar_color
+                self.width = 468
+                self.height = 28
+
+            def draw(self):
+                w = self.width
+                # Background track
+                self.canv.setFillColor(colors.HexColor("#e0e0e0"))
+                self.canv.roundRect(0, 8, w, 14, 7, fill=1, stroke=0)
+                # Fill
+                fill_w = max(14, w * self.pct / 100)
+                self.canv.setFillColor(self.bar_color)
+                self.canv.roundRect(0, 8, fill_w, 14, 7, fill=1, stroke=0)
+                # Label
+                self.canv.setFillColor(colors.HexColor("#333333"))
+                self.canv.setFont("Helvetica-Bold", 8)
+                label = f"{self.pct}% Complete  ({self.satisfied} of {self.total} requirements satisfied)"
+                self.canv.drawString(0, 0, label)
+
+        return [Spacer(1, 0.06 * inch), ProgressBarFlowable(pct, satisfied, total, color), Spacer(1, 0.04 * inch)]
+
+    # ─────────────────────────────────────────────
+    # NOTES BOX
+    # ─────────────────────────────────────────────
+
+    def _build_notes_box(self, title: str, notes: str, border_color) -> list:
+        from reportlab.platypus import Table, TableStyle
+        data = [
+            [Paragraph(f"<b>{title}</b>", self.styles["cell_label"])],
+            [Paragraph(notes, self.styles["cell_normal"])],
+        ]
+        t = Table(data, colWidths=["100%"])
+        t.setStyle(TableStyle([
+            ("BOX", (0, 0), (-1, -1), 1.5, border_color),
+            ("BACKGROUND", (0, 0), (-1, 0), AU_LIGHT_GRAY),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ]))
+        return [t]
 
     # ─────────────────────────────────────────────
     # GPA BAR
@@ -420,6 +492,10 @@ class AuditPDFGenerator:
         return Paragraph(
             f"Anderson University — Falls School of Business  |  "
             f"Catalog Year: {r.catalog_year}  |  "
+            f"Selah Academic Solutions · Degree Completion Audit  |  "
+            f"This document is generated for advising purposes only and does not constitute an official transcript.",
+            self.styles["footer"],
+        )
             f"This document is generated for advising purposes only and does not constitute an official transcript.  |  "
             f"Selah Academic Solutions · Graduation Audit Manager",
             self.styles["footer"],

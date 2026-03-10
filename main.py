@@ -3,7 +3,11 @@ Anderson University — Degree Audit Web App
 Indy Collab, LLC
 """
 
-import os, io, csv, json, hashlib, datetime, tempfile, importlib.util
+import os, io, csv, json, hashlib, datetime, tempfile, importlib.util, smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -16,6 +20,8 @@ APP_PASSWORD = os.environ.get("AUDIT_PASSWORD", "ravens2025")   # change in prod
 LOG_FILE     = Path("logs/audit_log.json")
 ENGINES_DIR  = Path("engines")
 MAX_PULLS    = int(os.environ.get("MAX_PULLS", 1000))
+GMAIL_USER   = os.environ.get("GMAIL_USER", "")
+GMAIL_PASS   = os.environ.get("GMAIL_PASS", "")  # App password
 
 MAJORS = {
     "management":     {"label": "Management",     "engine": "management"},
@@ -101,10 +107,12 @@ def dashboard(user=Depends(verify)):
 
 @app.post("/generate")
 async def generate(
-    student_name: str = Form(...),
-    major:        str = Form(...),
-    catalog_year: str = Form(...),
-    transcript:   UploadFile = File(...),
+    student_name:   str = Form(...),
+    major:          str = Form(...),
+    catalog_year:   str = Form(...),
+    transcript:     UploadFile = File(...),
+    advisor_notes:  str = Form(""),
+    waiver_notes:   str = Form(""),
 ):
     if major not in MAJORS:
         raise HTTPException(400, "Invalid major")
@@ -128,6 +136,13 @@ async def generate(
         courses = mod.parse_csv(tmp_csv)
         res     = mod.audit(courses)
         major_label = MAJORS[major]["label"]
+
+        # Calculate progress
+        all_reqs = res.liberal_arts + res.business_core + res.major_requirements + res.minor_requirements
+        total_reqs = len(all_reqs)
+        satisfied_reqs = sum(1 for r in all_reqs if r.status == "Satisfied")
+        pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
+
         mod.build(res, student_name, major_label, tmp_pdf)
 
         if hasattr(mod, 'set_catalog_year'):
@@ -141,7 +156,15 @@ async def generate(
             tmp_pdf,
             media_type="application/pdf",
             filename=filename,
-            headers={"X-Pulls-Used": str(total), "X-Pulls-Remaining": str(MAX_PULLS - total)}
+            headers={
+                "X-Pulls-Used": str(total),
+                "X-Pulls-Remaining": str(MAX_PULLS - total),
+                "X-Progress-Pct": str(pct),
+                "X-Progress-Satisfied": str(satisfied_reqs),
+                "X-Progress-Total": str(total_reqs),
+                "X-Pdf-Path": tmp_pdf,
+                "Access-Control-Expose-Headers": "X-Pulls-Used,X-Pulls-Remaining,X-Progress-Pct,X-Progress-Satisfied,X-Progress-Total,X-Pdf-Path,Content-Disposition",
+            }
         )
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
@@ -151,6 +174,43 @@ async def generate(
 @app.get("/ping")
 def ping():
     return {"ok": True}
+
+@app.get("/history/{student_name}")
+def get_history(student_name: str):
+    log = load_log()
+    student_lower = student_name.lower()
+    history = [p for p in log["pulls"] if p.get("student","").lower() == student_lower]
+    return {"history": history[-20:]}
+
+@app.post("/email-audit")
+async def email_audit(
+    student_email: str = Form(...),
+    student_name:  str = Form(...),
+    pdf_path:      str = Form(...),
+):
+    if not GMAIL_USER or not GMAIL_PASS:
+        raise HTTPException(500, "Email not configured on server.")
+    if not os.path.exists(pdf_path):
+        raise HTTPException(404, "PDF not found. Generate audit first.")
+    try:
+        msg = MIMEMultipart()
+        msg["From"]    = GMAIL_USER
+        msg["To"]      = student_email
+        msg["Subject"] = f"Your Degree Completion Audit — {student_name}"
+        body = f"""Dear {student_name},\n\nPlease find your Degree Completion Audit attached.\n\nIf you have questions, please contact your academic advisor.\n\nSelah Academic Solutions | Anderson University"""
+        msg.attach(MIMEText(body, "plain"))
+        with open(pdf_path, "rb") as f:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f'attachment; filename="{student_name}_Audit.pdf"')
+        msg.attach(part)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(GMAIL_USER, GMAIL_PASS)
+            smtp.send_message(msg)
+        return {"ok": True, "message": f"Audit sent to {student_email}"}
+    except Exception as e:
+        raise HTTPException(500, f"Email failed: {str(e)}")
 
 @app.get("/status")
 def status():
