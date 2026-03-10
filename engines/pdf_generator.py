@@ -496,10 +496,6 @@ class AuditPDFGenerator:
             f"This document is generated for advising purposes only and does not constitute an official transcript.",
             self.styles["footer"],
         )
-            f"This document is generated for advising purposes only and does not constitute an official transcript.  |  "
-            f"Selah Academic Solutions · Graduation Audit Manager",
-            self.styles["footer"],
-        )
 
 
 # ─────────────────────────────────────────────
