@@ -186,7 +186,7 @@ async def generate(
 
     try:
         from engines.audit_engine import run_audit_from_dict, AuditResult
-        from engines.pdf_generator import PDFGenerator
+        from engines.pdf_generator import AuditPDFGenerator as PDFGenerator
 
         course_dicts = parse_student_first_csv(csv_content)
         if not course_dicts:
