@@ -150,6 +150,9 @@
   input[type="text"]:focus, select:focus {
     outline: none; border-color: var(--orange); background: #fff;
   }
+  textarea:focus {
+    outline: none; border-color: var(--orange); background: #fff;
+  }
   select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238C7B5E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 1rem center;
@@ -617,6 +620,20 @@
           </div>
         </div><!-- end batchMode -->
 
+        <!-- ADVISOR EXCEPTIONS -->
+        <div id="exceptionsSection">
+        <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <div class="field">
+          <label>Override Notes</label>
+          <textarea name="exceptions" id="exceptionsInput" rows="4" placeholder="One per line. Examples:&#10;SUB: SPRL-3300 = BSNS-4560&#10;WAIVE: PEHS-1000&#10;STATUS: BSNS-4560 = current" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
+          <div style="font-size:0.73rem;color:var(--muted);margin-top:0.35rem;line-height:1.5;">
+            <strong>SUB: TAKEN = REQUIRED</strong> &nbsp;·&nbsp; substitute one course for a requirement<br>
+            <strong>WAIVE: COURSE</strong> &nbsp;·&nbsp; mark a requirement as advisor-waived<br>
+            <strong>STATUS: COURSE = current / scheduled / satisfied</strong> &nbsp;·&nbsp; override enrollment status
+          </div>
+        </div>
+        </div><!-- end exceptionsSection -->
+
         <div class="divider"></div>
 
         <button type="submit" class="btn-generate" id="submitBtn">
@@ -876,6 +893,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     const lastName = document.getElementById('lastName').value.trim();
     form.set('student_name', firstName + ' ' + lastName);
     form.set('major', major1);
+    form.set('minor1', document.getElementById('minor1Val').value || '');
     const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
     try {
       const res = await fetch(endpoint, { method: 'POST', body: form });
