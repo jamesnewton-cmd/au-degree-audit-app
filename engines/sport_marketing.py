@@ -696,7 +696,7 @@ def audit(courses, minor_key=None):
                 courses=courses)
 
 # ── BUILD PDF ─────────────────────────────────────────────────────────────────
-def build(res, student_name, major_label, out):
+def build(res, student_name, major_label, out, exceptions=''):
     def on_page(canvas, doc):
         canvas.saveState()
         canvas.setFont('Helvetica',7)
@@ -820,6 +820,23 @@ def build(res, student_name, major_label, out):
                                ('BOTTOMPADDING',(0,0),(-1,-1),0)]))
     story.append(side)
     story.append(Spacer(1,10))
+
+    # Advisor Exceptions note (only shown if exceptions were entered)
+    if exceptions and exceptions.strip():
+        exc_lines = [l.strip() for l in exceptions.strip().splitlines() if l.strip() and not l.strip().startswith('#')]
+        if exc_lines:
+            exc_text = '  ·  '.join(exc_lines)
+            exc_row = Table([[Paragraph(
+                f"<b>Advisor Exceptions Applied:</b>  {exc_text}",
+                P['note'])]], colWidths=[CW])
+            exc_row.setStyle(TableStyle([
+                ('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#FFF3CD')),
+                ('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5),
+                ('LEFTPADDING',(0,0),(-1,-1),8),('RIGHTPADDING',(0,0),(-1,-1),8),
+                ('BOX',(0,0),(-1,-1),0.5,colors.HexColor('#E6A817')),
+            ]))
+            story.append(exc_row)
+            story.append(Spacer(1,8))
 
     # Liberal Arts heading
     story.append(Paragraph("Liberal Arts — Current", P['sec_gold']))

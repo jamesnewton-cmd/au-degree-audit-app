@@ -133,11 +133,11 @@ async def generate(
             courses = mod.apply_exceptions(courses, exceptions)
         res     = mod.audit(courses, minor_key=minor1 or None)
         major_label = MAJORS[major]["label"]
-        mod.build(res, student_name, major_label, tmp_pdf)
+        mod.build(res, student_name, major_label, tmp_pdf, exceptions=exceptions)
 
         if hasattr(mod, 'set_catalog_year'):
             mod.set_catalog_year(catalog_year)
-            mod.build(res, student_name, major_label, tmp_pdf)
+            mod.build(res, student_name, major_label, tmp_pdf, exceptions=exceptions)
 
         total = record_pull("advisor", student_name, MAJORS[major]["label"], catalog_year)
 
