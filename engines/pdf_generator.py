@@ -421,7 +421,7 @@ class AuditPDFGenerator:
             f"Anderson University — Falls School of Business  |  "
             f"Catalog Year: {r.catalog_year}  |  "
             f"This document is generated for advising purposes only and does not constitute an official transcript.  |  "
-            f"Indy Collab LLC Audit System",
+            f"Selah Academic Solutions · Graduation Audit Manager",
             self.styles["footer"],
         )
 
