@@ -223,6 +223,54 @@
   .ac-selected button:hover { color: #fff; }
   .ac-hint { font-size: 0.74rem; color: var(--muted); margin-top: 0.3rem; }
 
+  /* MODE TOGGLE */
+  .mode-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--cream2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.75rem 1.1rem;
+    margin-bottom: 1.6rem;
+  }
+  .mode-toggle-label {
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .mode-toggle-label span {
+    display: block; font-size: 0.82rem; font-weight: 600;
+    color: var(--text); text-transform: none; letter-spacing: 0;
+    margin-top: 0.1rem;
+  }
+  .toggle-switch {
+    position: relative; width: 52px; height: 28px; flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 28px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 20px; height: 20px; left: 4px; top: 4px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: var(--maroon); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
+
+  /* BATCH DROP ZONE */
+  .batch-drop {
+    border: 2px dashed var(--border); border-radius: 8px;
+    padding: 2rem 1rem; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--cream); position: relative;
+    display: none;
+  }
+  .batch-drop.visible { display: block; }
+  .batch-drop:hover, .batch-drop.dragover { border-color: var(--orange); background: #fff8f2; }
+  .batch-drop input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .batch-file-list { margin-top: 0.8rem; text-align: left; max-height: 140px; overflow-y: auto; }
+  .batch-file-item { font-size: 0.8rem; color: var(--success); padding: 0.2rem 0; border-bottom: 1px solid var(--cream2); }
+  .batch-file-item:last-child { border: none; }
+  .batch-count { font-size: 0.82rem; color: var(--orange); font-weight: 600; margin-top: 0.5rem; }
+
   /* SECTION DIVIDER */
   .section-label {
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
@@ -348,7 +396,20 @@
 
       <form id="auditForm">
 
-        <!-- STUDENT INFO -->
+        <!-- MODE TOGGLE -->
+        <div class="mode-toggle">
+          <div class="mode-toggle-label">
+            Mode
+            <span id="modeLabel">Single Student</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="batchToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- STUDENT INFO (single mode) -->
+        <div id="singleMode">
         <div class="section-label">Student Information</div>
         <div class="field-row">
           <div class="field">
@@ -429,12 +490,12 @@
           <input type="hidden" name="minor2" id="minor2Val">
         </div>
 
-        <!-- TRANSCRIPT -->
+        <!-- TRANSCRIPT (single) -->
         <div class="section-label">Transcript</div>
         <div class="field">
           <label>Upload CSV</label>
           <div class="file-drop" id="fileDrop">
-            <input type="file" name="transcript" accept=".csv" required id="fileInput">
+            <input type="file" name="transcript" accept=".csv" id="fileInput">
             <span class="file-icon">📄</span>
             <div class="file-drop-text">
               <strong>Click to upload</strong> or drag & drop<br>
@@ -443,6 +504,48 @@
             <div class="file-name" id="fileName"></div>
           </div>
         </div>
+        </div><!-- end singleMode -->
+
+        <!-- BATCH MODE -->
+        <div id="batchMode" style="display:none;">
+          <div class="section-label">Batch — Major & Year</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Major / Program</label>
+              <div class="ac-wrap">
+                <span class="ac-icon">🔍</span>
+                <input type="text" id="batchMajorInput" placeholder="Type to search…" autocomplete="off">
+                <div class="ac-dropdown" id="batchMajorDrop"></div>
+              </div>
+              <div id="batchMajorTag"></div>
+              <input type="hidden" id="batchMajorVal">
+            </div>
+            <div class="field">
+              <label>Catalog Year</label>
+              <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2022-23"><span>2022–23</span></label>
+                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2023-24"><span>2023–24</span></label>
+                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2024-25"><span>2024–25</span></label>
+                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2025-26"><span>2025–26</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Student Transcripts</div>
+          <div class="field">
+            <label>Upload Multiple CSVs</label>
+            <div class="batch-drop visible" id="batchDrop">
+              <input type="file" id="batchFiles" accept=".csv" multiple>
+              <span class="file-icon">📂</span>
+              <div class="file-drop-text">
+                <strong>Click to upload</strong> or drag & drop<br>
+                Select multiple CSV files at once
+              </div>
+              <div class="batch-count" id="batchCount"></div>
+              <div class="batch-file-list" id="batchFileList"></div>
+            </div>
+          </div>
+        </div><!-- end batchMode -->
 
         <div class="divider"></div>
 
@@ -600,6 +703,46 @@ function toast(msg, isError=false) {
   setTimeout(() => t.className = isError ? 'error' : '', 3500);
 }
 
+// ── Batch toggle ──────────────────────────────────────────────────────────────
+const batchToggle = document.getElementById('batchToggle');
+batchToggle.addEventListener('change', () => {
+  const isBatch = batchToggle.checked;
+  document.getElementById('singleMode').style.display = isBatch ? 'none' : 'block';
+  document.getElementById('batchMode').style.display = isBatch ? 'block' : 'none';
+  document.getElementById('modeLabel').textContent = isBatch ? 'Batch Upload' : 'Single Student';
+  // Update required attrs
+  document.getElementById('fileInput').required = !isBatch;
+  document.getElementById('firstName').required = !isBatch;
+  document.getElementById('lastName').required = !isBatch;
+});
+
+// Batch file list display
+document.getElementById('batchFiles').addEventListener('change', function() {
+  const list = document.getElementById('batchFileList');
+  const count = document.getElementById('batchCount');
+  const files = Array.from(this.files);
+  count.textContent = files.length + ' file' + (files.length !== 1 ? 's' : '') + ' selected';
+  list.innerHTML = files.map(f => `<div class="batch-file-item">✓ ${f.name}</div>`).join('');
+});
+
+// Batch drag and drop
+const batchDrop = document.getElementById('batchDrop');
+['dragover','dragenter'].forEach(e => batchDrop.addEventListener(e, ev => { ev.preventDefault(); batchDrop.classList.add('dragover'); }));
+['dragleave','drop'].forEach(e => batchDrop.addEventListener(e, ev => { ev.preventDefault(); batchDrop.classList.remove('dragover'); }));
+batchDrop.addEventListener('drop', ev => {
+  const files = Array.from(ev.dataTransfer.files).filter(f => f.name.endsWith('.csv'));
+  if (files.length) {
+    const dt = new DataTransfer();
+    files.forEach(f => dt.items.add(f));
+    document.getElementById('batchFiles').files = dt.files;
+    document.getElementById('batchCount').textContent = files.length + ' file' + (files.length !== 1 ? 's' : '') + ' selected';
+    document.getElementById('batchFileList').innerHTML = files.map(f => `<div class="batch-file-item">✓ ${f.name}</div>`).join('');
+  }
+});
+
+// Register batch major autocomplete
+makeAC('batchMajorInput','batchMajorDrop','batchMajorTag','batchMajorVal', () => allPrograms);
+
 // ── Submit ────────────────────────────────────────────────────────────────────
 const FSB_KEYS = ['management','sport_marketing','marketing','accounting','finance',
   'business_analytics','engineering_management','global_business',
@@ -607,53 +750,99 @@ const FSB_KEYS = ['management','sport_marketing','marketing','accounting','finan
 
 document.getElementById('auditForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const major1 = document.getElementById('major1Val').value;
-  if (!major1) { toast('Please select a primary major.', true); return; }
-
+  const isBatch = document.getElementById('batchToggle').checked;
   const btn = document.getElementById('submitBtn');
   const spinner = document.getElementById('spinner');
   const btnText = document.getElementById('btnText');
-  btn.disabled = true; spinner.style.display = 'block'; btnText.textContent = 'Generating…';
+  btn.disabled = true; spinner.style.display = 'block';
 
-  const form = new FormData(e.target);
-  // Override major field with major1 value
-  const firstName = document.getElementById('firstName').value.trim();
-  const lastName = document.getElementById('lastName').value.trim();
-  form.set('student_name', firstName + ' ' + lastName);
-  form.set('major', major1);
-
-  const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
-
-  try {
-    const res = await fetch(endpoint, { method: 'POST', body: form });
-    if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
-    if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
-    if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
-
-    const blob = await res.blob();
-    const cd   = res.headers.get('Content-Disposition') || '';
-    const fnMatch = cd.match(/filename=(.+)/);
-    const url = URL.createObjectURL(blob);
+  if (isBatch) {
+    // ── BATCH MODE ──
+    const batchMajor = document.getElementById('batchMajorVal').value;
+    const batchYear = document.querySelector('input[name="batch_catalog_year"]:checked')?.value;
+    const batchFilesEl = document.getElementById('batchFiles');
+    if (!batchMajor) { toast('Please select a major for the batch.', true); btn.disabled=false; spinner.style.display='none'; return; }
+    if (!batchYear) { toast('Please select a catalog year.', true); btn.disabled=false; spinner.style.display='none'; return; }
+    if (!batchFilesEl.files.length) { toast('Please upload at least one CSV file.', true); btn.disabled=false; spinner.style.display='none'; return; }
+    const files = Array.from(batchFilesEl.files);
+    btnText.textContent = `Processing 0 of ${files.length}…`;
+    const endpoint = FSB_KEYS.includes(batchMajor) ? '/generate' : '/audit/non-fsb';
+    const JSZip = await loadJSZip();
+    const zip = new JSZip();
+    let done = 0;
+    for (const file of files) {
+      const studentName = file.name.replace('.csv','').replace(/_/g,' ');
+      const form = new FormData();
+      form.set('student_name', studentName);
+      form.set('major', batchMajor);
+      form.set('catalog_year', batchYear);
+      form.set('transcript', file);
+      try {
+        const res = await fetch(endpoint, { method: 'POST', body: form });
+        if (res.ok) {
+          const blob = await res.blob();
+          zip.file(studentName.replace(/ /g,'_') + '_Audit.pdf', blob);
+        }
+      } catch(err) {}
+      done++;
+      btnText.textContent = `Processing ${done} of ${files.length}…`;
+    }
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = fnMatch ? fnMatch[1] : 'audit.pdf';
+    a.href = url; a.download = 'batch_audits.zip';
     a.click(); URL.revokeObjectURL(url);
-
-    const remaining = res.headers.get('X-Pulls-Remaining');
-    toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
+    toast(`✓ ${done} audits generated and zipped!`);
     loadStatus();
-    document.getElementById('auditForm').reset(); document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
-    document.getElementById('major1Val').value = '';
-    document.getElementById('major1Tag').innerHTML = '';
-    document.getElementById('major2Val').value = '';
-    document.getElementById('major2Tag').innerHTML = '';
-    document.getElementById('minor1Val').value = '';
-    document.getElementById('minor1Tag').innerHTML = '';
-    document.getElementById('minor2Val').value = '';
-    document.getElementById('minor2Tag').innerHTML = '';
-    document.getElementById('fileName').style.display = 'none';
-  } catch(err) { toast('Network error. Please try again.', true); }
-  finally { btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit PDF'; }
+    btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF';
+
+  } else {
+    // ── SINGLE MODE ──
+    btnText.textContent = 'Generating…';
+    const major1 = document.getElementById('major1Val').value;
+    if (!major1) { toast('Please select a primary major.', true); btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; return; }
+    const form = new FormData(e.target);
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    form.set('student_name', firstName + ' ' + lastName);
+    form.set('major', major1);
+    const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
+    try {
+      const res = await fetch(endpoint, { method: 'POST', body: form });
+      if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
+      if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
+      if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const fnMatch = cd.match(/filename=(.+)/);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fnMatch ? fnMatch[1] : 'audit.pdf';
+      a.click(); URL.revokeObjectURL(url);
+      const remaining = res.headers.get('X-Pulls-Remaining');
+      toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
+      loadStatus();
+      document.getElementById('auditForm').reset();
+      document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
+      ['major1Val','major2Val','minor1Val','minor2Val'].forEach(id => document.getElementById(id).value = '');
+      ['major1Tag','major2Tag','minor1Tag','minor2Tag'].forEach(id => document.getElementById(id).innerHTML = '');
+      document.getElementById('fileName').style.display = 'none';
+    } catch(err) { toast('Network error. Please try again.', true); }
+    finally { btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; }
+  }
 });
+
+// Load JSZip dynamically for batch mode
+function loadJSZip() {
+  return new Promise((resolve, reject) => {
+    if (window.JSZip) { resolve(window.JSZip); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
 </script>
 </body>
 </html>
