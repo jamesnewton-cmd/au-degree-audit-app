@@ -37,11 +37,8 @@
     border-bottom: 3px solid var(--orange);
   }
   .header-brand { display: flex; align-items: center; gap: 0.75rem; }
-  .header-brand-dot {
-    width: 32px; height: 32px; background: var(--orange);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif; font-size: 0.9rem;
-    color: var(--black); font-weight: 700;
+  .header-keystone {
+    width: 36px; height: 36px; flex-shrink: 0;
   }
   .header-brand-text {
     font-family: 'Playfair Display', serif;
@@ -273,7 +270,14 @@
 
 <header>
   <div class="header-brand">
-    <div class="header-brand-dot">S</div>
+    <svg class="header-keystone" viewBox="0 0 36 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 2 L34 12 L34 38 L2 38 L2 12 Z" fill="none" stroke="#ff720d" stroke-width="1.5"/>
+      <path d="M10 38 L10 22 Q10 14 18 14 Q26 14 26 22 L26 38" fill="none" stroke="#ff720d" stroke-width="1.5"/>
+      <path d="M14 16 Q14 10 18 8 Q22 10 22 16" fill="#ff720d" opacity="0.9"/>
+      <line x1="18" y1="2" x2="18" y2="8" stroke="#ff720d" stroke-width="1.5"/>
+      <line x1="2" y1="20" x2="6" y2="20" stroke="#ff720d" stroke-width="1"/>
+      <line x1="30" y1="20" x2="34" y2="20" stroke="#ff720d" stroke-width="1"/>
+    </svg>
     <div class="header-brand-text">Selah &nbsp;·&nbsp; <span>Academic Solutions</span></div>
   </div>
   <nav class="header-nav">
@@ -391,8 +395,7 @@
 <div id="toast"></div>
 
 <footer>
-  Powered by <a href="https://indycollab.com" target="_blank">Indy Collab, LLC</a> &nbsp;·&nbsp;
-  Selah Academic Solutions &nbsp;·&nbsp; Audit Engine v2
+  <strong>Selah Academic Solutions</strong> &nbsp;·&nbsp; Graduation Audit Manager &nbsp;·&nbsp; Audit Engine v2
 </footer>
 
 <script>
@@ -570,6 +573,16 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     const remaining = res.headers.get('X-Pulls-Remaining');
     toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
     loadStatus();
+    document.getElementById('auditForm').reset();
+    document.getElementById('major1Val').value = '';
+    document.getElementById('major1Tag').innerHTML = '';
+    document.getElementById('major2Val').value = '';
+    document.getElementById('major2Tag').innerHTML = '';
+    document.getElementById('minor1Val').value = '';
+    document.getElementById('minor1Tag').innerHTML = '';
+    document.getElementById('minor2Val').value = '';
+    document.getElementById('minor2Tag').innerHTML = '';
+    document.getElementById('fileName').style.display = 'none';
   } catch(err) { toast('Network error. Please try again.', true); }
   finally { btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit PDF'; }
 });
