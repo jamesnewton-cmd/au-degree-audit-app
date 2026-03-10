@@ -133,17 +133,105 @@ def parse_csv(path):
     # Priority: grade posted > current > dropped > not started/blank
     seen = {}
     def priority(c):
-        if c['status'] == 'grade posted' and c['grade'].upper() not in ('','W','DRP','NC'): return 0
-        if c['status'] == 'current': return 1
-        if c['status'] == 'scheduled': return 2
-        if c['status'] == 'grade posted' and c['grade'].upper() == 'NC': return 3
-        if c['status'] == 'dropped' or c['grade'].upper() in ('DRP','W'): return 4
-        return 5
+        g = c['grade'].upper()
+        if c['status'] == 'grade posted' and g == 'T': return 0          # transfer always wins
+        if c['status'] == 'grade posted' and g not in ('','W','DRP','NC','F'): return 1  # passing grade
+        if c['status'] == 'current': return 2
+        if c['status'] == 'scheduled': return 3
+        if c['status'] == 'grade posted' and g == 'F': return 4           # F loses to transfer/passing
+        if c['status'] == 'grade posted' and g == 'NC': return 5
+        if c['status'] == 'dropped' or g in ('DRP','W'): return 6
+        return 7
     for c in rows:
         k = c['code']
         if k not in seen or priority(c) < priority(seen[k]):
             seen[k] = c
     return list(seen.values())
+
+# ── ADVISOR EXCEPTIONS ────────────────────────────────────────────────────────
+def apply_exceptions(courses, exceptions_text):
+    """
+    Parse advisor exception notes and inject synthetic course records.
+
+    Supported formats (one per line, case-insensitive):
+      SUB: SPRL-3300 = BSNS-4560   → treat SPRL-3300 as satisfying BSNS-4560's slot
+      WAIVE: PEHS-1000              → mark PEHS-1000 as satisfied (waived, 0 cr)
+      STATUS: BSNS-4560 = current   → override a course's status (current/scheduled/satisfied)
+    """
+    courses = list(courses)
+    cm = {c['code']: c for c in courses}
+
+    for raw_line in exceptions_text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#'):
+            continue
+
+        upper = line.upper()
+
+        # SUB: TAKEN-CODE = REQUIRED-CODE
+        if upper.startswith('SUB:'):
+            try:
+                body = line[4:].strip()
+                taken_raw, req_raw = [x.strip() for x in body.split('=', 1)]
+                taken_code = norm(taken_raw)
+                req_code   = norm(req_raw)
+                # Find the actual taken course record
+                taken = cm.get(taken_code)
+                if taken:
+                    # Inject a clone under the required code so audit() finds it
+                    clone = dict(taken)
+                    clone['code'] = req_code
+                    clone['raw']  = req_raw.upper().replace('_', '-')
+                    clone['name'] = taken['name'] + f' (sub for {req_raw.upper()})'
+                    # Add or replace in courses list
+                    courses = [c for c in courses if c['code'] != req_code]
+                    courses.append(clone)
+                    cm[req_code] = clone
+            except Exception:
+                pass
+
+        # WAIVE: COURSE-CODE
+        elif upper.startswith('WAIVE:'):
+            try:
+                waived_raw  = line[6:].strip()
+                waived_code = norm(waived_raw)
+                synthetic = {
+                    'code':     waived_code,
+                    'raw':      waived_raw.upper().replace('_', '-'),
+                    'name':     f'{waived_raw.upper()} (Advisor Waiver)',
+                    'cr':       0,
+                    'status':   'grade posted',
+                    'grade':    'W/V',
+                    'reg_date': '',
+                }
+                courses = [c for c in courses if c['code'] != waived_code]
+                courses.append(synthetic)
+                cm[waived_code] = synthetic
+            except Exception:
+                pass
+
+        # STATUS: COURSE-CODE = current|scheduled|satisfied
+        elif upper.startswith('STATUS:'):
+            try:
+                body = line[7:].strip()
+                code_raw, status_raw = [x.strip() for x in body.split('=', 1)]
+                code   = norm(code_raw)
+                status = status_raw.strip().lower()
+                STATUS_MAP = {
+                    'current':   'current',
+                    'scheduled': 'scheduled',
+                    'satisfied': 'grade posted',
+                    'complete':  'grade posted',
+                }
+                mapped = STATUS_MAP.get(status)
+                if mapped and code in cm:
+                    cm[code]['status'] = mapped
+                    if mapped == 'grade posted' and cm[code]['grade'].upper() in ('', 'W', 'DRP', 'NC', 'F'):
+                        cm[code]['grade'] = 'T'  # treat as transfer/satisfied
+            except Exception:
+                pass
+
+    return courses
 
 def _int(v):
     try: return int(str(v).strip())
@@ -158,6 +246,9 @@ def drop(c):  return c['grade'].upper() in ('DRP','W') or c['status']=='dropped'
 def best(courses, codes):
     norms = [norm(x) for x in codes]
     found = [c for c in courses if c['code'] in norms and not drop(c)]
+    # Prefer done records that aren't F (e.g. transfer T beats original F)
+    for f in found:
+        if done(f) and f['grade'].upper() != 'F': return f
     for f in found:
         if done(f): return f
     for f in found:
@@ -192,6 +283,7 @@ def status_para(s):
 def grade_disp(c):
     if c is None: return ''
     if ip(c): return 'IP'
+    if xfer(c): return 'T'
     return c['grade'] if c['grade'] else ''
 
 def cr_disp(c, fallback=''):
@@ -234,6 +326,24 @@ SMKT_REQ = [
 ELEC_OPTS = ['BSNS_3550','BSNS_3400','BSNS_4400','BSNS_3120',
              'BSNS_3240','BSNS_3510','BSNS_4050','BSNS_4120',
              'BSNS_4240','BSNS_4250','BSNS_4310','BSNS_4310_23']
+
+# ── MINOR DEFINITIONS ─────────────────────────────────────────────────────────
+# Athletic Coaching Minor (KINESIOLOGY_EXTRA version — 15 cr)
+ATHLETIC_COACHING_MINOR = [
+    # (id, label, options, default_cr, note)
+    ('PEHS_1450', 'PEHS-1450 Care/Prevention of Injuries & Illnesses', ['PEHS_1450'], 3, ''),
+    ('PEHS_1550', 'PEHS-1550 Care/Prevention of Injuries & Illnesses II', ['PEHS_1550'], 3, ''),
+    ('ATRG_1530', 'ATRG-1530 or EXSC-4010 Strength & Conditioning', ['ATRG_1530','EXSC_4010'], 3, 'choose one'),
+    ('PEHS_2340', 'PEHS-2340 or PEHS-3340 Psychology/Sociology of Sport', ['PEHS_2340','PEHS_3340'], 3, 'choose one'),
+    ('ELEC',      'Coaching Elective — 4-5 hrs from PEHS/EXSC/SPRL upper-division', [], 4, 'elective'),
+]
+
+# Coaching elective pool (upper-division PEHS/EXSC/SPRL 3000+)
+COACHING_ELEC_POOL = [
+    'PEHS_3030','PEHS_3040','PEHS_3050','PEHS_3060','PEHS_3070','PEHS_3080',
+    'PEHS_3340','PEHS_3410','EXSC_3100','EXSC_3200','EXSC_3300','EXSC_4010',
+    'SPRL_3150','SPRL_3250','SPRL_3300','SPRL_4850',
+]
 
 # Liberal Arts rows (Area label, Course display, Requirement text, option codes, default_cr)
 LA_ROWS = [
@@ -278,7 +388,159 @@ LA_ROWS = [
 ]
 
 # ── AUDIT ─────────────────────────────────────────────────────────────────────
-def audit(courses):
+# ── MINOR AUDIT DISPATCH ─────────────────────────────────────────────────────
+# Maps minor_key → (requirement_rows, elective_pool)
+# requirement_rows: list of (id, label, option_codes, default_cr, note)
+#   note == 'elective' triggers pool-based elective logic
+# elective_pool: set of norm'd course codes eligible as electives
+
+MINOR_DEFS = {
+    'athletic_coaching_minor': {
+        'name': 'Athletic Coaching Minor',
+        'rows': ATHLETIC_COACHING_MINOR,
+        'elec_pool': COACHING_ELEC_POOL,
+    },
+    'sport_marketing_minor': {
+        'name': 'Sport Marketing Minor',
+        'rows': [
+            ('BSNS_3130','BSNS-3130 Sport Marketing',              ['BSNS_3130'], 3, ''),
+            ('BSNS_4360','BSNS-4360 Sport Sponsorship and Sales',  ['BSNS_4360'], 3, ''),
+            ('BSNS_4560','BSNS-4560 Business of Game-Day Exper',   ['BSNS_4560'], 3, ''),
+            ('ELEC',     'Sport Mktg Elective — 6 hrs from approved list',
+             ['BSNS_3210','BSNS_3220','BSNS_3550','BSNS_4400','BSNS_4550','BSNS_4800'], 6, 'elective'),
+        ],
+        'elec_pool': {'BSNS_3210','BSNS_3220','BSNS_3550','BSNS_4400','BSNS_4550','BSNS_4800'},
+        'elec_needed': 6,
+    },
+    'accounting_minor': {
+        'name': 'Accounting Minor',
+        'rows': [
+            ('ACCT_2010','ACCT-2010 Principles of Accounting I',   ['ACCT_2010'], 3, ''),
+            ('ACCT_2020','ACCT-2020 Principles of Accounting II',  ['ACCT_2020'], 3, ''),
+            ('ELEC',     'Accounting Elective — 9 hrs from ACCT 3000+',
+             ['ACCT_3010','ACCT_3020','ACCT_3110','ACCT_3500','ACCT_4020','ACCT_4050','ACCT_4100'], 9, 'elective'),
+        ],
+        'elec_pool': {'ACCT_3010','ACCT_3020','ACCT_3110','ACCT_3500','ACCT_4020','ACCT_4050','ACCT_4100'},
+        'elec_needed': 9,
+    },
+    'management_minor': {
+        'name': 'Management Minor',
+        'rows': [
+            ('BSNS_2710','BSNS-2710 Principles of Management',     ['BSNS_2710'], 3, ''),
+            ('BSNS_3270','BSNS-3270 Project Management',           ['BSNS_3270'], 3, ''),
+            ('ELEC',     'Management Elective — 9 hrs from approved list',
+             ['BSNS_3240','BSNS_3550','BSNS_4050','BSNS_4240','BSNS_4250','BSNS_4310'], 9, 'elective'),
+        ],
+        'elec_pool': {'BSNS_3240','BSNS_3550','BSNS_4050','BSNS_4240','BSNS_4250','BSNS_4310'},
+        'elec_needed': 9,
+    },
+    'marketing_minor': {
+        'name': 'Marketing Minor',
+        'rows': [
+            ('BSNS_2810','BSNS-2810 Principles of Marketing',      ['BSNS_2810'], 3, ''),
+            ('BSNS_4330','BSNS-4330 Marketing Management',         ['BSNS_4330'], 3, ''),
+            ('ELEC',     'Marketing Elective — 9 hrs from approved list',
+             ['BSNS_3210','BSNS_3220','BSNS_3130','BSNS_4110','BSNS_4240','BSNS_4310','BSNS_4360','BSNS_4400','BSNS_4550'], 9, 'elective'),
+        ],
+        'elec_pool': {'BSNS_3210','BSNS_3220','BSNS_3130','BSNS_4110','BSNS_4240','BSNS_4310','BSNS_4360','BSNS_4400','BSNS_4550'},
+        'elec_needed': 9,
+    },
+    'finance_minor': {
+        'name': 'Finance Minor',
+        'rows': [
+            ('BSNS_2510','BSNS-2510 Principles of Finance',        ['BSNS_2510'], 3, ''),
+            ('ELEC',     'Finance Elective — 12 hrs from approved list',
+             ['BSNS_3510','BSNS_4050','BSNS_4120','BSNS_4310','BSNS_4310_23'], 12, 'elective'),
+        ],
+        'elec_pool': {'BSNS_3510','BSNS_4050','BSNS_4120','BSNS_4310','BSNS_4310_23'},
+        'elec_needed': 12,
+    },
+    'global_business_minor': {
+        'name': 'Global Business Minor',
+        'rows': [
+            ('BSNS_3120','BSNS-3120 Global Business',              ['BSNS_3120'], 3, ''),
+            ('ELEC',     'Global Business Elective — 12 hrs from approved list',
+             ['BSNS_3400','BSNS_3550','BSNS_4050','BSNS_4240','BSNS_4400'], 12, 'elective'),
+        ],
+        'elec_pool': {'BSNS_3400','BSNS_3550','BSNS_4050','BSNS_4240','BSNS_4400'},
+        'elec_needed': 12,
+    },
+    'economics_minor': {
+        'name': 'Economics Minor',
+        'rows': [
+            ('ECON_2010','ECON-2010 Principles of Macroeconomics', ['ECON_2010'], 3, ''),
+            ('ECON_2020','ECON-2020 Principles of Microeconomics', ['ECON_2020'], 3, ''),
+            ('ELEC',     'Economics Elective — 9 hrs from ECON 3000+', [], 9, 'elective'),
+        ],
+        'elec_pool': set(),  # any ECON 3000+; checked dynamically
+        'elec_needed': 9,
+        'elec_dept_prefix': 'ECON_3',
+    },
+}
+
+def _run_minor_rows(courses, rows, elec_pool, elec_needed, find, status_of, elec_dept_prefix=None):
+    """Core logic shared by all minors. Returns list of minor_row dicts."""
+    minor_rows = []
+    core_used = set()
+
+    for rid, label, opts, dcr, note in rows:
+        if note == 'elective':
+            # Build pool: explicit pool + optional dept prefix for open electives
+            pool = set(elec_pool)
+            if elec_dept_prefix:
+                pool |= {c['code'] for c in courses if c['code'].startswith(elec_dept_prefix)}
+
+            elec_done = [c for c in courses if c['code'] in pool
+                         and done(c) and c['code'] not in core_used]
+            elec_ip   = [c for c in courses if c['code'] in pool
+                         and (ip(c) or sched(c)) and c['code'] not in core_used]
+            elec_hrs     = sum(c['cr'] for c in elec_done)
+            elec_hrs_ip  = sum(c['cr'] for c in elec_ip)
+            needed = elec_needed if elec_needed else dcr
+
+            if elec_hrs >= needed:
+                s = 'Satisfied'
+            elif elec_hrs + elec_hrs_ip >= needed:
+                s = 'Current' if any(ip(c) for c in elec_ip) else 'Scheduled'
+            elif elec_done or elec_ip:
+                s = 'Not Satisfied'
+            else:
+                s = 'Not Satisfied'
+
+            minor_rows.append({'id': rid, 'label': label, 'status': s, 'course': None,
+                                'dcr': needed, 'elec_done': elec_done, 'elec_ip': elec_ip,
+                                'elec_hrs': elec_hrs, 'elec_needed': needed})
+        else:
+            c = find(opts) if opts else None
+            s = status_of(c)
+            if c:
+                core_used.add(c['code'])
+            minor_rows.append({'id': rid, 'label': label, 'status': s, 'course': c,
+                                'dcr': dcr, 'elec_done': [], 'elec_ip': [], 'elec_hrs': 0,
+                                'elec_needed': dcr})
+
+    return minor_rows
+
+
+def audit_minor(courses, minor_key, find, status_of):
+    """Dispatch to the right minor definition. Returns [] if no minor declared."""
+    if not minor_key:
+        return []
+    defn = MINOR_DEFS.get(minor_key)
+    if not defn:
+        return []
+    return _run_minor_rows(
+        courses,
+        defn['rows'],
+        defn.get('elec_pool', set()),
+        defn.get('elec_needed', 0),
+        find,
+        status_of,
+        elec_dept_prefix=defn.get('elec_dept_prefix'),
+    )
+
+
+def audit(courses, minor_key=None):
     cm = cmap(courses)
     def find(codes): return best(courses, codes)
 
@@ -423,9 +685,14 @@ def audit(courses):
     gpa_m=round(mp/mh,2) if mh else 0.0
     proj=earned+ip_hrs
 
+    # ── MINOR AUDIT ───────────────────────────────────────────────────────────
+    minor_rows = audit_minor(courses, minor_key, find, status_of)
+
     return dict(la=la,bc=bc,mr=mr,elecs=elecs,elecs_ip=elecs_ip,ehrs=ehrs,ehrs_ip=ehrs_ip,
                 gpa_o=gpa_o,gpa_m=gpa_m,qp=round(qp,1),
                 gpa_hrs=oh,earned=earned,ip_hrs=ip_hrs,proj=proj,
+                minor_key=minor_key,
+                minor_rows=minor_rows,
                 courses=courses)
 
 # ── BUILD PDF ─────────────────────────────────────────────────────────────────
@@ -699,6 +966,55 @@ def build(res, student_name, major_label, out):
     story.append(notes_row)
     story.append(PageBreak())
 
+    # ── MINOR SECTION ─────────────────────────────────────────────────────────
+    if res.get('minor_rows'):
+        minor_name = MINOR_DEFS.get(res.get('minor_key',''), {}).get('name', 'Minor')
+        story.append(Paragraph(minor_name, P['sec_gold']))
+        story.append(Spacer(1,4))
+
+        # Same column widths as major table
+        mj_cw = [CW*0.13, CW*0.54, CW*0.16, CW*0.07, CW*0.10]
+        minor_hdr = Table([[
+            Paragraph('Course',P['col_hdr']),
+            Paragraph('Requirement',P['col_hdr']),
+            Paragraph('Status',P['col_hdr']),
+            Paragraph('CR',P['col_hdr']),
+            Paragraph('Grade',P['col_hdr']),
+        ]], colWidths=mj_cw)
+        minor_hdr.setStyle(TableStyle([
+            ('BACKGROUND',(0,0),(-1,-1),MAROON),
+            ('TOPPADDING',(0,0),(-1,-1),4),('BOTTOMPADDING',(0,0),(-1,-1),4),
+            ('LEFTPADDING',(0,0),(-1,-1),5),('RIGHTPADDING',(0,0),(-1,-1),5),
+        ]))
+        story.append(minor_hdr)
+
+        row_i = 0
+        for r in res['minor_rows']:
+            c = r['course']
+            if r['id'] == 'ELEC':
+                # Show each completed/IP elective as its own row
+                elec_rows = r['elec_done'] + r['elec_ip']
+                if elec_rows:
+                    for ec in elec_rows:
+                        es = 'Satisfied' if done(ec) else ('Current' if ip(ec) else 'Scheduled')
+                        story.append(mj_row(ec['raw'], ec['name'], es, str(ec['cr']), grade_disp(ec), row_i))
+                        row_i += 1
+                    # If still short, show remaining needed
+                    elec_hrs_total = r['elec_hrs'] + sum(ec['cr'] for ec in r['elec_ip'])
+                    if elec_hrs_total < 4:
+                        story.append(mj_row('', f"Coaching elective — {4 - elec_hrs_total} more hrs needed (PEHS/EXSC/SPRL 3000+)",
+                                            'Not Satisfied', str(4 - elec_hrs_total), '', row_i))
+                        row_i += 1
+                else:
+                    story.append(mj_row('', r['label'], 'Not Satisfied', str(r['dcr']), '', row_i))
+                    row_i += 1
+            else:
+                code = c['raw'] if c else r['id'].replace('_','-')
+                story.append(mj_row(code, r['label'], r['status'], cr_disp(c, r['dcr']), grade_disp(c), row_i))
+                row_i += 1
+
+        story.append(Spacer(1,10))
+
     # ── PAGE 3: COURSE HISTORY ────────────────────────────────────────────────
     story.append(Paragraph("Course History — Repeats Resolved", P['sec_gold']))
     story.append(Spacer(1,4))
@@ -932,6 +1248,38 @@ def build(res, student_name, major_label, out):
     ap_section("Major — Scheduled",        maj_sched,    BLUE_BAR)
     ap_section("Major — Missing",          maj_miss,     BLUE_BAR)
     ap_section("Credit Hours",             credit_items, BLUE_BAR)
+
+    # ── MINOR ACTION PLAN ─────────────────────────────────────────────────────
+    if res.get('minor_rows'):
+        minor_miss=[]; minor_cur=[]; minor_sched=[]
+        for r in res['minor_rows']:
+            if r['id'] == 'ELEC':
+                elec_hrs_total = r['elec_hrs'] + sum(ec['cr'] for ec in r['elec_ip'])
+                if elec_hrs_total < 4:
+                    for ec in r['elec_ip']:
+                        s = 'Current' if ip(ec) else 'Scheduled'
+                        lbl = f"{ec['raw']} {ec['name']}"
+                        if s == 'Current': minor_cur.append((lbl, 'Currently enrolled — complete with passing grade'))
+                        else: minor_sched.append((lbl, 'Scheduled — confirm enrollment'))
+                    if elec_hrs_total == 0 and not r['elec_ip']:
+                        minor_miss.append(('Coaching Elective — 4 hrs needed',
+                            'Enroll in upper-division PEHS/EXSC/SPRL elective (3000+)'))
+            else:
+                if r['status'] == 'Not Satisfied':
+                    minor_miss.append((r['label'], f"Enroll in {r['id'].replace('_','-')}"))
+                elif r['status'] == 'Current':
+                    c = r['course']
+                    minor_cur.append((f"{c['raw']} {c['name']}" if c else r['label'],
+                                      'Currently enrolled — complete with passing grade'))
+                elif r['status'] == 'Scheduled':
+                    c = r['course']
+                    minor_sched.append((f"{c['raw']} {c['name']}" if c else r['label'],
+                                        'Scheduled — confirm enrollment'))
+
+        mn = MINOR_DEFS.get(res.get('minor_key',''), {}).get('name', 'Minor')
+        ap_section(f"Minor — Current ({mn})",  minor_cur,   GOLD_BAR)
+        ap_section(f"Minor — Scheduled ({mn})",minor_sched, GOLD_BAR)
+        ap_section(f"Minor — Missing ({mn})",  minor_miss,  GOLD_BAR)
 
     # Disclaimer
     story.append(Spacer(1,4))

@@ -105,6 +105,8 @@ async def generate(
     major:        str = Form(...),
     catalog_year: str = Form(...),
     transcript:   UploadFile = File(...),
+    exceptions:   str = Form(""),
+    minor1:       str = Form(""),
 ):
     if major not in MAJORS:
         raise HTTPException(400, "Invalid major")
@@ -126,7 +128,10 @@ async def generate(
     try:
         mod = load_engine(major)
         courses = mod.parse_csv(tmp_csv)
-        res     = mod.audit(courses)
+        # Apply advisor exceptions before audit
+        if exceptions.strip() and hasattr(mod, 'apply_exceptions'):
+            courses = mod.apply_exceptions(courses, exceptions)
+        res     = mod.audit(courses, minor_key=minor1 or None)
         major_label = MAJORS[major]["label"]
         mod.build(res, student_name, major_label, tmp_pdf)
 
