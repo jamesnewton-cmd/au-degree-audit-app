@@ -633,6 +633,24 @@
         </div>
         </div><!-- end exceptionsSection -->
 
+        <!-- EMAIL DELIVERY -->
+        <div id="emailSection">
+        <div class="section-label">Email PDF <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <div class="field-row">
+          <div class="field">
+            <label>Advisor Email</label>
+            <input type="email" name="advisor_email" id="advisorEmail" placeholder="advisor@anderson.edu" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Student Email</label>
+            <input type="email" name="student_email" id="studentEmail" placeholder="student@anderson.edu" autocomplete="off">
+          </div>
+        </div>
+        <div style="font-size:0.73rem;color:var(--muted);margin-top:-0.5rem;margin-bottom:0.5rem;">
+          Leave blank to download only. Fill either or both to also send the PDF by email.
+        </div>
+        </div><!-- end emailSection -->
+
         <div class="divider"></div>
 
         <button type="submit" class="btn-generate" id="submitBtn">
@@ -907,7 +925,11 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       a.href = url; a.download = fnMatch ? fnMatch[1] : 'audit.pdf';
       a.click(); URL.revokeObjectURL(url);
       const remaining = res.headers.get('X-Pulls-Remaining');
-      toast('✓ Audit generated!' + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
+      const advisorEmail = document.getElementById('advisorEmail').value.trim();
+      const studentEmail = document.getElementById('studentEmail').value.trim();
+      const emailCount = [advisorEmail, studentEmail].filter(Boolean).length;
+      const emailMsg = emailCount > 0 ? ` · PDF emailed to ${emailCount} recipient${emailCount > 1 ? 's' : ''}.` : '';
+      toast('✓ Audit generated!' + emailMsg + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
       loadStatus();
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
