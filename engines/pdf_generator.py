@@ -270,6 +270,7 @@ class AuditPDFGenerator:
         color = colors.HexColor("#2e7d32") if pct == 100 else AU_GOLD if pct >= 75 else colors.HexColor("#e65100")
 
         from reportlab.platypus import HRFlowable
+        from reportlab.platypus.flowables import Flowable
         from reportlab.lib.units import inch
 
         class ProgressBarFlowable(Flowable):
