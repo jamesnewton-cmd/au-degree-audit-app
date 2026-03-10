@@ -137,10 +137,15 @@ async def generate(
         res     = mod.audit(courses)
         major_label = MAJORS[major]["label"]
 
-        # Calculate progress
-        all_reqs = res.liberal_arts + res.business_core + res.major_requirements + res.minor_requirements
+        # Calculate progress - handle both AuditResult object and dict
+        if hasattr(res, 'liberal_arts'):
+            all_reqs = res.liberal_arts + res.business_core + res.major_requirements + res.minor_requirements
+        elif isinstance(res, dict):
+            all_reqs = res.get('liberal_arts', []) + res.get('business_core', []) + res.get('major_requirements', []) + res.get('minor_requirements', [])
+        else:
+            all_reqs = []
         total_reqs = len(all_reqs)
-        satisfied_reqs = sum(1 for r in all_reqs if r.status == "Satisfied")
+        satisfied_reqs = sum(1 for r in all_reqs if (r.status if hasattr(r, 'status') else r.get('status','')) == "Satisfied")
         pct = round(satisfied_reqs / total_reqs * 100) if total_reqs else 0
 
         mod.build(res, student_name, major_label, tmp_pdf)
