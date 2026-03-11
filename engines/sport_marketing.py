@@ -760,7 +760,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year):
     universal liberal_arts_requirements data (not FSB-specific LA_ROWS).
     Called by main.py for non-FSB major audits.
     """
-    from requirements.liberal_arts_requirements import LA_OLD_FRAMEWORK, LA_NEW_FRAMEWORK
+    from requirements.liberal_arts_requirements import LA_OLD_FRAMEWORK, LA_RAVEN_CORE_2526 as LA_NEW_FRAMEWORK
 
     cm = cmap(courses)
 
