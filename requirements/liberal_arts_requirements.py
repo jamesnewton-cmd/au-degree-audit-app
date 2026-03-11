@@ -1,11 +1,29 @@
 """
 Anderson University — Liberal Arts Requirements
-Covers all 4 catalog years: 2022-23, 2023-24, 2024-25, 2025-26
+Source of truth: Official AU LA Program Requirements PDFs
+  - 22-23: Rev 08/2022
+  - 23-24: Rev 10/2023
+  - 24-25: Rev 10/2024
+  - 25-26: Raven Core / AU Experience (new framework)
+
+Courses may appear in multiple areas (double-dip by design).
+The audit engine is responsible for enforcing that a single course
+is only used to satisfy one requirement at a time.
+
+OR rules (course satisfies ONE but not both):
+  HNRS 2110 → F3 OR W3
+  MLAN 2000 → W6 OR W7
+  SOCI 2450 → F2 OR W7  (22-23 through 24-25)
 """
+
+# ─────────────────────────────────────────────────────────────────────
+# OLD FRAMEWORK: 2022-23, 2023-24, 2024-25
+# ─────────────────────────────────────────────────────────────────────
 
 LA_OLD_FRAMEWORK = {
     "years": ["2022-23", "2023-24", "2024-25"],
 
+    # ── F1 ────────────────────────────────────────────────────────────
     "F1": {
         "label": "F1 Understanding College",
         "credits": 1,
@@ -17,103 +35,132 @@ LA_OLD_FRAMEWORK = {
         "special_rule": "F1_SATISFIES_W8",
     },
 
+    # ── F2 ────────────────────────────────────────────────────────────
+    # Source: All three LA PDFs — same list 22-23 through 24-25 with minor delta
+    # COMM 3200 added in 23-24; ENGR 2060 hrs changed 22-23→24-25 but still counts
+    # SOCI 2450 is F2 OR W7 (OR rule)
     "F2": {
         "label": "F2 Civil Discourse & Critical Reasoning",
-        "credits": {"2022-23": 2, "2023-24": 3, "2024-25": 3},
+        "credits": {"2022-23": "2-4", "2023-24": "2-4", "2024-25": "2-4"},
         "courses": {
             "2022-23": [
-                "LART 1100", "BSNS 3420", "COMM 2200", "COMM 3200",
-                "PHIL 2120", "RLGN 3120",
+                "BIOL 3510", "PUBH 3510",
+                "BSNS 3420",
+                "CMIN 2270",
+                "ENGL 3190", "ENGL 3580",
+                "ENGR 2060",
+                "HIST 2300",
+                "HNRS 2125",
+                "LART 1100",
+                "MUED 1000",
+                "PHIL 2000", "PHIL 2120",
+                "POSC 2020",
+                "PSYC 3200",
+                "RLGN 3120",
+                "SOCI 2450",   # OR rule: F2 OR W7
+                "SPED 2400",
             ],
             "2023-24": [
-                "LART 1100", "BSNS 3420", "COMM 2200", "COMM 3200",
-                "PHIL 2120", "RLGN 3120",
-                # Added from cross-listing PDF (2023-24)
+                "BIOL 3510", "PUBH 3510",
+                "BSNS 3420",
+                "CMIN 2270",
+                "COMM 3200",
                 "ENGL 3190", "ENGL 3580",
+                "ENGR 2060",
                 "HIST 2300",
                 "HNRS 2125",
+                "LART 1100",
+                "MUED 1000",
+                "PHIL 2000", "PHIL 2120",
+                "POSC 2020",
                 "PSYC 3200",
+                "RLGN 3120",
+                "SOCI 2450",   # OR rule: F2 OR W7
+                "SPED 2400",
             ],
             "2024-25": [
-                "LART 1100", "BSNS 3420", "COMM 2200", "COMM 3200",
-                "PHIL 2120", "RLGN 3120",
-                "POSC 2020",
-                "ENGR 2060",
-                # Added from cross-listing PDF
+                "BIOL 3510", "PUBH 3510",
+                "BSNS 3420",
+                "CMIN 2270",
+                "COMM 3200",
                 "ENGL 3190", "ENGL 3580",
+                "ENGR 2060",
                 "HIST 2300",
                 "HNRS 2125",
+                "LART 1100",
+                "MUED 1000",
+                "PHIL 2000", "PHIL 2120",
+                "POSC 2020",
                 "PSYC 3200",
+                "RLGN 3120",
+                "SOCI 2450",   # OR rule: F2 OR W7
+                "SPED 2400",
             ],
         },
-        "notes": {
-            "2023-24": "Added cross-listed courses: ENGL 3190, ENGL 3580 (WI), HIST 2300 (SI), HNRS 2125 (SI), PSYC 3200 (SI)",
-            "2024-25": "POSC 2020 renamed; ENGR 2060 now 2 hrs; cross-listed courses added",
-        }
     },
 
+    # ── F3 ────────────────────────────────────────────────────────────
+    # HNRS 2110 satisfies F3 OR W3 (OR rule — not both)
+    # 22-23/23-24: HNRS 2110 = 5 hrs (Honors Literature and History)
+    # 24-25: HNRS 2110 = 3 hrs (renamed Honors Literature & Writing)
     "F3": {
         "label": "F3 Written Communication",
         "credits": 6,
-        "required_courses": ["ENGL 1100", "ENGL 1110", "ENGL 1120"],
-        "wi_courses_needed": 2,
-        # HNRS 2110 satisfies F3 OR W3 (OR rule — not both)
         "courses": {
             "2022-23": ["ENGL 1100", "ENGL 1110", "ENGL 1120", "HNRS 2110"],
             "2023-24": ["ENGL 1100", "ENGL 1110", "ENGL 1120", "HNRS 2110"],
             "2024-25": ["ENGL 1100", "ENGL 1110", "ENGL 1120", "HNRS 2110"],
         },
-        "wi_courses": {
-            "2022-23": ["BSNS 3120", "BSNS 4910", "ENGL 1120"],
-            "2023-24": ["BSNS 3120", "BSNS 4910", "ENGL 1120"],
-            "2024-25": ["BSNS 3120", "BSNS 4910", "ENGL 1120"],
-        },
-        "notes": "ENGL 1100 and ENGL 1110 are interchangeable; ENGL 1120 required. 2 WI-flagged courses beyond ENGL 1120. HNRS 2110 satisfies F3 OR W3 (not both).",
+        "notes": (
+            "ENGL 1100 / ENGL 1110 are placement-based alternatives. "
+            "ENGL 1120 required. 2 WI courses beyond ENGL 1120 also required. "
+            "HNRS 2110 satisfies F3 OR W3 (not both)."
+        ),
     },
 
+    # ── F4 ────────────────────────────────────────────────────────────
+    # COMM 1000 required; plus one SI-designated course
     "F4": {
         "label": "F4 Speaking and Listening",
         "credits": 3,
         "required_courses": ["COMM 1000"],
         "si_courses_needed": 1,
-        "si_courses": {
-            "2022-23": ["BSNS 3210", "BSNS 4480", "COMM 3310"],
-            "2023-24": [
-                "BSNS 3210", "BSNS 4480", "COMM 3310",
-                # Added from cross-listing PDF (SI-designated)
-                "ARTH 3040", "ENGL 2220", "HIST 2300", "HNRS 2125",
-                "PSYC 3200", "SPAN 3020",
-            ],
-            "2024-25": [
-                "BSNS 3210", "BSNS 4480", "COMM 3310",
-                "ARTH 3040", "ENGL 2220", "HIST 2300", "HNRS 2125",
-                "PSYC 3200", "SPAN 3020",
-            ],
-        },
+        "notes": "COMM 1000 required. One SI-designated course also required. See SI list.",
     },
 
+    # ── F5 ────────────────────────────────────────────────────────────
+    # 22-23: includes CPSC 1100, 1200, 1400; MATH 1220 not listed
+    # 23-24: adds MATH 1220; drops CPSC 1400
+    # 24-25: drops CPSC 1100, 1200 (keeps CPSC 2020); adds MATH 1220
     "F5": {
         "label": "F5 Quantitative Reasoning",
         "credits": 3,
         "courses": {
             "2022-23": [
                 "CPSC 1100", "CPSC 1200", "CPSC 1400", "CPSC 2020",
+                "LEAD 3100",
                 "MATH 1100", "MATH 1250", "MATH 1300", "MATH 1400",
-                "MATH 2010", "MATH 2120", "PSYC 2440",
+                "MATH 2010", "MATH 2120",
+                "PSYC 2440",
             ],
             "2023-24": [
                 "CPSC 1100", "CPSC 1200", "CPSC 2020",
+                "LEAD 3100",
                 "MATH 1100", "MATH 1220", "MATH 1250", "MATH 1300", "MATH 1400",
-                "MATH 2010", "MATH 2120", "PSYC 2440",
+                "MATH 2010", "MATH 2120",
+                "PSYC 2440",
             ],
             "2024-25": [
                 "CPSC 2020",
+                "LEAD 3100",
                 "MATH 1100", "MATH 1220", "MATH 1250", "MATH 1300",
-                "MATH 2010", "MATH 2120", "PSYC 2440",
+                "MATH 2010", "MATH 2120",
+                "PSYC 2440",
             ],
         },
     },
 
+    # ── F6 ────────────────────────────────────────────────────────────
     "F6": {
         "label": "F6 Biblical Literacy",
         "credits": 3,
@@ -124,307 +171,683 @@ LA_OLD_FRAMEWORK = {
         },
     },
 
+    # ── F7 ────────────────────────────────────────────────────────────
     "F7": {
         "label": "F7 Personal Wellness",
         "credits": 2,
         "courses": {
-            "2022-23": ["PEHS 1000"],
-            "2023-24": ["PEHS 1000"],
-            "2024-25": ["PEHS 1000"],
+            "2022-23": ["DANC 3060", "NURS 1210", "PEHS 1000"],
+            "2023-24": ["DANC 3060", "NURS 1210", "PEHS 1000"],
+            "2024-25": ["DANC 3060", "NURS 1210", "PEHS 1000"],
         },
-        "notes": "PEHS 1000 test-out available all years",
+        "notes": "PEHS 1000 test-out available for prior practical experience.",
     },
 
+    # ── W1 ────────────────────────────────────────────────────────────
+    # BIBL/RLGN 3000 is also WI
+    # HNRS 3325 Honors only
     "W1": {
         "label": "W1 Christian Ways of Knowing",
         "credits": 3,
         "courses": {
-            "2022-23": ["BIBL 3410", "RLGN 3010", "HNRS 3325"],
+            "2022-23": [
+                "BIBL 3000", "RLGN 3000",   # cross-listed, also WI
+                "BIBL 3410",
+                "HNRS 3325",
+                "PHIL 3250", "RLGN 3250",   # cross-listed
+                "RLGN 3010", "RLGN 3020", "RLGN 3100",
+            ],
             "2023-24": [
-                "BIBL 3410", "RLGN 3010", "HNRS 3325",
-                # Added from cross-listing PDF — BIBL/RLGN 3000 satisfy W1 and WI
                 "BIBL 3000", "RLGN 3000",
+                "BIBL 3410",
+                "HNRS 3325",
+                "PHIL 3250", "RLGN 3250",
+                "RLGN 3010", "RLGN 3020", "RLGN 3100",
             ],
             "2024-25": [
-                "BIBL 3410", "RLGN 3010", "HNRS 3325",
                 "BIBL 3000", "RLGN 3000",
+                "BIBL 3410",
+                "HNRS 3325",
+                "PHIL 3250", "RLGN 3250",
+                "RLGN 3010", "RLGN 3020", "RLGN 3100",
             ],
         },
     },
 
+    # ── W2 ────────────────────────────────────────────────────────────
+    # 22-23: includes PHYS 1140 (Musical Acoustics); 24-25 drops PHYS 1140 and PHYS 1240
+    # CPSC 2040 added in 23-24
     "W2": {
         "label": "W2 Scientific Ways of Knowing",
         "credits": 4,
         "courses": {
             "2022-23": [
-                "BIOL 1000", "BIOL 2080", "BIOL 2210", "BIOL 2230",
+                "BIOL 1000", "BIOL 2070", "BIOL 2080", "BIOL 2210",
                 "CHEM 1000", "CHEM 2110",
-                "EXSC 2140", "HNRS 2210",
-                "PHYS 1020", "PHYS 1140", "PHYS 2140", "PHYS 2240",
+                "EXSC 2140",
+                "HNRS 2210",
+                "PHYS 1000", "PHYS 1020", "PHYS 1140", "PHYS 1240",
+                "PHYS 2140", "PHYS 2240",
+                "PSYC 3210",
             ],
             "2023-24": [
-                "BIOL 1000", "BIOL 2080", "BIOL 2210", "BIOL 2230",
+                "BIOL 1000", "BIOL 2070", "BIOL 2080", "BIOL 2210",
                 "CHEM 1000", "CHEM 2110",
                 "CPSC 2040",
-                "EXSC 2140", "HNRS 2210",
-                "PHYS 1020", "PHYS 1140", "PHYS 2140", "PHYS 2240",
+                "EXSC 2140",
+                "HNRS 2210",
+                "PHYS 1000", "PHYS 1020", "PHYS 1240",
+                "PHYS 2140", "PHYS 2240",
+                "PSYC 3210",
             ],
             "2024-25": [
-                "BIOL 1000", "BIOL 2080", "BIOL 2210", "BIOL 2230",
+                "BIOL 1000", "BIOL 2070", "BIOL 2080", "BIOL 2210",
                 "CHEM 1000", "CHEM 2110",
                 "CPSC 2040",
-                "EXSC 2140", "HNRS 2210",
-                "PHYS 1020", "PHYS 1140", "PHYS 2140", "PHYS 2240",
+                "EXSC 2140",
+                "HNRS 2210",
+                "PHYS 1000", "PHYS 1020", "PHYS 1240",
+                "PHYS 2140", "PHYS 2240",
+                "PSYC 3210",
             ],
         },
     },
 
+    # ── W3 ────────────────────────────────────────────────────────────
+    # HNRS 2110 satisfies W3 OR F3 (OR rule)
+    # 24-25: HNRS 2300 (Honors History) replaces HNRS 2110 in W3 list
     "W3": {
         "label": "W3 Civic Ways of Knowing",
         "credits": 3,
         "courses": {
             "2022-23": [
-                "HIST 2030", "HIST 2040", "HIST 2110", "HIST 2120",
+                "HIST 2000", "HIST 2030", "HIST 2040",
+                "HIST 2110", "HIST 2120",
+                "HNRS 2110",   # OR rule: W3 OR F3
                 "POSC 2100",
             ],
             "2023-24": [
-                "HIST 2030", "HIST 2040", "HIST 2110", "HIST 2120",
+                "HIST 2000", "HIST 2030", "HIST 2040",
+                "HIST 2110", "HIST 2120",
+                "HNRS 2110",   # OR rule: W3 OR F3
                 "POSC 2100",
             ],
             "2024-25": [
-                "HIST 2030", "HIST 2040", "HIST 2110", "HIST 2120",
+                "HIST 2000", "HIST 2030", "HIST 2040",
+                "HIST 2110", "HIST 2120",
+                "HNRS 2110",   # OR rule: W3 OR F3
+                "HNRS 2300",   # new in 24-25 (Honors History)
                 "POSC 2100",
             ],
         },
     },
 
+    # ── W4 ────────────────────────────────────────────────────────────
+    # Three paths:
+    #   AE  = one 3-hr integrative course (satisfies W4 alone)
+    #   AP + AX = one Appreciation course + one Experiential course
+    # ENGL 2500 is AP and also WI-designated
+    # COMM 2550 is AE and also SI-designated (22-23 only — not in 23-24 AE list)
+    # ARTH 2000 (22-23) → ARTH 3040 (23-24+)
+    # 24-25 adds ENGL 3592 and ARTS 1210 in AP section (at 2 hrs)
     "W4": {
         "label": "W4 Aesthetic Ways of Knowing",
         "credits": 3,
         "courses": {
             "2022-23": {
-                "integrative": ["ARTH 2000", "HNRS 3000"],
-                "AP_plus_AX": True,
-                # ENGL 2500 satisfies W4 (AP) and WI
-                "ap_courses": ["ENGL 2500"],
+                "AE_integrative": [
+                    "ARTH 2000",
+                    "ARTS 1210", "ARTS 1230", "ARTS 1250",
+                    "COMM 2550",   # also SI
+                    "ENGL 3590",
+                    "MUSC 2210",
+                ],
+                "AP_appreciation": [
+                    "DANC 3510",
+                    "ENGL 2500",   # also WI
+                    "MUED 2110",
+                    "MUSC 2110", "MUSC 2220",
+                    "THEA 2350",
+                ],
+                "AX_experiential": [
+                    "DANC 1120", "DANC 2120", "DANC 3120",
+                    "DANC 1220", "DANC 2220", "DANC 3220", "DANC 4220",
+                    "DANC 1320", "DANC 2320", "DANC 3320", "DANC 4320",
+                    "DANC 1420", "DANC 2420", "DANC 3420", "DANC 4420",
+                    "ENGL 2510",
+                    "MUPF 1010", "MUPF 1030",
+                    "MUPF 1070", "MUPF 1080", "MUPF 1090",
+                    "MUPF 1110", "MUPF 1220",
+                    "MUPF 1410", "MUPF 1420",
+                    "MUPF 1700", "MUPF 4890",
+                ],
             },
             "2023-24": {
-                "integrative": ["ARTH 3040", "HNRS 3000"],
-                "AP_plus_AX": True,
-                # ENGL 2500 satisfies W4 (AP) and WI
-                "ap_courses": ["ENGL 2500"],
+                "AE_integrative": [
+                    "ARTH 3040",
+                    "ARTS 1210", "ARTS 1230", "ARTS 1250",
+                    "ENGL 3590",
+                    "HNRS 3000",   # Honors only
+                    "MUSC 2210",
+                ],
+                "AP_appreciation": [
+                    "DANC 3510",
+                    "ENGL 2500",   # also WI
+                    "MUED 2110",
+                    "MUSC 2110", "MUSC 2220",
+                    "THEA 2350",
+                ],
+                "AX_experiential": [
+                    "DANC 1120", "DANC 2120", "DANC 3120",
+                    "DANC 1220", "DANC 2220", "DANC 3220", "DANC 4220",
+                    "DANC 1320", "DANC 2320", "DANC 3320", "DANC 4320",
+                    "DANC 1420", "DANC 2420", "DANC 3420", "DANC 4420",
+                    "ENGL 2510",
+                    "MUPF 1010", "MUPF 1030",
+                    "MUPF 1070", "MUPF 1080", "MUPF 1090",
+                    "MUPF 1110", "MUPF 1220",
+                    "MUPF 1410", "MUPF 1420",
+                    "MUPF 1700", "MUPF 4890",
+                ],
             },
             "2024-25": {
-                "integrative": ["ARTH 3040", "HNRS 3000"],
-                "AP_plus_AX": True,
-                "ap_courses": ["ENGL 2500"],
-                "notes": "ARTS 1210 listed at 2 hrs in AP section",
+                "AE_integrative": [
+                    "ARTH 3040",
+                    "ARTS 1210", "ARTS 1230", "ARTS 1250",
+                    "ENGL 3590", "ENGL 3592",
+                    "HNRS 3000",   # Honors only
+                ],
+                "AP_appreciation": [
+                    "ARTS 1210",   # listed at 2 hrs in AP section (double-listed)
+                    "DANC 3510",
+                    "ENGL 2500",   # also WI
+                    "MUSC 2110", "MUSC 2220",
+                    "THEA 2350",
+                ],
+                "AX_experiential": [
+                    "DANC X120", "DANC X220", "DANC X320", "DANC X420",
+                    "ENGL 2510",
+                    "MUPF 1010", "MUPF 1030",
+                    "MUPF 1070", "MUPF 1080", "MUPF 1090",
+                    "MUPF 1110", "MUPF 1220",
+                    "MUPF 1410", "MUPF 1420",
+                    "MUPF 1700", "MUPF 4890",
+                ],
             },
         },
     },
 
+    # ── W5 ────────────────────────────────────────────────────────────
+    # Official W5 list from PDFs — does NOT include BSNS 3420 or POSC courses
+    # HNRS 3311 (22-23 only, Honors Social Science)
     "W5": {
         "label": "W5 Social & Behavioral Ways of Knowing",
         "credits": 3,
         "courses": {
             "2022-23": [
-                "BSNS 3420", "ECON 2010", "ECON 2020",
+                "ECON 2010",
                 "EDUC 2110", "PSYC 2110",
+                "HNRS 3311",   # Honors only
                 "LEAD 2300",
-                "POSC 2020", "POSC 2100",
                 "PSYC 2000",
-                "SOCI 2010", "SOCI 2020",
+                "SOCI 2010", "SOCI 2020", "SOCI 2100",
             ],
             "2023-24": [
-                "BSNS 3420", "ECON 2010", "ECON 2020",
+                "ECON 2010",
                 "EDUC 2110", "PSYC 2110",
                 "LEAD 2300",
-                "POSC 2020", "POSC 2100",
                 "PSYC 2000",
-                "SOCI 2010", "SOCI 2020",
+                "SOCI 2010", "SOCI 2020", "SOCI 2100",
             ],
             "2024-25": [
-                "BSNS 3420", "ECON 2010", "ECON 2020",
+                "ECON 2010",
                 "EDUC 2110", "PSYC 2110",
                 "LEAD 2300",
-                "POSC 2020", "POSC 2100",
                 "PSYC 2000",
-                "SOCI 2010", "SOCI 2020",
+                "SOCI 2010", "SOCI 2020", "SOCI 2100",
             ],
         },
     },
 
+    # ── W6 ────────────────────────────────────────────────────────────
+    # Modern + Ancient languages
+    # MLAN 2000 is W6 OR W7 (OR rule)
+    # SPAN 3010 is W6 and also WI
     "W6": {
         "label": "W6 Modern Languages",
         "credits": 4,
         "courses": {
             "2022-23": [
-                "FREN 1010", "FREN 1020", "GERM 1010", "GERM 1020",
-                "SPAN 1010", "SPAN 1020", "MLAN 2000",
-                # SPAN 3010 satisfies W6 and WI
-                "SPAN 3010",
+                "FREN 1010", "FREN 1020", "FREN 2010", "FREN 2020",
+                "GERM 1010", "GERM 1020", "GERM 2010",
+                "MLAN 2000",   # OR rule: W6 OR W7
+                "SPAN 1010", "SPAN 1020", "SPAN 2010", "SPAN 2020",
+                "SPAN 3010",   # also WI
+                # Ancient languages
+                "BIBL 2110", "BIBL 2120",
+                "BIBL 2210", "BIBL 2220",
             ],
             "2023-24": [
-                "FREN 1010", "FREN 1020", "GERM 1010", "GERM 1020",
-                "SPAN 1010", "SPAN 1020", "MLAN 2000",
-                "SPAN 3010",
+                "FREN 1010", "FREN 1020", "FREN 2010", "FREN 2020",
+                "GERM 1010", "GERM 1020", "GERM 2010",
+                "MLAN 2000",   # OR rule: W6 OR W7
+                "SPAN 1010", "SPAN 1020", "SPAN 2010", "SPAN 2020",
+                "SPAN 3010",   # also WI
+                "BIBL 2110", "BIBL 2120",
+                "BIBL 2210", "BIBL 2220",
             ],
             "2024-25": [
-                "FREN 1010", "FREN 1020", "GERM 1010", "GERM 1020",
-                "SPAN 1010", "SPAN 1020", "MLAN 2000",
-                "SPAN 3010",
+                "FREN 1010", "FREN 1020", "FREN 2010", "FREN 2020",
+                "GERM 1010", "GERM 1020", "GERM 2010",
+                "MLAN 2000",   # OR rule: W6 OR W7
+                "SPAN 1010", "SPAN 1020", "SPAN 2010", "SPAN 2020",
+                "SPAN 3010",   # also WI
+                "BIBL 2110", "BIBL 2120",
+                "BIBL 2210", "BIBL 2220",
             ],
         },
-        "notes": "Part of the 7-hr Global/Intercultural block with W7. MLAN 2000 may count W6 OR W7 (not both). SPAN 3010 satisfies W6 and WI.",
+        "notes": (
+            "One language course (4 hrs) based on placement required, "
+            "plus one additional global/intercultural or language course (W7). "
+            "MLAN 2000 may satisfy W6 OR W7 — not both."
+        ),
     },
 
+    # ── W7 ────────────────────────────────────────────────────────────
+    # MLAN 2000 is W6 OR W7 (OR rule)
+    # SOCI 2450 is F2 OR W7 (OR rule)
+    # Several courses are also WI: HIST 3260, 3300, 3425; POSC 3320, 3450; ENGR 2090
+    # HNRS 3221 is Honors only and WI
+    # LEAD 4550 is Adults only
     "W7": {
         "label": "W7 Global/Intercultural Ways of Knowing",
         "credits": 3,
         "courses": {
             "2022-23": [
-                "BSNS 3120", "COMM 3050", "EDUC 3550",
+                "BIBL 3310",
+                "BSNS 3120",   # also WI
+                "COMM 3050",
+                "DANC 3000",
+                "EDUC 3550",
+                "ENGL 2220",
+                "ENGR 2080",
+                "ENGR 2090",   # also WI
                 "HIST 3100", "HIST 3190", "HIST 3240", "HIST 3250",
-                "HIST 3260", "HIST 3280", "HIST 3300", "HIST 3320",
-                "HIST 3360", "HIST 3370", "HIST 3425",
+                "HIST 3260",   # also WI
+                "HIST 3280",
+                "HIST 3300",   # also WI
+                "HIST 3320", "RLGN 3320",   # cross-listed HIST/RLGN 3320
+                "HIST 3360", "HIST 3370",
+                "HIST 3425",   # also WI
+                "HNRS 3221",   # Honors only, also WI
+                "LEAD 4550",   # Adults only
+                "MLAN 2000",   # OR rule: W6 OR W7
                 "MLAN 3400",
-                "POSC 3320", "POSC 3450",
-                "SOCI 2450", "SOCI 3470",
+                "MUSC 2330",
+                "POSC 3320",   # also WI
+                "POSC 3450",   # also WI
+                "SOCI 2450",   # OR rule: F2 OR W7
+                "SOCI 3470",
                 "SPAN 2101", "SPAN 2102", "SPAN 2103", "SPAN 2104",
                 "SPAN 3020",
             ],
             "2023-24": [
-                "BSNS 3120", "COMM 3050", "EDUC 3550",
+                "BIBL 3310",
+                "BSNS 3120",
+                "COMM 3050",
+                "DANC 3000",
+                "EDUC 3550",
+                "ENGL 2220",
+                "ENGR 2080",
+                "ENGR 2090",
                 "HIST 3100", "HIST 3190", "HIST 3240", "HIST 3250",
-                "HIST 3260", "HIST 3280", "HIST 3300", "HIST 3320",
-                "HIST 3360", "HIST 3370", "HIST 3425",
+                "HIST 3260",
+                "HIST 3280",
+                "HIST 3300",
+                "HIST 3320", "RLGN 3320",
+                "HIST 3360", "HIST 3370",
+                "HIST 3425",
+                "HNRS 3221",
+                "LEAD 4550",
+                "MLAN 2000",
                 "MLAN 3400",
-                "POSC 3320", "POSC 3450",
-                "SOCI 2450", "SOCI 3470",
+                "MUSC 2330",
+                "POSC 3320",
+                "POSC 3450",
+                "SOCI 2450",
+                "SOCI 3470",
                 "SPAN 2101", "SPAN 2102", "SPAN 2103", "SPAN 2104",
                 "SPAN 3020",
-                # Added from cross-listing PDF
-                "ENGL 2220",   # W7 and SI
-                "ENGR 2090",   # W7 and WI
-                "MLAN 2000",   # W6 OR W7 — included here; engine must enforce OR logic
             ],
             "2024-25": [
-                "BSNS 3120", "COMM 3050", "EDUC 3550",
+                "BIBL 3310",
+                "BSNS 3120",
+                "COMM 3050",
+                "DANC 3000",
+                "EDUC 3550",
+                "ENGL 2220",
+                "ENGR 2080",
+                "ENGR 2090",
                 "HIST 3100", "HIST 3190", "HIST 3240", "HIST 3250",
-                "HIST 3260", "HIST 3280", "HIST 3300", "HIST 3320",
-                "HIST 3360", "HIST 3370", "HIST 3425",
+                "HIST 3260",
+                "HIST 3280",
+                "HIST 3300",
+                "HIST 3320",   # 24-25 PDF lists as HIST 3320 (no RLGN cross-list)
+                "HIST 3360", "HIST 3370",
+                "HIST 3425",
+                "HNRS 3221",
+                "LEAD 4550",
+                "MLAN 2000",
                 "MLAN 3400",
-                "POSC 3320", "POSC 3450",
-                "SOCI 2450", "SOCI 3470",
+                "MUSC 2330",
+                "POSC 3320",
+                "POSC 3450",
+                "SOCI 2450",
+                "SOCI 3470",
                 "SPAN 2101", "SPAN 2102", "SPAN 2103", "SPAN 2104",
                 "SPAN 3020",
-                "ENGL 2220", "ENGR 2090", "MLAN 2000",
             ],
         },
-        "notes": "BSNS 3120 counts as both W7 AND WI. MLAN 2000 counts W6 OR W7 (not both).",
     },
 
+    # ── W8 ────────────────────────────────────────────────────────────
+    # Auto-satisfied when F1 (LART 1050) is completed
+    # Per-major course list is in W8_BY_MAJOR below
     "W8": {
         "label": "W8 Experiential Ways of Knowing",
         "credits": 0,
         "auto_satisfy_if": "F1",
         "auto_display_course": "BSNS 1050",
-        "courses": {
-            "2022-23": ["BSNS 4800", "BSNS 4810"],
-            "2023-24": ["BSNS 4800", "BSNS 4810"],
-            "2024-25": ["BSNS 4800", "BSNS 4810"],
-        },
-        "notes": "Auto-satisfied when F1 (LART 1050) is completed. Displays BSNS 1050 in the W8 row.",
+        "notes": (
+            "Fulfilled by a course, internship, practicum, capstone, "
+            "clinical, or approved academic department activity. "
+            "Auto-satisfied when F1 (LART 1050) is completed for FSB students."
+        ),
     },
 }
 
 
-# ─────────────────────────────────────────────
-# WI courses by year (Writing Intensive)
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────
+# WI — Writing Intensive courses (all years)
+# Source: Advanced Writing Competency lists in LA PDFs
+# ─────────────────────────────────────────────────────────────────────
+
 WI_COURSES = {
     "2022-23": [
-        "BSNS 3120", "BSNS 4910", "ENGL 1120",
+        # From F3 / WI designation
+        "ENGL 1120",
+        # From W1
         "BIBL 3000", "RLGN 3000",
-        "ENGL 3190", "ENGL 3580",
+        # From W4
+        "ENGL 2500",
+        # From W6
+        "SPAN 3010",
+        # From W7
+        "BSNS 3120",
         "ENGR 2090",
         "HIST 3260", "HIST 3300", "HIST 3425",
+        "HNRS 3221",
         "POSC 3320", "POSC 3450",
+        # From Advanced Writing Competency list (22-23 PDF pages 3-4)
+        "ACCT 4900",
+        "ARTH 3030",
+        "ATRG 3440", "ATRG 4550",
+        "BIOL 4050",
+        "BSNS 3330", "BSNS 4910",
+        "CHEM 3100",
+        "CMIN 4250",
+        "COMM 2130", "COMM 2160", "COMM 3130", "COMM 3220", "COMM 3230", "COMM 3340",
+        "CPSC 4950",
+        "CRIM 2510", "SOCI 2510",
+        "DANC 3010",
+        "EDUC 3120", "EDUC 4120", "EDUC 4710",
+        "ENGL 3050", "ENGL 3110", "ENGL 3120", "ENGL 3140", "ENGL 3160",
+        "ENGL 3180", "ENGL 3190", "ENGL 3500", "ENGL 3551", "ENGL 3580",
+        "ENGL 4550", "ENGL 4700", "ENGL 4910",
+        "ENGR 2090", "ENGR 4950", "ENGR 4960",
+        "EXSC 3480", "EXSC 4910",
+        "HIST 3440", "HIST 3451", "HIST 3452", "HIST 3470", "HIST 3510",
+        "LEAD 4990",
+        "MLAN 4900",
+        "MUBS 3350", "MUBS 3500",
+        "MUSC 3110", "MUSC 3120", "MUSC 3130", "MUSC 3170", "MUSC 3180",
+        "NURS 3391", "NURS 4470",
+        "PEHS 3340",
+        "PETE 2250", "PETE 4300",
+        "PHYS 3100",
+        "POSC 2400", "POSC 3211", "POSC 3310",
+        "PSYC 2010",
+        "PSYC 4510",
+        "PUBH 3010", "PSYC 3010", "SOCI 3010",
+        "PUBH 3700", "SOCI 3700",
+        "RLGN 3300",
         "SPAN 3010",
-        "ENGL 2500",
+        "SPED 3120",
     ],
     "2023-24": [
-        "BSNS 3120", "BSNS 4910", "ENGL 1120",
+        "ENGL 1120",
         "BIBL 3000", "RLGN 3000",
-        "ENGL 3190", "ENGL 3580",
+        "ENGL 2500",
+        "SPAN 3010",
+        "BSNS 3120",
         "ENGR 2090",
         "HIST 3260", "HIST 3300", "HIST 3425",
+        "HNRS 3221",
         "POSC 3320", "POSC 3450",
-        "SPAN 3010",
-        "ENGL 2500",
+        "ACCT 4900",
+        "BIOL 4050",
+        "BSNS 3330", "BSNS 4910",
+        "CHEM 3100",
+        "CMIN 4250",
+        "COMM 2130", "COMM 2160", "COMM 3130", "COMM 3220", "COMM 3230", "COMM 3340",
+        "CPSC 4960",
+        "CRIM 2510", "SOCI 2510",
+        "DANC 3010",
+        "EDUC 3120", "EDUC 4120", "EDUC 4710",
+        "ENGL 3050", "ENGL 3110", "ENGL 3120", "ENGL 3140", "ENGL 3160",
+        "ENGL 3180", "ENGL 3190", "ENGL 3580", "ENGL 4700", "ENGL 4910",
+        "ENGR 4950", "ENGR 4960",
+        "EXSC 3480", "EXSC 4910",
+        "HIST 3440", "HIST 3451", "HIST 3452", "HIST 3470", "HIST 3510",
+        "LEAD 4990",
+        "MLAN 4900",
+        "MUBS 3350", "MUBS 3500",
+        "MUSC 3110", "MUSC 3120", "MUSC 3130", "MUSC 3170", "MUSC 3180",
+        "NURS 3391", "NURS 4470",
+        "PEHS 3340",
+        "PETE 2250", "PETE 4300",
+        "POSC 2400", "POSC 3211", "POSC 3310",
+        "PSYC 2010",
+        "PSYC 4510",
+        "PUBH 3010", "PSYC 3010", "SOCI 3010",
+        "PUBH 3700", "SOCI 3700",
+        "RLGN 3300",
+        "SPED 3120",
     ],
     "2024-25": [
-        "BSNS 3120", "BSNS 4910", "ENGL 1120",
+        "ENGL 1120",
         "BIBL 3000", "RLGN 3000",
-        "ENGL 3190", "ENGL 3580",
+        "ENGL 2500",
+        "SPAN 3010",
+        "BSNS 3120",
         "ENGR 2090",
         "HIST 3260", "HIST 3300", "HIST 3425",
+        "HNRS 3221",
         "POSC 3320", "POSC 3450",
-        "SPAN 3010",
-        "ENGL 2500",
+        "ACCT 4900",
+        "BIOL 4050",
+        "BSNS 3330", "BSNS 4910",
+        "CHEM 3100",
+        "CMIN 4250",
+        "COMM 2130", "COMM 2160", "COMM 3130", "COMM 3220", "COMM 3230", "COMM 3340",
+        "CPSC 4960",
+        "CRIM 2510", "SOCI 2510",
+        "DANC 3010",
+        "EDUC 3120", "EDUC 4120", "EDUC 4710",
+        "ENGL 3050", "ENGL 3110", "ENGL 3120", "ENGL 3140", "ENGL 3160",
+        "ENGL 3180", "ENGL 3190", "ENGL 3580", "ENGL 4700", "ENGL 4910",
+        "ENGR 4950", "ENGR 4960",
+        "EXSC 3480", "EXSC 4910",
+        "HIST 3440", "HIST 3470", "HIST 3510",
+        "LEAD 4990",
+        "MLAN 4900",
+        "MUBS 3350", "MUBS 3500",
+        "MUSC 3110", "MUSC 3120", "MUSC 3130", "MUSC 3170", "MUSC 3180",
+        "NURS 3391", "NURS 4470",
+        "PEHS 3340",
+        "PETE 2250", "PETE 4300",
+        "POSC 2400", "POSC 3211", "POSC 3310",
+        "PSYC 2010",
+        "PSYC 4510",
+        "PUBH 3010", "PSYC 3010", "SOCI 3010",
+        "PUBH 3700", "SOCI 3700",
+        "RLGN 3300",
+        "SPED 3120",
     ],
 }
 
-# ─────────────────────────────────────────────
-# SI courses by year (Speaking Intensive)
-# ─────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────
+# SI — Speaking Intensive courses (all years)
+# Source: Speaking Intensive lists in LA PDFs (COMM 1000 prerequisite)
+# ─────────────────────────────────────────────────────────────────────
+
 SI_COURSES = {
     "2022-23": [
-        "BSNS 3210", "BSNS 4480", "COMM 3310",
+        # From 22-23 PDF speaking intensive list
+        "ARTS 4950",
+        "ATRG 4910",
+        "BSNS 3210", "BSNS 4480",
+        "CHEM 4910", "BIOL 4910", "PHYS 4910",
+        "CHEM 4920", "BIOL 4920", "PHYS 4920",
+        "CMIN 3910",
+        "COMM 2550", "COMM 3420",
+        "CPSC 4960",
+        "CRIM 4900",
+        "DANC 3050",
+        "EDUC 4120", "EDUC 4710",
+        "ENGL 2220", "ENGL 3050",
+        "ENGR 4960",
+        "EXSC 4920",
+        "HIST 2300", "HIST 2350", "HIST 4930",
+        "HNRS 2125",
+        "LART 4500",
+        "LEAD 4990",
+        "MATH 4000",
+        "MLAN 4900",
+        "MUBS 3350", "BSNS 3330",
+        "MUED 3110", "MUED 3350",
+        "MUSC 4955",
+        "MUTR 3210", "THEA 3210",
+        "NURS 4960",
+        "PETE 4900",
+        "POSC 3211", "POSC 3212", "POSC 3370",
+        "PSYC 3200", "PSYC 4110", "PSYC 4210", "PSYC 4520",
+        "SOCI 4200", "SOCI 4950",
+        "SOWK 4850",
+        "SPAN 3020",
+        "THEA 3210",
     ],
     "2023-24": [
-        "BSNS 3210", "BSNS 4480", "COMM 3310",
-        "ARTH 3040", "ENGL 2220",
-        "HIST 2300", "HNRS 2125",
-        "PSYC 3200", "SPAN 3020",
+        "ARTH 3040",
+        "ARTG 4910",
+        "BSNS 3210", "BSNS 4480",
+        "CHEM 4910", "BIOL 4910", "PHYS 4910",
+        "CHEM 4920", "BIOL 4920", "PHYS 4920",
+        "CMIN 3050", "CMIN 3910",
+        "COMM 2550", "COMM 3420",
+        "CPSC 4950",
+        "CRIM 4900",
+        "DANC 3050",
+        "EDUC 4120", "EDUC 4710",
+        "ENGL 2220", "ENGL 3050",
+        "EXSC 4920",
+        "HIST 2300", "HIST 2350", "HIST 4930",
+        "HNRS 2125",
+        "LART 4500",
+        "LEAD 4990",
+        "MATH 4000",
+        "MLAN 4900",
+        "MUBS 3350", "BSNS 3330",
+        "MUED 3110", "MUED 3350",
+        "MUSC 4955",
+        "MUTR 3210", "THEA 3210",
+        "NURS 4960",
+        "PETE 4960",
+        "POSC 3211", "POSC 3212", "POSC 3370",
+        "PSYC 3200", "PSYC 4110", "PSYC 4210", "PSYC 4520",
+        "SOCI 4200", "SOCI 4950",
+        "SOWK 4850",
+        "SPAN 3020",
     ],
     "2024-25": [
-        "BSNS 3210", "BSNS 4480", "COMM 3310",
-        "ARTH 3040", "ENGL 2220",
-        "HIST 2300", "HNRS 2125",
-        "PSYC 3200", "SPAN 3020",
+        "ARTH 3040",
+        "ARTG 4910",
+        "BSNS 3210", "BSNS 4480",
+        "CHEM 4910", "BIOL 4910", "PHYS 4910",
+        "CHEM 4920", "BIOL 4920", "PHYS 4920",
+        "CMIN 3050", "CMIN 3910",
+        "COMM 2550", "COMM 3420",
+        "CPSC 4950",
+        "CRIM 4900",
+        "DANC 3050",
+        "EDUC 4120", "EDUC 4710",
+        "ENGL 2220", "ENGL 3050",
+        "EXSC 4920",
+        "HIST 2300", "HIST 2350", "HIST 4930",
+        "HNRS 2125",
+        "LART 4500",
+        "LEAD 4990",
+        "MATH 4000",
+        "MLAN 4900",
+        "MUBS 3350", "BSNS 3330",
+        "MUED 3110", "MUED 3350",
+        "MUSC 4955",
+        "MUTR 3210", "THEA 3210",
+        "NURS 4960",
+        "PETE 4960",
+        "POSC 3211", "POSC 3212", "POSC 3370",
+        "PSYC 3200", "PSYC 4110", "PSYC 4210", "PSYC 4520",
+        "SOCI 4200", "SOCI 4950",
+        "SOWK 4850",
+        "SPAN 3020",
     ],
 }
 
-# ─────────────────────────────────────────────
-# OR-only cross-listings (course may satisfy ONE but not both)
-# ─────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────
+# OR Cross-Listings
+# A course satisfying one of these areas does NOT also satisfy the other
+# ─────────────────────────────────────────────────────────────────────
+
 OR_CROSS_LISTINGS = {
-    # course: [option_a, option_b]  — student gets credit for whichever is more beneficial
     "HNRS 2110": ["F3", "W3"],
     "MLAN 2000": ["W6", "W7"],
     "SOCI 2450": ["F2", "W7"],
 }
 
 
-# ─────────────────────────────────────────────
-# NEW FRAMEWORK: 2025-26
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────
+# NEW FRAMEWORK: 2025-26 — Raven Core + AU Experience
+# ─────────────────────────────────────────────────────────────────────
 
 LA_RAVEN_CORE_2526 = {
     "year": "2025-26",
-    "icc_exemption": "Students completing Indiana College Core (ICC) are EXEMPT from RC1-RC6 but must complete AU Experience (AU1-AU6)",
+    "icc_exemption": (
+        "Students completing Indiana College Core (ICC) are EXEMPT from RC1-RC6 "
+        "but must complete AU Experience (AU1-AU6)."
+    ),
 
     "RAVEN_CORE": {
         "label": "Raven Core",
         "total_credits": 30,
-        "note": "At least one course in each RC category required",
+        "note": "At least one course in each RC category required. ICC-exempt students skip RC entirely.",
 
         "RC1": {
             "label": "RC1 Written Communication",
             "max_credits": 6,
             "courses": ["ENGL 1110", "ENGL 1120", "HNRS 2110"],
-            "grade_required": {"ENGL 1110": "C-", "ENGL 1120": "C-"},
+            "grade_required": {"ENGL 1110": "C-", "ENGL 1120": "C-", "HNRS 2110": "C-"},
         },
         "RC2": {
             "label": "RC2 Speaking and Listening",
@@ -435,8 +858,10 @@ LA_RAVEN_CORE_2526 = {
             "label": "RC3 Quantitative Reasoning",
             "max_credits": 8,
             "courses": [
-                "CPSC 2020", "LEAD 3100",
-                "MATH 1100", "MATH 1250", "MATH 1300", "MATH 2010", "MATH 2120",
+                "CPSC 2020",
+                "LEAD 3100",
+                "MATH 1100", "MATH 1250", "MATH 1300",
+                "MATH 2010", "MATH 2120",
                 "PSYC 2440",
             ],
         },
@@ -480,6 +905,7 @@ LA_RAVEN_CORE_2526 = {
     "AU_EXPERIENCE": {
         "label": "AU Experience",
         "total_credits_range": (14, 17),
+        "note": "Complete one course in each AU category.",
 
         "AU1": {
             "label": "AU1 Understanding College",
@@ -499,20 +925,28 @@ LA_RAVEN_CORE_2526 = {
         "AU4": {
             "label": "AU4 Personal Wellness",
             "credits_range": (2, 3),
-            "courses": ["EXSC 2440", "NURS 1210", "PEHS 1000", "PSYC 3500", "SOCI 3500", "RLGN 1100"],
+            "courses": [
+                "EXSC 2440",
+                "NURS 1210",
+                "PEHS 1000",
+                "PSYC 3500", "SOCI 3500",
+                "RLGN 1100",
+            ],
         },
         "AU5": {
             "label": "AU5 Civil Discourse & Conflict Transformation",
             "credits_range": (2, 3),
             "courses": [
-                "BIOL 3510", "COMM 3200",
+                "BIOL 3510",
+                "COMM 3200",
                 "HIST 2300",
                 "HNRS 2125",
                 "LART 2000",
                 "PACT 2100",
                 "PHIL 2120",
                 "PSYC 3200",
-                "RLGN 3120", "RLGN 3250", "PHIL 3250",
+                "RLGN 3120",
+                "RLGN 3250", "PHIL 3250",
                 "SOCI 2450",
                 "SPED 2400",
             ],
@@ -521,7 +955,9 @@ LA_RAVEN_CORE_2526 = {
             "label": "AU6 Global Ways of Knowing",
             "credits_range": (3, 4),
             "courses": [
-                "BIBL 3310", "BSNS 3120", "COMM 3050",
+                "BIBL 3310",
+                "BSNS 3120",
+                "COMM 3050",
                 "DANC 3000",
                 "EDUC 3550",
                 "ENGL 2220",
@@ -540,15 +976,12 @@ LA_RAVEN_CORE_2526 = {
             ],
         },
     },
-
-    "EMBEDDED_COMPETENCIES": {
-        "note": "In 25-26, WI, SI, and Experiential competencies are embedded in the major definition, not tracked separately as LA requirements.",
-        "WI": "Writing Intensive — satisfied by designated courses within the major",
-        "SI": "Speaking Intensive — BSNS 2550 in the Business Core satisfies this",
-        "W8_equiv": "Experiential — BSNS 4800 in the Business Core satisfies this",
-    },
 }
 
+
+# ─────────────────────────────────────────────────────────────────────
+# Helper: framework lookup
+# ─────────────────────────────────────────────────────────────────────
 
 def get_la_framework(catalog_year: str) -> str:
     if catalog_year in ["2022-23", "2023-24", "2024-25"]:
@@ -574,7 +1007,6 @@ def get_la_requirements(catalog_year: str) -> dict:
             if "wi_courses" in entry and isinstance(entry["wi_courses"], dict):
                 entry["wi_courses"] = entry["wi_courses"].get(catalog_year, [])
             result[section] = entry
-        # Inject WI and SI course lists for the year
         result["_WI_COURSES"] = WI_COURSES.get(catalog_year, [])
         result["_SI_COURSES"] = SI_COURSES.get(catalog_year, [])
         result["_OR_CROSS_LISTINGS"] = OR_CROSS_LISTINGS
@@ -584,21 +1016,19 @@ def get_la_requirements(catalog_year: str) -> dict:
 
 
 def is_wi_course(course_code: str, catalog_year: str) -> bool:
-    """Return True if a course is Writing Intensive for the given catalog year."""
     return course_code in WI_COURSES.get(catalog_year, [])
 
 
 def is_si_course(course_code: str, catalog_year: str) -> bool:
-    """Return True if a course is Speaking Intensive for the given catalog year."""
     return course_code in SI_COURSES.get(catalog_year, [])
 
 
 def get_or_cross_listing(course_code: str) -> list:
-    """If a course has an OR cross-listing, return the two options. Else return []."""
     return OR_CROSS_LISTINGS.get(course_code, [])
 
 
 def course_satisfies_la(course_code: str, catalog_year: str) -> list:
+    """Return list of LA requirement areas this course satisfies for the given year."""
     satisfied = []
     fw = get_la_framework(catalog_year)
 
@@ -608,8 +1038,8 @@ def course_satisfies_la(course_code: str, catalog_year: str) -> list:
             if section.startswith("_"):
                 continue
             courses = data.get("courses", [])
+            # W4 uses a nested dict structure
             if isinstance(courses, dict):
-                # W4 has nested structure
                 all_courses = []
                 for v in courses.values():
                     if isinstance(v, list):
@@ -617,15 +1047,6 @@ def course_satisfies_la(course_code: str, catalog_year: str) -> list:
                 courses = all_courses
             if course_code in courses:
                 satisfied.append(section)
-            for extra in ["si_courses", "wi_courses"]:
-                extra_list = data.get(extra, [])
-                if isinstance(extra_list, dict):
-                    extra_list = extra_list.get(catalog_year, [])
-                if course_code in extra_list:
-                    tag = f"{section}_WI" if extra == "wi_courses" else f"{section}_SI"
-                    if tag not in satisfied:
-                        satisfied.append(tag)
-        # Also tag WI/SI globally
         if is_wi_course(course_code, catalog_year) and "WI" not in satisfied:
             satisfied.append("WI")
         if is_si_course(course_code, catalog_year) and "SI" not in satisfied:
@@ -638,7 +1059,7 @@ def course_satisfies_la(course_code: str, catalog_year: str) -> list:
             if isinstance(rc_data, dict) and course_code in rc_data.get("courses", []):
                 satisfied.append(rc_key)
         for au_key, au_data in data["AU_EXPERIENCE"].items():
-            if au_key in ("label", "total_credits_range"):
+            if au_key in ("label", "total_credits_range", "note"):
                 continue
             if isinstance(au_data, dict) and course_code in au_data.get("courses", []):
                 satisfied.append(au_key)
@@ -646,78 +1067,10 @@ def course_satisfies_la(course_code: str, catalog_year: str) -> list:
     return satisfied
 
 
-# ─────────────────────────────────────────────
-# CROSS-LISTING MAP (quick reference)
-# ─────────────────────────────────────────────
-
-CROSS_LISTED_COURSES = {
-    "BSNS 3420": {
-        "2022-23": ["F2", "W5", "Business Core"],
-        "2023-24": ["F2", "W5", "Business Core"],
-        "2024-25": ["F2", "W5", "Business Core"],
-        "2025-26": ["RC5", "Business Core"],
-    },
-    "BSNS 3120": {
-        "2022-23": ["W7", "WI", "Business Core (not required)"],
-        "2023-24": ["W7", "WI", "Business Core (not required)"],
-        "2024-25": ["W7", "WI"],
-        "2025-26": ["AU6", "Business Core"],
-    },
-    "BSNS 3210": {
-        "2022-23": ["F4 SI", "Major (Sport Marketing / Marketing)"],
-        "2023-24": ["F4 SI", "Major (Sport Marketing / Marketing)"],
-        "2024-25": ["F4 SI", "Major (Sport Marketing / Marketing)"],
-        "2025-26": [],
-    },
-    "BSNS 4910": {
-        "2022-23": ["WI", "Business Core"],
-        "2023-24": ["WI", "Business Core"],
-        "2024-25": ["WI", "Business Core"],
-        "2025-26": ["Business Core"],
-    },
-    "BSNS 4800": {
-        "2022-23": ["W8", "Major elective"],
-        "2023-24": ["W8", "Major elective"],
-        "2024-25": ["W8", "Major elective"],
-        "2025-26": ["Business Core", "Experiential"],
-    },
-    "LART 1050": {
-        "2022-23": ["F1", "→ auto-satisfies W8"],
-        "2023-24": ["F1", "→ auto-satisfies W8"],
-        "2024-25": ["F1", "→ auto-satisfies W8"],
-        "2025-26": ["AU1"],
-    },
-    # Added from PDF cross-listing table
-    "ARTH 3040":  {"2023-24": ["W4", "SI"], "2024-25": ["W4", "SI"]},
-    "BIBL 3000":  {"2023-24": ["W1", "WI"], "2024-25": ["W1", "WI"]},
-    "RLGN 3000":  {"2023-24": ["W1", "WI"], "2024-25": ["W1", "WI"]},
-    "ENGL 2220":  {"2023-24": ["W7", "SI"], "2024-25": ["W7", "SI"]},
-    "ENGL 2500":  {"2023-24": ["W4", "WI"], "2024-25": ["W4", "WI"]},
-    "ENGL 3190":  {"2023-24": ["F2", "WI"], "2024-25": ["F2", "WI"]},
-    "ENGL 3580":  {"2023-24": ["F2", "WI"], "2024-25": ["F2", "WI"]},
-    "ENGR 2090":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "HIST 2300":  {"2023-24": ["F2", "SI"], "2024-25": ["F2", "SI"]},
-    "HIST 3260":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "HIST 3300":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "HIST 3425":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "HNRS 2110":  {"2023-24": ["F3 OR W3"], "2024-25": ["F3 OR W3"]},  # OR rule
-    "HNRS 2125":  {"2023-24": ["F2", "SI"], "2024-25": ["F2", "SI"]},
-    "MLAN 2000":  {"2023-24": ["W6 OR W7"], "2024-25": ["W6 OR W7"]},  # OR rule
-    "POSC 3320":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "POSC 3450":  {"2023-24": ["W7", "WI"], "2024-25": ["W7", "WI"]},
-    "PSYC 3200":  {"2023-24": ["F2", "SI"], "2024-25": ["F2", "SI"]},
-    "SOCI 2450":  {"2023-24": ["F2 OR W7"], "2024-25": ["F2 OR W7"]},  # OR rule
-    "SPAN 3010":  {"2023-24": ["W6", "WI"], "2024-25": ["W6", "WI"]},
-    "SPAN 3020":  {"2023-24": ["W7", "SI"], "2024-25": ["W7", "SI"]},
-}
-
-
-# ─────────────────────────────────────────────
-# W8 EXPERIENTIAL — Per-Major Course Lookup
+# ─────────────────────────────────────────────────────────────────────
+# W8 Experiential — Per-Major Course Lookup
 # Source: W8 Experiential Ways of Knowing sheet (updated 11/14/2023)
-# "and" = course is REQUIRED for the major (bold in original)
-# "*"   = no required experiential courses; listed courses are optional
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────
 
 W8_BY_MAJOR = {
     # FSB majors
@@ -751,7 +1104,7 @@ W8_BY_MAJOR = {
     },
     "sport_marketing": {
         "courses": ["BSNS 1050", "BSNS 4110", "BSNS 4330", "BSNS 4560", "BSNS 4800"],
-        "required_in_major": ["BSNS 4800"],  # required in major
+        "required_in_major": ["BSNS 4800"],
     },
     "business_integrative_leadership": {
         "courses": ["LEAD 4990"],
@@ -760,7 +1113,7 @@ W8_BY_MAJOR = {
     # Non-FSB majors
     "psychology": {
         "courses": ["PSYC 2850", "PSYC 3450", "PSYC 4100", "PSYC 4210", "PSYC 4520"],
-        "no_required_experiential": True,  # asterisk in original
+        "no_required_experiential": True,
     },
     "cinema_media_arts": {
         "courses": ["COMM 4800"],
@@ -774,66 +1127,28 @@ W8_BY_MAJOR = {
         "courses": ["COMM 4800"],
         "required_in_major": ["COMM 4800"],
     },
-    "visual_communication_design": {
-        "courses": ["ARTH 4800"],
-        "required_in_major": ["ARTH 4800"],
+    "communication_studies": {
+        "courses": ["COMM 4800"],
+        "required_in_major": ["COMM 4800"],
     },
-    "literary_studies": {
-        "courses": ["ENGL 4910"],
-        "required_in_major": [],
+    "education_elementary": {
+        "courses": ["EDUC 4800"],
+        "required_in_major": ["EDUC 4800"],
     },
-    "writing": {
-        "courses": ["ENGL 4910"],
-        "required_in_major": [],
-    },
-    "language_arts_teaching": {
-        "courses": ["ENGL 4910"],
-        "required_in_major": [],
-    },
-    "elementary_education": {
-        "courses": ["EDUC 4010"],
-        "required_in_major": ["EDUC 4010"],
-    },
-    "christian_ministries": {
-        "courses": ["CMIN 3340", "CMIN 4810", "CMIN 4850", "THFE 7810"],
-        "required_in_major": [],
-    },
-    "youth_ministries": {
-        "courses": ["CMIN 3340", "CMIN 4810", "CMIN 4850", "THFE 7810"],
-        "required_in_major": [],
-    },
-    "ministry_studies_online": {
-        "courses": ["CMIN 4810"],
-        "required_in_major": [],
+    "education_secondary": {
+        "courses": ["EDUC 4800"],
+        "required_in_major": ["EDUC 4800"],
     },
     "csf_complementary": {
         "courses": ["RLGN 4960"],
         "required_in_major": ["RLGN 4960"],
     },
-    "math_ba": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
-    "math_bs": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
-    "math_economics_ba": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
-    "math_finance_ba": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
-    "math_teaching_ba": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
-    "math_decision_science_ba": {
-        "courses": ["MATH 4000"],
-        "required_in_major": ["MATH 4000"],
-    },
+    "math_ba": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
+    "math_bs": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
+    "math_economics_ba": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
+    "math_finance_ba": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
+    "math_teaching_ba": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
+    "math_decision_science_ba": {"courses": ["MATH 4000"], "required_in_major": ["MATH 4000"]},
     "exercise_science": {
         "courses": ["EXSC 4160", "EXSC 4800"],
         "required_in_major": [],
@@ -868,7 +1183,7 @@ W8_BY_MAJOR = {
             "POSC 2810", "POSC 4800", "POSC 4810", "POSC 4820", "POSC 4860", "POSC 4915",
             "EDUC 4010",
         ],
-        "no_required_experiential": True,  # asterisk
+        "no_required_experiential": True,
         "also": "POSC 2840 Model UN (2 semesters), study-abroad courses",
     },
     "national_security": {
@@ -933,7 +1248,7 @@ W8_BY_MAJOR = {
     },
     "cs_ba": {
         "courses": ["CPSC 2800", "CPSC 3800", "CPSC 4800", "CPSC 4960"],
-        "no_required_experiential": True,  # asterisk
+        "no_required_experiential": True,
     },
     "cs_bs": {
         "courses": ["CPSC 2800", "CPSC 3800", "CPSC 4800", "CPSC 4960"],
@@ -995,18 +1310,12 @@ W8_BY_MAJOR = {
         "courses": ["CPSC 4480", "CPSC 4820", "CPSC 4970"],
         "required_in_major": [],
     },
-    # Majors with no required experiential (use LAWK 18EC as fallback)
-    "biology_ba":   {"courses": ["LAWK 18EC"], "no_required_experiential": True},
-    "biology_bs":   {"courses": ["LAWK 18EC"], "no_required_experiential": True},
+    "biology_ba":  {"courses": ["LAWK 18EC"], "no_required_experiential": True},
+    "biology_bs":  {"courses": ["LAWK 18EC"], "no_required_experiential": True},
 }
 
 
 def get_w8_courses_for_major(major_key: str) -> dict:
-    """
-    Return W8-eligible courses for a given major key.
-    Returns dict with 'courses' list and metadata.
-    Falls back to LAWK 18EC (exception process) if major not found.
-    """
     return W8_BY_MAJOR.get(major_key, {
         "courses": ["LAWK 18EC"],
         "no_required_experiential": True,
@@ -1015,6 +1324,5 @@ def get_w8_courses_for_major(major_key: str) -> dict:
 
 
 def course_satisfies_w8(course_code: str, major_key: str) -> bool:
-    """Return True if a course satisfies W8 for the given major."""
     w8_data = get_w8_courses_for_major(major_key)
     return course_code in w8_data.get("courses", [])
