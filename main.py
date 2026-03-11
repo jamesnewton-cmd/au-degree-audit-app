@@ -210,9 +210,6 @@ async def generate_non_fsb(
     advisor_email: str = Form(""),
     student_email: str = Form(""),
 ):
-    from engines.non_fsb_audit_engine import run_non_fsb_audit, CourseRecord as NonFSBCourseRecord
-    from engines.pdf_generator import generate_audit_pdf
-
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
@@ -229,8 +226,13 @@ async def generate_non_fsb(
     tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
     try:
-        mod = load_engine("sport_marketing")
-        raw_courses = mod.parse_csv(tmp_csv)
+        # Parse CSV using shared parser
+        sm_mod = load_engine("sport_marketing")
+        raw_courses = sm_mod.parse_csv(tmp_csv)
+
+        # Build the sport_marketing-compatible res dict for non-FSB majors
+        from engines.non_fsb_audit_engine import run_non_fsb_audit, CourseRecord as NonFSBCourseRecord
+        from requirements.non_fsb_programs import get_non_fsb_requirements
 
         transcript_records = [
             NonFSBCourseRecord(
@@ -250,43 +252,77 @@ async def generate_non_fsb(
             transcript=transcript_records,
         )
 
-        # Adapt NonFSBAuditResult → AuditResult for the shared PDF generator
-        from engines.audit_engine import AuditResult, RequirementResult
-        adapted_reqs = [
-            RequirementResult(
-                label=r.label,
-                status=r.status if r.status != "Not Met" else "Not Satisfied",
-                satisfying_course=r.course_used or "",
-                notes=r.notes or "",
-            )
+        # Convert NonFSBAuditResult → res dict shaped for the shared PDF template
+        def _status(s):
+            return "Not Satisfied" if s == "Not Met" else s
+
+        mr_rows = [
+            {
+                "id": r.label.replace(" ", "_").upper()[:20],
+                "label": r.label,
+                "status": _status(r.status),
+                "course": {"raw": r.course_used, "name": "", "cr": 0,
+                           "grade": "", "status": "grade posted", "reg_date": ""}
+                          if r.course_used else None,
+                "dcr": 3,
+                "note": r.notes or "",
+            }
             for r in non_fsb_result.requirements
         ]
-        outstanding = non_fsb_result.outstanding or []
-        adapted = AuditResult(
-            student_name=student_name,
-            student_id="",
-            catalog_year=catalog_year,
-            major=non_fsb_result.major,
-            overall_gpa=non_fsb_result.major_gpa,
-            major_gpa=non_fsb_result.major_gpa,
-            total_credits_completed=non_fsb_result.total_major_credits,
-            liberal_arts=[],
-            business_core=[],
-            major_requirements=adapted_reqs,
-            minor_requirements=[],
-            action_plan={
-                "liberal_arts_outstanding": [],
-                "core_outstanding": [],
-                "major_outstanding": outstanding,
-                "minor_outstanding": [],
-                "gpa_concerns": [],
-                "other": [],
-            },
-        )
 
-        pdf_bytes = generate_audit_pdf(adapted)
-        with open(tmp_pdf, "wb") as f:
-            f.write(pdf_bytes)
+        # Compute simple GPA/credit stats from raw_courses
+        gpa_courses = [c for c in raw_courses if c["grade"].upper() not in ("", "T", "W", "DRP", "NC", "IP", "CR/IP")]
+        gpa_hrs = sum(c["cr"] for c in gpa_courses if c["status"] == "grade posted")
+        gp_map = {"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,
+                  "C-":1.7,"D+":1.3,"D":1.0,"D-":0.7,"F":0.0}
+        qp = sum(c["cr"] * gp_map.get(c["grade"].upper(), 0.0)
+                 for c in gpa_courses if c["status"] == "grade posted")
+        gpa_o = round(qp / gpa_hrs, 2) if gpa_hrs > 0 else 0.0
+        earned = sum(c["cr"] for c in raw_courses
+                     if c["status"] == "grade posted" and c["grade"].upper() not in ("","W","DRP","NC","F"))
+        ip_hrs = sum(c["cr"] for c in raw_courses if c["status"] == "current")
+        sched_hrs = sum(c["cr"] for c in raw_courses if c["status"] == "scheduled")
+        proj = earned + ip_hrs + sched_hrs
+
+        # Get program display name
+        prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
+        prog_name = prog_reqs.get("name", major.replace("_", " ").title()) if isinstance(prog_reqs, dict) else major.replace("_", " ").title()
+
+        res = {
+            "catalog_year": catalog_year,
+            "current_term_label": "2025-26",
+            "gpa_o": gpa_o,
+            "gpa_m": round(non_fsb_result.major_gpa, 2),
+            "earned": earned,
+            "ip_hrs": ip_hrs,
+            "proj": proj,
+            "gpa_hrs": gpa_hrs,
+            "qp": round(qp, 1),
+            # LA section — empty for non-FSB (LA is universal, not major-specific)
+            "la": [],
+            # No business core for non-FSB
+            "bc": [],
+            # Major requirements
+            "mr": mr_rows,
+            # No electives section for non-FSB
+            "elecs": [],
+            "elecs_ip": [],
+            "ehrs": 0,
+            "ehrs_ip": 0,
+            "elec_required_hrs": 0,
+            # Course history
+            "courses": raw_courses,
+            # Minor
+            "minor_rows": None,
+            "minor_key": None,
+            # Template labels
+            "major_section_label": f"{prog_name} — {catalog_year}",
+            "major_subsections": [(f"{prog_name} Required Courses", mr_rows)],
+            "notes_row_text": "",
+            "elec_opts": [],
+        }
+
+        sm_mod.build(res, student_name, prog_name, tmp_pdf, exceptions=exceptions)
 
         total = record_pull("advisor", student_name, major, catalog_year)
         filename = f"{safe_name}_{major.replace('_', ' ').title()}_Audit.pdf"
