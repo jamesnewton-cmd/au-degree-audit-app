@@ -197,6 +197,84 @@ async def generate(
     finally:
         os.unlink(tmp_csv)
 
+
+
+@app.post("/generate/non-fsb")
+async def generate_non_fsb(
+    student_name:  str = Form(...),
+    major:         str = Form(...),
+    catalog_year:  str = Form(...),
+    transcript:    UploadFile = File(...),
+    exceptions:    str = Form(""),
+    minor1:        str = Form(""),
+    advisor_email: str = Form(""),
+    student_email: str = Form(""),
+):
+    from engines.non_fsb_audit_engine import run_non_fsb_audit, CourseRecord as NonFSBCourseRecord
+    from engines.pdf_generator import generate_audit_pdf
+
+    if catalog_year not in CATALOG_YEARS:
+        raise HTTPException(400, "Invalid catalog year")
+
+    log = load_log()
+    if log["total"] >= MAX_PULLS:
+        raise HTTPException(429, "Annual pull limit reached. Contact Indy Collab to renew.")
+
+    csv_bytes = await transcript.read()
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
+        tmp_in.write(csv_bytes)
+        tmp_csv = tmp_in.name
+
+    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
+    tmp_pdf = tempfile.mktemp(suffix=".pdf")
+
+    try:
+        mod = load_engine("sport_marketing")
+        raw_courses = mod.parse_csv(tmp_csv)
+
+        transcript_records = [
+            NonFSBCourseRecord(
+                course_id=c["raw"],
+                grade=c["grade"],
+                credits=c["cr"],
+                term=c.get("reg_date", ""),
+            )
+            for c in raw_courses
+        ]
+
+        student = {"name": student_name, "id": "", "catalog_year": catalog_year}
+        result = run_non_fsb_audit(
+            program_key=major,
+            catalog_year=catalog_year,
+            student=student,
+            transcript=transcript_records,
+        )
+
+        pdf_bytes = generate_audit_pdf(result)
+        with open(tmp_pdf, "wb") as f:
+            f.write(pdf_bytes)
+
+        total = record_pull("advisor", student_name, major, catalog_year)
+        filename = f"{safe_name}_{major.replace('_', ' ').title()}_Audit.pdf"
+
+        recipients = [e.strip() for e in [advisor_email, student_email] if e.strip()]
+        if recipients:
+            try:
+                send_audit_email(recipients, student_name, major, tmp_pdf, filename)
+            except Exception as email_err:
+                print(f"Email send failed: {email_err}")
+
+        return FileResponse(
+            tmp_pdf,
+            media_type="application/pdf",
+            filename=filename,
+            headers={"X-Pulls-Used": str(total), "X-Pulls-Remaining": str(MAX_PULLS - total)}
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Audit generation failed: {str(e)}")
+    finally:
+        os.unlink(tmp_csv)
+
 @app.get("/ping")
 def ping():
     return {"ok": True}

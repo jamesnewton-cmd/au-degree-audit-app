@@ -870,7 +870,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     if (!batchFilesEl.files.length) { toast('Please upload at least one CSV file.', true); btn.disabled=false; spinner.style.display='none'; return; }
     const files = Array.from(batchFilesEl.files);
     btnText.textContent = `Processing 0 of ${files.length}…`;
-    const endpoint = FSB_KEYS.includes(batchMajor) ? '/generate' : '/audit/non-fsb';
+    const endpoint = FSB_KEYS.includes(batchMajor) ? '/generate' : '/generate/non-fsb';
     const JSZip = await loadJSZip();
     const zip = new JSZip();
     let done = 0;
@@ -911,7 +911,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     form.set('student_name', firstName + ' ' + lastName);
     form.set('major', major1);
     form.set('minor1', document.getElementById('minor1Val').value || '');
-    const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/audit/non-fsb';
+    const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/generate/non-fsb';
     try {
       const res = await fetch(endpoint, { method: 'POST', body: form });
       if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
