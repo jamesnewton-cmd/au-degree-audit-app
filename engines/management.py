@@ -273,7 +273,7 @@ LA_ROWS = [
 ]
 
 # ── AUDIT ─────────────────────────────────────────────────────────────────────
-def audit(courses):
+def audit(courses, minor_key=None):
     cm = cmap(courses)
     def find(codes): return best(courses, codes)
 
