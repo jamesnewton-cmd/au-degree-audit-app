@@ -357,10 +357,12 @@ async def generate_non_fsb(
                 opts = [course] if course else choose_from
                 c = _find_course(opts) if opts else None
                 # For dept-based electives, scan all courses with that prefix
+                # dept may be a string or a list of strings
                 if c is None and dept:
-                    dept_norm = dept.upper().replace(' ','_')
+                    dept_list = [dept] if isinstance(dept, str) else dept
+                    dept_prefixes = tuple(d.upper() for d in dept_list)
                     c = next((x for x in raw_courses
-                              if x['raw'].upper().startswith(dept)
+                              if x['raw'].upper().startswith(dept_prefixes)
                               and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
                 s = _status_of_c(c)
                 full_mr_rows.append({
