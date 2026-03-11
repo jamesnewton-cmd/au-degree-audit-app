@@ -753,6 +753,153 @@ def build(res, student_name, major_label, out, exceptions=''):
     template_build(res, student_name, major_label, out, exceptions=exceptions)
 
 
+# ── NON-FSB LA ROW BUILDER ────────────────────────────────────────────────────
+def build_la_rows_for_non_fsb(courses, catalog_year):
+    """
+    Build LA rows in the same dict shape as audit() produces, using the
+    universal liberal_arts_requirements data (not FSB-specific LA_ROWS).
+    Called by main.py for non-FSB major audits.
+    """
+    from requirements.liberal_arts_requirements import LA_OLD_FRAMEWORK, LA_NEW_FRAMEWORK
+
+    cm = cmap(courses)
+
+    # Exception rules (same as FSB audit)
+    has_1110 = cm.get('ENGL_1110') or cm.get('ENGL_1100')
+    has_1120 = cm.get('ENGL_1120')
+    if not has_1110 and has_1120:
+        synthetic = {'code':'ENGL_1110','raw':'ENGL-1110',
+                     'name':'Rhetoric and Composition (tested out)',
+                     'cr':3,'status':'grade posted','grade':'T','reg_date':''}
+        courses = courses + [synthetic]
+        cm['ENGL_1110'] = synthetic
+
+    has_lart = cm.get('LART_1050')
+    if not has_lart:
+        synthetic = {'code':'LART_1050','raw':'LART-1050',
+                     'name':'First-Year Seminar (exempt)',
+                     'cr':0,'status':'grade posted','grade':'T','reg_date':''}
+        courses = courses + [synthetic]
+        cm['LART_1050'] = synthetic
+
+    def find_any(code_list):
+        return best(courses, [norm(c.replace(' ','_').replace('-','_')) for c in code_list])
+
+    def make_row(area, course_col, req_txt, opts_raw, dcr, c, s):
+        if course_col is None and c is not None:
+            course_col = f"{c['raw']} {c['name']}"
+        return {'area':area,'course_col':course_col or '','req':req_txt,
+                'status':s,'course':c,'dcr':dcr}
+
+    la = []
+
+    if catalog_year == '2025-26':
+        # Raven Core / AU Experience framework
+        fw = LA_NEW_FRAMEWORK
+        for area_key in ['RC1','RC2','RC3','RC4','RC5','RC6','AU1','AU2','AU3','AU4','AU5','AU6']:
+            area_def = fw.get(area_key, {})
+            label = area_def.get('label', area_key)
+            dcr = area_def.get('credits', 3)
+            if isinstance(dcr, dict): dcr = dcr.get(catalog_year, 3)
+            opts_raw = area_def.get('courses', {}).get(catalog_year, [])
+            c = find_any(opts_raw)
+            s = status_of(c)
+            la.append(make_row(area_key, None, label, opts_raw, dcr, c, s))
+    else:
+        # Old framework F1-F7, W1-W8
+        fw = LA_OLD_FRAMEWORK
+        yr = catalog_year
+
+        # F1
+        f1_opts = fw['F1']['courses'].get(yr, ['LART 1050'])
+        f1_c = find_any(f1_opts)
+        f1_ok = f1_c is not None and done(f1_c)
+        f1_s = status_of(f1_c)
+        la.append(make_row('F1', 'LART-1050 First-Year Exper Seminar',
+                           'F1 LART-1050 Understanding College', f1_opts, 1, f1_c, f1_s))
+
+        # F2
+        f2_opts = fw['F2']['courses'].get(yr, [])
+        f2_dcr = fw['F2']['credits'] if not isinstance(fw['F2']['credits'], dict) else fw['F2']['credits'].get(yr, 3)
+        f2_c = find_any(f2_opts)
+        la.append(make_row('F2', None, fw['F2']['label'], f2_opts, f2_dcr, f2_c, status_of(f2_c)))
+
+        # F3 — ENGL-1110 and ENGL-1120 (two rows + WI tracking)
+        f3_1_opts = fw['F3']['courses']['writing_1'].get(yr, ['ENGL 1110'])
+        f3_2_opts = fw['F3']['courses']['writing_2'].get(yr, ['ENGL 1120'])
+        f3_1_c = find_any(f3_1_opts)
+        f3_2_c = find_any(f3_2_opts)
+        la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100/HNRS-2110)',
+                           f3_1_opts, 3, f3_1_c, status_of(f3_1_c)))
+        la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (grade of C- or better required)',
+                           f3_2_opts, 3, f3_2_c, status_of(f3_2_c)))
+
+        # F4 — COMM-1000
+        f4_opts = fw['F4']['courses'].get(yr, ['COMM 1000'])
+        f4_c = find_any(f4_opts)
+        la.append(make_row('F4', None, fw['F4']['label'], f4_opts, 3, f4_c, status_of(f4_c)))
+
+        # F5
+        f5_opts = fw['F5']['courses'].get(yr, [])
+        f5_dcr = fw['F5']['credits'] if not isinstance(fw['F5']['credits'], dict) else fw['F5']['credits'].get(yr, 3)
+        f5_c = find_any(f5_opts)
+        la.append(make_row('F5', None, fw['F5']['label'], f5_opts, f5_dcr, f5_c, status_of(f5_c)))
+
+        # F6
+        f6_opts = fw['F6']['courses'].get(yr, ['BIBL 2000'])
+        f6_c = find_any(f6_opts)
+        la.append(make_row('F6', None, fw['F6']['label'], f6_opts, 3, f6_c, status_of(f6_c)))
+
+        # F7
+        f7_opts = fw['F7']['courses'].get(yr, ['PEHS 1000'])
+        f7_dcr = fw['F7']['credits'] if not isinstance(fw['F7']['credits'], dict) else fw['F7']['credits'].get(yr, 2)
+        f7_c = find_any(f7_opts)
+        la.append(make_row('F7', None, fw['F7']['label'], f7_opts, f7_dcr, f7_c, status_of(f7_c)))
+
+        # W1-W7
+        for wkey in ['W1','W2','W3','W4','W5','W6','W7']:
+            wdef = fw.get(wkey, {})
+            w_opts = wdef.get('courses', {}).get(yr, [])
+            w_dcr = wdef.get('credits', 3)
+            if isinstance(w_dcr, dict): w_dcr = w_dcr.get(yr, 3)
+            w_c = find_any(w_opts)
+            la.append(make_row(wkey, None, wdef.get('label', wkey), w_opts, w_dcr, w_c, status_of(w_c)))
+
+        # W8 — auto-satisfy if F1 done
+        w8_opts = fw.get('W8', {}).get('courses', {}).get(yr, [])
+        if f1_ok:
+            w8_c = cm.get('BSNS_1050')
+            la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing',
+                               w8_opts, 2,
+                               w8_c or {'raw':'BSNS-1050','name':'Business as a Profession',
+                                        'cr':3,'status':'grade posted','grade':'T','reg_date':''},
+                               'Satisfied'))
+        else:
+            w8_c = find_any(w8_opts)
+            la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing',
+                               w8_opts, 2, w8_c, status_of(w8_c)))
+
+        # WI — two rows
+        wi_opts = fw.get('WI', {}).get('courses', {}).get(yr, [])
+        wi_c1 = find_any(wi_opts)
+        la.append(make_row('WI', None,
+                           'WI Writing Intensive #1 — must be from approved WI list',
+                           wi_opts, 3, wi_c1, status_of(wi_c1)))
+        la.append(make_row('WI', None,
+                           'WI Writing Intensive #2 — at least one must be upper-division (3000+)',
+                           [], 3, None, 'Not Satisfied'))
+
+        # SI
+        si_opts = fw.get('SI', {}).get('courses', {}).get(yr, [])
+        si_dcr = fw.get('SI', {}).get('credits', 3)
+        si_c = find_any(si_opts)
+        la.append(make_row('SI', None,
+                           'SI Speaking Intensive — 1 course required from approved SI list',
+                           si_opts, si_dcr, si_c, status_of(si_c)))
+
+    return la
+
+
 # ── MAIN ─────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     courses = parse_csv('/mnt/user-data/uploads/Nolan_Netter_Classes.csv')

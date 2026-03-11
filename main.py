@@ -284,9 +284,100 @@ async def generate_non_fsb(
         sched_hrs = sum(c["cr"] for c in raw_courses if c["status"] == "scheduled")
         proj = earned + ip_hrs + sched_hrs
 
-        # Get program display name
+        # Get program display name and full requirement definition
         prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
         prog_name = prog_reqs.get("name", major.replace("_", " ").title()) if isinstance(prog_reqs, dict) else major.replace("_", " ").title()
+
+        # ── LA rows: run the universal LA audit against this student's courses ──
+        la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year)
+
+        # ── Build complete major requirement rows from program definition ──────
+        # mr_rows above only has the basic required[] courses from the engine.
+        # Rebuild fully from prog_reqs so electives, internships, etc. appear.
+        def _norm_code(c):
+            return c.strip().upper().replace(' ', '_').replace('-', '_')
+
+        def _find_course(code_list):
+            """Find best matching course from raw_courses for a list of codes."""
+            from engines.sport_marketing import best as sm_best, norm as sm_norm
+            normalized = [sm_norm(c.replace(' ', '_').replace('-', '_')) for c in code_list]
+            return sm_best(raw_courses, normalized)
+
+        def _status_of_c(c):
+            if c is None: return 'Not Satisfied'
+            if c['status'] == 'grade posted' and c['grade'].upper() not in ('','W','DRP','NC'): return 'Satisfied'
+            if c['status'] == 'current': return 'Current'
+            if c['status'] == 'scheduled': return 'Scheduled'
+            return 'Not Satisfied'
+
+        full_mr_rows = []
+
+        # Required individual courses
+        for course_id in prog_reqs.get("required", []):
+            c = _find_course([course_id])
+            s = _status_of_c(c)
+            cid = _norm_code(course_id)
+            full_mr_rows.append({
+                "id": cid, "label": course_id, "status": s,
+                "course": c, "dcr": 3, "note": "",
+            })
+
+        # Foundation / core blocks
+        for block_key in ["foundation", "core", "dept_core", "ministry_core",
+                          "required_science", "required_exsc"]:
+            for course_id in prog_reqs.get(block_key, []):
+                c = _find_course([course_id])
+                s = _status_of_c(c)
+                full_mr_rows.append({
+                    "id": _norm_code(course_id), "label": course_id, "status": s,
+                    "course": c, "dcr": 3, "note": "",
+                })
+
+        # Elective blocks (crim_elective, internship, elective, etc.)
+        for ekey in ["crim_elective", "internship", "elective", "experience",
+                     "additional_crim", "elective_upper", "practicum"]:
+            edef = prog_reqs.get(ekey)
+            if not edef: continue
+            if isinstance(edef, dict):
+                credits = edef.get("credits", 3)
+                dept = edef.get("dept", "")
+                course = edef.get("course", "")
+                choose_from = edef.get("choose_from", [])
+                label = edef.get("label", ekey.replace("_", " ").title())
+                if not label or label == ekey.replace("_", " ").title():
+                    if course:
+                        label = f"{course} ({credits} cr)"
+                    elif dept:
+                        label = f"{dept} elective — {credits} hrs"
+                    elif choose_from:
+                        label = f"Choose from: {', '.join(choose_from[:3])}{'...' if len(choose_from)>3 else ''} ({credits} cr)"
+                    else:
+                        label = f"{ekey.replace('_',' ').title()} ({credits} cr)"
+                # Try to find a satisfying course
+                opts = [course] if course else choose_from
+                c = _find_course(opts) if opts else None
+                # For dept-based electives, scan all courses with that prefix
+                if c is None and dept:
+                    dept_norm = dept.upper().replace(' ','_')
+                    c = next((x for x in raw_courses
+                              if x['raw'].upper().startswith(dept)
+                              and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
+                s = _status_of_c(c)
+                full_mr_rows.append({
+                    "id": _norm_code(ekey), "label": label, "status": s,
+                    "course": c, "dcr": credits if isinstance(credits, int) else 3, "note": "",
+                })
+            elif isinstance(edef, list):
+                # list of course codes
+                for course_id in edef:
+                    c = _find_course([course_id])
+                    full_mr_rows.append({
+                        "id": _norm_code(course_id), "label": course_id,
+                        "status": _status_of_c(c), "course": c, "dcr": 3, "note": "",
+                    })
+
+        # Use full_mr_rows if we got more info, else fall back to the engine result
+        final_mr = full_mr_rows if full_mr_rows else mr_rows
 
         res = {
             "catalog_year": catalog_year,
@@ -298,13 +389,13 @@ async def generate_non_fsb(
             "proj": proj,
             "gpa_hrs": gpa_hrs,
             "qp": round(qp, 1),
-            # LA section — empty for non-FSB (LA is universal, not major-specific)
-            "la": [],
+            # LA section — now fully populated from universal LA audit
+            "la": la_rows,
             # No business core for non-FSB
             "bc": [],
-            # Major requirements
-            "mr": mr_rows,
-            # No electives section for non-FSB
+            # Full major requirements
+            "mr": final_mr,
+            # No electives section (electives folded into mr rows above)
             "elecs": [],
             "elecs_ip": [],
             "ehrs": 0,
@@ -317,7 +408,7 @@ async def generate_non_fsb(
             "minor_key": None,
             # Template labels
             "major_section_label": f"{prog_name} — {catalog_year}",
-            "major_subsections": [(f"{prog_name} Required Courses", mr_rows)],
+            "major_subsections": [(f"{prog_name} Required Courses", final_mr)],
             "notes_row_text": "",
             "elec_opts": [],
         }
