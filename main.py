@@ -243,14 +243,48 @@ async def generate_non_fsb(
         ]
 
         student = {"name": student_name, "id": "", "catalog_year": catalog_year}
-        result = run_non_fsb_audit(
+        non_fsb_result = run_non_fsb_audit(
             program_key=major,
             catalog_year=catalog_year,
             student=student,
             transcript=transcript_records,
         )
 
-        pdf_bytes = generate_audit_pdf(result)
+        # Adapt NonFSBAuditResult → AuditResult for the shared PDF generator
+        from engines.audit_engine import AuditResult, RequirementResult
+        adapted_reqs = [
+            RequirementResult(
+                label=r.label,
+                status=r.status if r.status != "Not Met" else "Not Satisfied",
+                satisfying_course=r.course_used or "",
+                notes=r.notes or "",
+            )
+            for r in non_fsb_result.requirements
+        ]
+        outstanding = non_fsb_result.outstanding or []
+        adapted = AuditResult(
+            student_name=student_name,
+            student_id="",
+            catalog_year=catalog_year,
+            major=non_fsb_result.major,
+            overall_gpa=non_fsb_result.major_gpa,
+            major_gpa=non_fsb_result.major_gpa,
+            total_credits_completed=non_fsb_result.total_major_credits,
+            liberal_arts=[],
+            business_core=[],
+            major_requirements=adapted_reqs,
+            minor_requirements=[],
+            action_plan={
+                "liberal_arts_outstanding": [],
+                "core_outstanding": [],
+                "major_outstanding": outstanding,
+                "minor_outstanding": [],
+                "gpa_concerns": [],
+                "other": [],
+            },
+        )
+
+        pdf_bytes = generate_audit_pdf(adapted)
         with open(tmp_pdf, "wb") as f:
             f.write(pdf_bytes)
 
