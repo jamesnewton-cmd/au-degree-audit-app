@@ -289,6 +289,22 @@ def build(res, student_name, major_label, out, exceptions=''):
             story.append(exc_row)
             story.append(Spacer(1, 8))
 
+    # ── ADVISOR NOTES ─────────────────────────────────────────────────────────
+    advisor_notes = res.get('advisor_notes', '')
+    if advisor_notes and advisor_notes.strip():
+        notes_lines = [l.strip() for l in advisor_notes.strip().splitlines() if l.strip()]
+        notes_text = '<br/>'.join(notes_lines)
+        notes_row = Table([[Paragraph(
+            f"<b>Advisor Notes:</b>  {notes_text}", P['note'])]], colWidths=[CW])
+        notes_row.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#E8F4FD')),
+            ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
+            ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#1F3864')),
+        ]))
+        story.append(notes_row)
+        story.append(Spacer(1, 8))
+
     # ── LA SECTION ────────────────────────────────────────────────────────────
     story.append(Paragraph("Liberal Arts — Current", P['sec_gold']))
     story.append(Spacer(1, 4))
@@ -325,6 +341,20 @@ def build(res, student_name, major_label, out, exceptions=''):
         row.setStyle(padded(('BACKGROUND', (0,0), (-1,-1), bg)))
         story.append(row)
 
+    # LA hour totals row
+    la_earned = sum(r['dcr'] for r in res['la'] if r['status'] == 'Satisfied')
+    la_ip     = sum(r['dcr'] for r in res['la'] if r['status'] in ('Current','Scheduled'))
+    la_total  = sum(r['dcr'] for r in res['la'])
+    la_total_row = Table([[Paragraph(
+        f"Liberal Arts Hours — Earned: {la_earned} cr  ·  In Progress / Scheduled: {la_ip} cr  ·  Total Required: {la_total} cr",
+        ps('la_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
+    )]], colWidths=[CW])
+    la_total_row.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), SUB_HDR_BG),
+        ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
+    ]))
+    story.append(la_total_row)
     story.append(Spacer(1, 10))
 
     # ── PAGE 2: MAJOR SECTION ─────────────────────────────────────────────────
@@ -420,6 +450,65 @@ def build(res, student_name, major_label, out, exceptions=''):
             ('LEFTPADDING', (0,0), (-1,-1), 6), ('RIGHTPADDING', (0,0), (-1,-1), 6),
         ]))
         story.append(notes_row)
+
+    # Major hour totals row
+    mj_earned = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr'])
+                    if r['status'] == 'Satisfied')
+    mj_ip     = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr'])
+                    if r['status'] in ('Current','Scheduled'))
+    mj_req    = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr']))
+    if elec_required_hrs > 0:
+        mj_earned += ehrs; mj_ip += ehrs_ip; mj_req += elec_required_hrs
+    mj_total_row = Table([[Paragraph(
+        f"Major Hours — Earned: {mj_earned} cr  ·  In Progress / Scheduled: {mj_ip} cr  ·  Total Required: {mj_req} cr",
+        ps('mj_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
+    )]], colWidths=[CW])
+    mj_total_row.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), SUB_HDR_BG),
+        ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
+    ]))
+    story.append(mj_total_row)
+    story.append(Spacer(1, 6))
+
+    # ── ADDITIONAL MAJOR SECTIONS (2nd and 3rd majors) ────────────────────────
+    for extra_label, extra_rows in res.get('additional_major_sections', []):
+        story.append(Paragraph(f"{extra_label}", P['sec_gold']))
+        story.append(Spacer(1, 4))
+        extra_hdr = Table([[
+            Paragraph('Course', P['col_hdr']),
+            Paragraph('Requirement', P['col_hdr']),
+            Paragraph('Status', P['col_hdr']),
+            Paragraph('CR', P['col_hdr']),
+            Paragraph('Grade', P['col_hdr']),
+        ]], colWidths=mj_cw)
+        extra_hdr.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), MAROON),
+            ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ('LEFTPADDING', (0,0), (-1,-1), 5), ('RIGHTPADDING', (0,0), (-1,-1), 5),
+        ]))
+        story.append(extra_hdr)
+        for i, r in enumerate(extra_rows):
+            c = r.get('course')
+            code = c['raw'] if c else r['id'].replace('_', '-')
+            note = r.get('note', '')
+            story.append(mj_row(code, r['label'] + note, r['status'],
+                                 cr_disp(c, r['dcr']), grade_disp(c), i))
+        # Hour totals for extra major
+        ex_earned = sum(r['dcr'] for r in extra_rows if r['status'] == 'Satisfied')
+        ex_ip     = sum(r['dcr'] for r in extra_rows if r['status'] in ('Current','Scheduled'))
+        ex_req    = sum(r['dcr'] for r in extra_rows)
+        ex_tot = Table([[Paragraph(
+            f"Major Hours — Earned: {ex_earned} cr  ·  In Progress / Scheduled: {ex_ip} cr  ·  Total Required: {ex_req} cr",
+            ps('ex_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
+        )]], colWidths=[CW])
+        ex_tot.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), SUB_HDR_BG),
+            ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
+        ]))
+        story.append(ex_tot)
+        story.append(Spacer(1, 6))
 
     story.append(PageBreak())
 
@@ -537,6 +626,20 @@ def build(res, student_name, major_label, out, exceptions=''):
         ]], colWidths=ch_cw)
         row.setStyle(padded(('BACKGROUND', (0,0), (-1,-1), bg)))
         story.append(row)
+
+    # Course history totals
+    ch_earned_hrs = sum(c['cr'] for c in all_c if done(c) and not drop(c))
+    ch_ip_hrs     = sum(c['cr'] for c in all_c if ip(c) or sched(c))
+    ch_tot = Table([[Paragraph(
+        f"Course History — Earned: {ch_earned_hrs} cr  ·  In Progress / Scheduled: {ch_ip_hrs} cr  ·  Projected Total: {ch_earned_hrs + ch_ip_hrs} cr",
+        ps('ch_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
+    )]], colWidths=[CW])
+    ch_tot.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), SUB_HDR_BG),
+        ('TOPPADDING', (0,0), (-1,-1), 4), ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
+    ]))
+    story.append(ch_tot)
 
     story.append(PageBreak())
 
@@ -682,6 +785,28 @@ def build(res, student_name, major_label, out, exceptions=''):
     ap_section("Major — Scheduled",        maj_sched,    BLUE_BAR)
     ap_section("Major — Missing",          maj_miss,     BLUE_BAR)
     ap_section("Credit Hours",             credit_items, BLUE_BAR)
+
+    # ── ELECTIVES action plan section ─────────────────────────────────────────
+    elec_cur = []; elec_sched = []; elec_miss = []
+    for c in elecs:
+        elec_cur.append((f"{c['raw']} {c['name']}", 'Completed — counts toward elective requirement'))
+    for c in elecs_ip:
+        if ip(c):
+            elec_cur.append((f"{c['raw']} {c['name']}", 'Currently enrolled — complete with passing grade'))
+        else:
+            elec_sched.append((f"{c['raw']} {c['name']}", 'Scheduled — confirm enrollment and complete'))
+    if elec_required_hrs > 0 and ehrs + ehrs_ip < elec_required_hrs:
+        still_needed = elec_required_hrs - ehrs - ehrs_ip
+        elec_opts_list = res.get('elec_opts', [])
+        enrolled_codes = {c['raw'].upper() for c in elecs + elecs_ip}
+        remaining_opts = [o for o in elec_opts_list if o not in enrolled_codes]
+        opt_str = ', '.join(remaining_opts) if remaining_opts else 'see advisor'
+        elec_miss.append((f"{still_needed} hrs still needed",
+                          f"Enroll in approved elective: {opt_str}"))
+    if elec_required_hrs > 0:
+        ap_section("Electives — Current",   elec_cur,   GOLD_BAR)
+        ap_section("Electives — Scheduled", elec_sched, GOLD_BAR)
+        ap_section("Electives — Missing",   elec_miss,  GOLD_BAR)
 
     # Minor action plan
     if minor_rows:

@@ -715,6 +715,8 @@ def build(res, student_name, major_label, out, exceptions=''):
         "Note: BSNS-3210 (Buyer/Seller Relations) = SI  ·  BSNS-4110 (Marketing Research) = WI  ·  "
         "BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: BSNS-1050, 4110, 4330, 4560, 4800  ·  "
         "W8 auto-satisfied when F1 (LART-1050) complete")
+    res.setdefault('advisor_notes', '')
+    res.setdefault('additional_major_sections', [])
 
     # Build major_subsections list for template
     if 'major_subsections' not in res:

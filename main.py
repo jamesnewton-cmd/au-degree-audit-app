@@ -138,7 +138,12 @@ async def generate(
     catalog_year:  str = Form(...),
     transcript:    UploadFile = File(...),
     exceptions:    str = Form(""),
+    advisor_notes: str = Form(""),
     minor1:        str = Form(""),
+    minor2:        str = Form(""),
+    minor3:        str = Form(""),
+    major2:        str = Form(""),
+    major3:        str = Form(""),
     advisor_email: str = Form(""),
     student_email: str = Form(""),
 ):
@@ -165,13 +170,44 @@ async def generate(
         # Apply advisor exceptions before audit
         if exceptions.strip() and hasattr(mod, 'apply_exceptions'):
             courses = mod.apply_exceptions(courses, exceptions)
-        res     = mod.audit(courses, minor_key=minor1 or None)
-        major_label = MAJORS[major]["label"]
-        mod.build(res, student_name, major_label, tmp_pdf, exceptions=exceptions)
+        res = mod.audit(courses, minor_key=minor1 or None)
+        res['catalog_year'] = catalog_year
+        res['advisor_notes'] = advisor_notes
 
-        if hasattr(mod, 'set_catalog_year'):
-            mod.set_catalog_year(catalog_year)
-            mod.build(res, student_name, major_label, tmp_pdf, exceptions=exceptions)
+        # Additional majors — run their requirement sections and merge into res
+        additional_major_sections = []
+        for extra_major_key in [major2, major3]:
+            if not extra_major_key or extra_major_key not in MAJORS:
+                continue
+            try:
+                extra_mod = load_engine(extra_major_key)
+                extra_res = extra_mod.audit(courses, minor_key=None)
+                extra_label = MAJORS[extra_major_key]["label"]
+                # Collect bc + mr rows for this major as an additional section
+                extra_rows = []
+                for r in extra_res.get('bc', []):
+                    r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                for r in extra_res.get('mr', []):
+                    r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                if extra_rows:
+                    additional_major_sections.append((extra_label, extra_rows))
+            except Exception:
+                pass
+
+        # Additional minors
+        for extra_minor_key in [minor2, minor3]:
+            if not extra_minor_key:
+                continue
+            res.setdefault('extra_minor_keys', []).append(extra_minor_key)
+
+        res['additional_major_sections'] = additional_major_sections
+
+        major_label = MAJORS[major]["label"]
+        # Build combined label if multiple majors
+        all_major_labels = [major_label] + [MAJORS[k]["label"] for k in [major2, major3] if k and k in MAJORS]
+        combined_label = " / ".join(all_major_labels)
+
+        mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
 
         total = record_pull("advisor", student_name, MAJORS[major]["label"], catalog_year)
 
@@ -206,7 +242,12 @@ async def generate_non_fsb(
     catalog_year:  str = Form(...),
     transcript:    UploadFile = File(...),
     exceptions:    str = Form(""),
+    advisor_notes: str = Form(""),
     minor1:        str = Form(""),
+    minor2:        str = Form(""),
+    minor3:        str = Form(""),
+    major2:        str = Form(""),
+    major3:        str = Form(""),
     advisor_email: str = Form(""),
     student_email: str = Form(""),
 ):
@@ -413,6 +454,8 @@ async def generate_non_fsb(
             "major_subsections": [(f"{prog_name} Required Courses", final_mr)],
             "notes_row_text": "",
             "elec_opts": [],
+            "advisor_notes": advisor_notes,
+            "additional_major_sections": [],
         }
 
         sm_mod.build(res, student_name, prog_name, tmp_pdf, exceptions=exceptions)
