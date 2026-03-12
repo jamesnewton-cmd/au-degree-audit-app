@@ -539,6 +539,16 @@
           <div id="major2Tag"></div>
           <input type="hidden" name="major2" id="major2Val">
         </div>
+        <div class="field">
+          <label>Third Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="ac-wrap">
+            <span class="ac-icon">🔍</span>
+            <input type="text" id="major3Input" placeholder="Type to search programs…" autocomplete="off">
+            <div class="ac-dropdown" id="major3Drop"></div>
+          </div>
+          <div id="major3Tag"></div>
+          <input type="hidden" name="major3" id="major3Val">
+        </div>
 
         <!-- MINORS -->
         <div class="section-label">Minor(s)</div>
@@ -561,6 +571,16 @@
           </div>
           <div id="minor2Tag"></div>
           <input type="hidden" name="minor2" id="minor2Val">
+        </div>
+        <div class="field">
+          <label>Third Minor <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="ac-wrap">
+            <span class="ac-icon">🔍</span>
+            <input type="text" id="minor3Input" placeholder="Type to search minors…" autocomplete="off">
+            <div class="ac-dropdown" id="minor3Drop"></div>
+          </div>
+          <div id="minor3Tag"></div>
+          <input type="hidden" name="minor3" id="minor3Val">
         </div>
 
         <!-- TRANSCRIPT (single) -->
@@ -632,6 +652,22 @@
           </div>
         </div>
         </div><!-- end exceptionsSection -->
+
+        <!-- ADVISOR NOTES -->
+        <div id="advisorNotesSection">
+        <div class="section-label">Advisor Notes <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — prints on PDF)</span></div>
+        <div class="field">
+          <textarea name="advisor_notes" id="advisorNotesInput" rows="3" placeholder="Enter any notes for the advisor that will appear on the audit PDF…" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
+        </div>
+        </div><!-- end advisorNotesSection -->
+
+        <!-- REGISTRAR NOTE TO ADVISOR -->
+        <div id="registrarNoteSection">
+        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — shown on screen only, not on PDF)</span></div>
+        <div class="field">
+          <textarea id="registrarNoteInput" rows="2" placeholder="Note to advisor explaining why this audit is being sent (not included in the PDF)…" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
+        </div>
+        </div><!-- end registrarNoteSection -->
 
         <!-- EMAIL DELIVERY -->
         <div id="emailSection">
@@ -778,8 +814,10 @@ function makeAC(inputId, dropId, tagId, hiddenId, getPool) {
 
 makeAC('major1Input','major1Drop','major1Tag','major1Val', () => majorPrograms);
 makeAC('major2Input','major2Drop','major2Tag','major2Val', () => majorPrograms);
+makeAC('major3Input','major3Drop','major3Tag','major3Val', () => majorPrograms);
 makeAC('minor1Input','minor1Drop','minor1Tag','minor1Val', () => minorPrograms);
 makeAC('minor2Input','minor2Drop','minor2Tag','minor2Val', () => minorPrograms);
+makeAC('minor3Input','minor3Drop','minor3Tag','minor3Val', () => minorPrograms);
 
 // ── Status ────────────────────────────────────────────────────────────────────
 function updateStatus(data) {
@@ -870,7 +908,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     if (!batchFilesEl.files.length) { toast('Please upload at least one CSV file.', true); btn.disabled=false; spinner.style.display='none'; return; }
     const files = Array.from(batchFilesEl.files);
     btnText.textContent = `Processing 0 of ${files.length}…`;
-    const endpoint = FSB_KEYS.includes(batchMajor) ? '/generate' : '/generate/non-fsb';
+    const endpoint = FSB_KEYS.includes(batchMajor) ? '/generate' : '/audit/non-fsb';
     const JSZip = await loadJSZip();
     const zip = new JSZip();
     let done = 0;
@@ -910,13 +948,19 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     const lastName = document.getElementById('lastName').value.trim();
     form.set('student_name', firstName + ' ' + lastName);
     form.set('major', major1);
+    form.set('major2', document.getElementById('major2Val').value || '');
+    form.set('major3', document.getElementById('major3Val').value || '');
     form.set('minor1', document.getElementById('minor1Val').value || '');
+    form.set('minor2', document.getElementById('minor2Val').value || '');
+    form.set('minor3', document.getElementById('minor3Val').value || '');
+    // Registrar note is screen-only — store it to show after generation
+    const registrarNote = document.getElementById('registrarNoteInput').value.trim();
     const endpoint = FSB_KEYS.includes(major1) ? '/generate' : '/generate/non-fsb';
     try {
       const res = await fetch(endpoint, { method: 'POST', body: form });
       if (res.status === 401) { sessionStorage.removeItem('auditpw'); SESSION_PW = ''; overlay.classList.remove('hidden'); return; }
       if (res.status === 429) { toast('Annual pull limit reached. Contact Indy Collab.', true); return; }
-      if (!res.ok) { const err = await res.json(); const msg = typeof err.detail === 'string' ? err.detail : (Array.isArray(err.detail) ? err.detail.map(e=>e.msg||JSON.stringify(e)).join('; ') : 'Generation failed.'); toast(msg, true); return; }
+      if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
       const blob = await res.blob();
       const cd = res.headers.get('Content-Disposition') || '';
       const fnMatch = cd.match(/filename=(.+)/);
@@ -929,12 +973,26 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       const studentEmail = document.getElementById('studentEmail').value.trim();
       const emailCount = [advisorEmail, studentEmail].filter(Boolean).length;
       const emailMsg = emailCount > 0 ? ` · PDF emailed to ${emailCount} recipient${emailCount > 1 ? 's' : ''}.` : '';
+      const regMsg = registrarNote ? `\n\nRegistrar Note: ${registrarNote}` : '';
+      if (registrarNote) {
+        // Show registrar note in a styled alert below the toast
+        const noteDiv = document.getElementById('registrarNoteDisplay') || (() => {
+          const d = document.createElement('div');
+          d.id = 'registrarNoteDisplay';
+          d.style.cssText = 'margin:1rem 0;padding:0.85rem 1.1rem;background:#FFF3CD;border:1.5px solid #E6A817;border-radius:8px;font-size:0.88rem;line-height:1.5;color:#5a3e00;';
+          document.getElementById('auditForm').insertAdjacentElement('beforebegin', d);
+          return d;
+        })();
+        noteDiv.innerHTML = '<strong>📋 Registrar Note to Advisor:</strong><br>' + registrarNote.replace(/\n/g,'<br>');
+        noteDiv.style.display = 'block';
+        setTimeout(() => { noteDiv.style.display = 'none'; }, 30000);
+      }
       toast('✓ Audit generated!' + emailMsg + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
       loadStatus();
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
-      ['major1Val','major2Val','minor1Val','minor2Val'].forEach(id => document.getElementById(id).value = '');
-      ['major1Tag','major2Tag','minor1Tag','minor2Tag'].forEach(id => document.getElementById(id).innerHTML = '');
+      ['major1Val','major2Val','major3Val','minor1Val','minor2Val','minor3Val'].forEach(id => document.getElementById(id).value = '');
+      ['major1Tag','major2Tag','major3Tag','minor1Tag','minor2Tag','minor3Tag'].forEach(id => document.getElementById(id).innerHTML = '');
       document.getElementById('fileName').style.display = 'none';
     } catch(err) { toast('Network error. Please try again.', true); }
     finally { btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; }
