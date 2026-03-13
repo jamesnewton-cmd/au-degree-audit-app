@@ -786,28 +786,6 @@ def build(res, student_name, major_label, out, exceptions=''):
     ap_section("Major — Missing",          maj_miss,     BLUE_BAR)
     ap_section("Credit Hours",             credit_items, BLUE_BAR)
 
-    # ── ELECTIVES action plan section ─────────────────────────────────────────
-    elec_cur = []; elec_sched = []; elec_miss = []
-    for c in elecs:
-        elec_cur.append((f"{c['raw']} {c['name']}", 'Completed — counts toward elective requirement'))
-    for c in elecs_ip:
-        if ip(c):
-            elec_cur.append((f"{c['raw']} {c['name']}", 'Currently enrolled — complete with passing grade'))
-        else:
-            elec_sched.append((f"{c['raw']} {c['name']}", 'Scheduled — confirm enrollment and complete'))
-    if elec_required_hrs > 0 and ehrs + ehrs_ip < elec_required_hrs:
-        still_needed = elec_required_hrs - ehrs - ehrs_ip
-        elec_opts_list = res.get('elec_opts', [])
-        enrolled_codes = {c['raw'].upper() for c in elecs + elecs_ip}
-        remaining_opts = [o for o in elec_opts_list if o not in enrolled_codes]
-        opt_str = ', '.join(remaining_opts) if remaining_opts else 'see advisor'
-        elec_miss.append((f"{still_needed} hrs still needed",
-                          f"Enroll in approved elective: {opt_str}"))
-    if elec_required_hrs > 0:
-        ap_section("Electives — Current",   elec_cur,   GOLD_BAR)
-        ap_section("Electives — Scheduled", elec_sched, GOLD_BAR)
-        ap_section("Electives — Missing",   elec_miss,  GOLD_BAR)
-
     # Minor action plan
     if minor_rows:
         minor_miss = []; minor_cur = []; minor_sched = []
@@ -838,6 +816,28 @@ def build(res, student_name, major_label, out, exceptions=''):
         ap_section(f"Minor — Current ({mn})",   minor_cur,   GOLD_BAR)
         ap_section(f"Minor — Scheduled ({mn})", minor_sched, GOLD_BAR)
         ap_section(f"Minor — Missing ({mn})",   minor_miss,  GOLD_BAR)
+
+    # ── ELECTIVES action plan section ─────────────────────────────────────────
+    elec_cur = []; elec_sched = []; elec_miss = []
+    for c in elecs:
+        elec_cur.append((f"{c['raw']} {c['name']}", 'Completed — counts toward elective requirement'))
+    for c in elecs_ip:
+        if ip(c):
+            elec_cur.append((f"{c['raw']} {c['name']}", 'Currently enrolled — complete with passing grade'))
+        else:
+            elec_sched.append((f"{c['raw']} {c['name']}", 'Scheduled — confirm enrollment and complete'))
+    if elec_required_hrs > 0 and ehrs + ehrs_ip < elec_required_hrs:
+        still_needed = elec_required_hrs - ehrs - ehrs_ip
+        elec_opts_list = res.get('elec_opts', [])
+        enrolled_codes = {c['raw'].upper() for c in elecs + elecs_ip}
+        remaining_opts = [o for o in elec_opts_list if o not in enrolled_codes]
+        opt_str = ', '.join(remaining_opts) if remaining_opts else 'see advisor'
+        elec_miss.append((f"{still_needed} hrs still needed",
+                          f"Enroll in approved elective: {opt_str}"))
+    if elec_required_hrs > 0:
+        ap_section("Electives — Current",   elec_cur,   GOLD_BAR)
+        ap_section("Electives — Scheduled", elec_sched, GOLD_BAR)
+        ap_section("Electives — Missing",   elec_miss,  GOLD_BAR)
 
     story.append(Spacer(1, 4))
     story.append(Paragraph(
