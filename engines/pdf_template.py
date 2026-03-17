@@ -105,6 +105,16 @@ P = {
     'note':       ps('note', fontName='Helvetica-Oblique', fontSize=7.5, textColor=GRAY, leading=10),
 }
 
+def _int(v):
+    """Safely convert dcr/credits to int regardless of type."""
+    if isinstance(v, int): return v
+    if isinstance(v, float): return int(v)
+    if isinstance(v, str):
+        try: return int(v.split("-")[0])
+        except ValueError: return 0
+    return 0
+
+
 def padded(*extra):
     base = [
         ('TOPPADDING',    (0,0),(-1,-1), 3),
@@ -342,9 +352,9 @@ def build(res, student_name, major_label, out, exceptions=''):
         story.append(row)
 
     # LA hour totals row
-    la_earned = sum(r['dcr'] for r in res['la'] if r['status'] == 'Satisfied')
-    la_ip     = sum(r['dcr'] for r in res['la'] if r['status'] in ('Current','Scheduled'))
-    la_total  = sum(r['dcr'] for r in res['la'])
+    la_earned = sum(_int(r['dcr']) for r in res['la'] if r['status'] == 'Satisfied')
+    la_ip     = sum(_int(r['dcr']) for r in res['la'] if r['status'] in ('Current','Scheduled'))
+    la_total  = sum(_int(r['dcr']) for r in res['la'])
     la_total_row = Table([[Paragraph(
         f"Liberal Arts Hours — Earned: {la_earned} cr  ·  In Progress / Scheduled: {la_ip} cr  ·  Total Required: {la_total} cr",
         ps('la_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
@@ -452,11 +462,11 @@ def build(res, student_name, major_label, out, exceptions=''):
         story.append(notes_row)
 
     # Major hour totals row
-    mj_earned = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr'])
+    mj_earned = sum(_int(r['dcr']) for r in list(res.get('bc',[])) + list(res['mr'])
                     if r['status'] == 'Satisfied')
-    mj_ip     = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr'])
+    mj_ip     = sum(_int(r['dcr']) for r in list(res.get('bc',[])) + list(res['mr'])
                     if r['status'] in ('Current','Scheduled'))
-    mj_req    = sum(r['dcr'] for r in list(res.get('bc',[])) + list(res['mr']))
+    mj_req    = sum(_int(r['dcr']) for r in list(res.get('bc',[])) + list(res['mr']))
     if elec_required_hrs > 0:
         mj_earned += ehrs; mj_ip += ehrs_ip; mj_req += elec_required_hrs
     mj_total_row = Table([[Paragraph(
@@ -495,9 +505,9 @@ def build(res, student_name, major_label, out, exceptions=''):
             story.append(mj_row(code, r['label'] + note, r['status'],
                                  cr_disp(c, r['dcr']), grade_disp(c), i))
         # Hour totals for extra major
-        ex_earned = sum(r['dcr'] for r in extra_rows if r['status'] == 'Satisfied')
-        ex_ip     = sum(r['dcr'] for r in extra_rows if r['status'] in ('Current','Scheduled'))
-        ex_req    = sum(r['dcr'] for r in extra_rows)
+        ex_earned = sum(_int(r['dcr']) for r in extra_rows if r['status'] == 'Satisfied')
+        ex_ip     = sum(_int(r['dcr']) for r in extra_rows if r['status'] in ('Current','Scheduled'))
+        ex_req    = sum(_int(r['dcr']) for r in extra_rows)
         ex_tot = Table([[Paragraph(
             f"Major Hours — Earned: {ex_earned} cr  ·  In Progress / Scheduled: {ex_ip} cr  ·  Total Required: {ex_req} cr",
             ps('ex_tot', fontName='Helvetica-Bold', fontSize=8, textColor=DARK, leading=10)
