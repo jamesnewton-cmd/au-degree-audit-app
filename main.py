@@ -386,31 +386,44 @@ async def generate_non_fsb(
                     "course": c, "dcr": 3, "note": "",
                 })
 
-        # Elective blocks (crim_elective, internship, elective, etc.)
-        for ekey in ["crim_elective", "internship", "elective", "experience",
-                     "additional_crim", "elective_upper", "practicum"]:
+        def _safe_credits(val, fallback=3):
+            """Convert credits to int — handles strings like '8-9' by taking the minimum."""
+            if isinstance(val, int): return val
+            if isinstance(val, float): return int(val)
+            if isinstance(val, str):
+                try: return int(val.split("-")[0])
+                except ValueError: return fallback
+            return fallback
+
+        # Elective / extra blocks — scan all dict-type requirement keys that
+        # look like elective/supplemental definitions
+        elec_keys = [
+            "crim_elective", "internship", "elective", "electives",
+            "experience", "additional_crim", "elective_upper",
+            "elective_upper_div", "practicum", "additional_hours",
+            "concentration_elective", "choose_one_tech",
+        ]
+        for ekey in elec_keys:
             edef = prog_reqs.get(ekey)
             if not edef: continue
             if isinstance(edef, dict):
-                credits = edef.get("credits", 3)
+                credits = _safe_credits(edef.get("credits", 3))
                 dept = edef.get("dept", "")
                 course = edef.get("course", "")
-                choose_from = edef.get("choose_from", [])
-                label = edef.get("label", ekey.replace("_", " ").title())
-                if not label or label == ekey.replace("_", " ").title():
+                choose_from = edef.get("choose_from", edef.get("options", edef.get("courses", [])))
+                label = edef.get("label", "")
+                if not label:
                     if course:
                         label = f"{course} ({credits} cr)"
                     elif dept:
-                        label = f"{dept} elective — {credits} hrs"
+                        dept_str = "/".join(dept) if isinstance(dept, list) else dept
+                        label = f"{dept_str} elective — {credits} hrs"
                     elif choose_from:
-                        label = f"Choose from: {', '.join(choose_from[:3])}{'...' if len(choose_from)>3 else ''} ({credits} cr)"
+                        label = f"Choose from: {', '.join(str(x) for x in choose_from[:3])}{'...' if len(choose_from)>3 else ''} ({credits} cr)"
                     else:
                         label = f"{ekey.replace('_',' ').title()} ({credits} cr)"
-                # Try to find a satisfying course
-                opts = [course] if course else choose_from
+                opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
                 c = _find_course(opts) if opts else None
-                # For dept-based electives, scan all courses with that prefix
-                # dept may be a string or a list of strings
                 if c is None and dept:
                     dept_list = [dept] if isinstance(dept, str) else dept
                     dept_prefixes = tuple(d.upper() for d in dept_list)
@@ -420,14 +433,19 @@ async def generate_non_fsb(
                 s = _status_of_c(c)
                 full_mr_rows.append({
                     "id": _norm_code(ekey), "label": label, "status": s,
-                    "course": c, "dcr": credits if isinstance(credits, int) else 3, "note": "",
+                    "course": c, "dcr": credits, "note": "",
+                })
+            elif isinstance(edef, (int, float)):
+                # e.g. additional_hours: 4
+                full_mr_rows.append({
+                    "id": _norm_code(ekey), "label": f"{ekey.replace('_',' ').title()} ({int(edef)} hrs)",
+                    "status": "Not Satisfied", "course": None, "dcr": int(edef), "note": "",
                 })
             elif isinstance(edef, list):
-                # list of course codes
                 for course_id in edef:
-                    c = _find_course([course_id])
+                    c = _find_course([str(course_id)])
                     full_mr_rows.append({
-                        "id": _norm_code(course_id), "label": course_id,
+                        "id": _norm_code(str(course_id)), "label": str(course_id),
                         "status": _status_of_c(c), "course": c, "dcr": 3, "note": "",
                     })
 
