@@ -383,26 +383,37 @@ async def generate_non_fsb(
 
         full_mr_rows = []
 
-        # Required individual courses
-        for course_id in prog_reqs.get("required", []):
-            c = _find_course([course_id])
-            s = _status_of_c(c)
-            cid = _norm_code(course_id)
-            full_mr_rows.append({
-                "id": cid, "label": _course_label(course_id, c), "status": s,
-                "course": c, "dcr": 3, "note": "",
-            })
+        # Keys to skip — not course lists or elective blocks
+        _skip_keys = {
+            'name', 'total_credits', 'delivery', 'notes', 'teaching_fields',
+            'department', 'concentration_note', 'special_rules', 'same_as',
+            'optional_cma', 'concentrations', 'tracks', 'total_major_credits',
+            'lead_courses_credits', 'la_credits', 'elective_credits',
+            'min_level', 'choose_one',  # choose_one handled separately below
+        }
 
-        # Foundation / core blocks
-        for block_key in ["foundation", "core", "dept_core", "ministry_core",
-                          "required_science", "required_exsc"]:
-            for course_id in prog_reqs.get(block_key, []):
-                c = _find_course([course_id])
-                s = _status_of_c(c)
-                full_mr_rows.append({
-                    "id": _norm_code(course_id), "label": _course_label(course_id, c), "status": s,
-                    "course": c, "dcr": 3, "note": "",
-                })
+        # Dynamically process all list-type keys as course arrays
+        # and all dict-type keys with 'credits' as elective blocks
+        for req_key, req_val in prog_reqs.items():
+            if req_key in _skip_keys:
+                continue
+
+            if isinstance(req_val, list) and req_val:
+                # It's a list of course codes — add each as a requirement row
+                # Use key name as subsection hint for label prefix
+                key_label = req_key.replace('_', ' ').title()
+                for course_id in req_val:
+                    if not isinstance(course_id, str): continue
+                    # Skip placeholder codes like 'HIST 3xxx'
+                    if 'xxx' in course_id.lower() or 'X' * 3 in course_id.upper():
+                        continue
+                    c = _find_course([course_id])
+                    s = _status_of_c(c)
+                    full_mr_rows.append({
+                        "id": _norm_code(course_id),
+                        "label": _course_label(course_id, c),
+                        "status": s, "course": c, "dcr": 3, "note": "",
+                    })
 
         def _safe_credits(val, fallback=3):
             """Convert credits to int — handles strings like '8-9' by taking the minimum."""
@@ -413,17 +424,11 @@ async def generate_non_fsb(
                 except ValueError: return fallback
             return fallback
 
-        # Elective / extra blocks — scan all dict-type requirement keys that
-        # look like elective/supplemental definitions
-        elec_keys = [
-            "crim_elective", "internship", "elective", "electives",
-            "experience", "additional_crim", "elective_upper",
-            "elective_upper_div", "practicum", "additional_hours",
-            "concentration_elective", "choose_one_tech",
-        ]
-        for ekey in elec_keys:
-            edef = prog_reqs.get(ekey)
-            if not edef: continue
+        # Dynamically process all dict-type keys with 'credits' as elective/supplemental blocks
+        for ekey, edef in prog_reqs.items():
+            if ekey in _skip_keys: continue
+            if not isinstance(edef, (dict, int, float)): continue
+            if isinstance(edef, dict) and 'credits' not in edef: continue
             if isinstance(edef, dict):
                 credits = _safe_credits(edef.get("credits", 3))
                 dept = edef.get("dept", "")
