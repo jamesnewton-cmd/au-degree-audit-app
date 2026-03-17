@@ -19,8 +19,16 @@ ENGINES_DIR  = Path("engines")
 MAX_PULLS    = int(os.environ.get("MAX_PULLS", 1000))
 
 MAJORS = {
-    "management":     {"label": "Management",     "engine": "management"},
-    "sport_marketing": {"label": "Sport Marketing", "engine": "sport_marketing"},
+    "management":                    {"label": "Management",                        "engine": "management"},
+    "sport_marketing":               {"label": "Sport Marketing",                   "engine": "sport_marketing"},
+    "marketing":                     {"label": "Marketing",                         "engine": "sport_marketing"},
+    "accounting":                    {"label": "Accounting",                        "engine": "sport_marketing"},
+    "finance":                       {"label": "Finance",                           "engine": "sport_marketing"},
+    "business_analytics":            {"label": "Business Analytics",                "engine": "sport_marketing"},
+    "engineering_management":        {"label": "Engineering Management",            "engine": "sport_marketing"},
+    "global_business":               {"label": "Global Business",                   "engine": "sport_marketing"},
+    "music_entertainment_business":  {"label": "Music & Entertainment Business",    "engine": "sport_marketing"},
+    "business_integrative_leadership":{"label": "Business & Integrative Leadership","engine": "sport_marketing"},
 }
 
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
