@@ -363,6 +363,24 @@ async def generate_non_fsb(
             if c['status'] == 'scheduled': return 'Scheduled'
             return 'Not Satisfied'
 
+        # Build a code->name lookup from the transcript so requirement labels show course names
+        course_name_lookup = {}
+        for _c in raw_courses:
+            code_key = _c['raw'].upper().replace('-', ' ')
+            if _c.get('name') and _c['name'].strip():
+                course_name_lookup[code_key] = _c['name'].strip()
+
+        def _course_label(course_id, found_course=None):
+            """Return 'CODE Name' if name is known, else just 'CODE'."""
+            code_clean = course_id.strip().upper().replace('-', ' ')
+            if found_course and found_course.get('name'):
+                return f"{course_id} {found_course['name']}"
+            name = course_name_lookup.get(code_clean, '')
+            if name:
+                return f"{course_id} {name}"
+            return course_id
+
+
         full_mr_rows = []
 
         # Required individual courses
@@ -371,7 +389,7 @@ async def generate_non_fsb(
             s = _status_of_c(c)
             cid = _norm_code(course_id)
             full_mr_rows.append({
-                "id": cid, "label": course_id, "status": s,
+                "id": cid, "label": _course_label(course_id, c), "status": s,
                 "course": c, "dcr": 3, "note": "",
             })
 
@@ -382,7 +400,7 @@ async def generate_non_fsb(
                 c = _find_course([course_id])
                 s = _status_of_c(c)
                 full_mr_rows.append({
-                    "id": _norm_code(course_id), "label": course_id, "status": s,
+                    "id": _norm_code(course_id), "label": _course_label(course_id, c), "status": s,
                     "course": c, "dcr": 3, "note": "",
                 })
 
@@ -445,7 +463,7 @@ async def generate_non_fsb(
                 for course_id in edef:
                     c = _find_course([str(course_id)])
                     full_mr_rows.append({
-                        "id": _norm_code(str(course_id)), "label": str(course_id),
+                        "id": _norm_code(str(course_id)), "label": _course_label(str(course_id), c),
                         "status": _status_of_c(c), "course": c, "dcr": 3, "note": "",
                     })
 
