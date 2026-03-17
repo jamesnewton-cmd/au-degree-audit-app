@@ -311,6 +311,26 @@ BUS_CORE = [
     ('ECON_2020','ECON-2020 Principles of Microeconomics',  ['ECON_2020'], 3),
 ]
 
+# ── 2025-26 BUSINESS CORE (48 hrs) ──────────────────────────────────────────
+BUS_CORE_2526 = [
+    ('ACCT_2010','ACCT-2010 Principles of Accounting I',       ['ACCT_2010'], 3),
+    ('ACCT_2020','ACCT-2020 Principles of Accounting II',      ['ACCT_2020'], 3),
+    ('BSNS_1050','BSNS-1050 Business as a Profession',         ['BSNS_1050'], 3),
+    ('BSNS_2310','BSNS-2310 Business Analytics',               ['BSNS_2310'], 3),
+    ('BSNS_2450','BSNS-2450 Data Analytics and Decision Making',['BSNS_2450'],3),
+    ('BSNS_2510','BSNS-2510 Principles of Finance',            ['BSNS_2510'], 3),
+    ('BSNS_2550','BSNS-2550 Professional Communication (SI)',  ['BSNS_2550'], 3),
+    ('BSNS_2710','BSNS-2710 Principles of Management',         ['BSNS_2710'], 3),
+    ('BSNS_2810','BSNS-2810 Principles of Marketing',          ['BSNS_2810'], 3),
+    ('BSNS_3120','BSNS-3120 Global Business (AU6)',             ['BSNS_3120'], 3),
+    ('BSNS_3270','BSNS-3270 Project Management',               ['BSNS_3270'], 3),
+    ('BSNS_3420','BSNS-3420 Business Law',                     ['BSNS_3420'], 3),
+    ('BSNS_4500','BSNS-4500 Strategic Management',             ['BSNS_4500'], 3),
+    ('BSNS_4800','BSNS-4800 Experiential Learning',            ['BSNS_4800'], 3),
+    ('BSNS_4910','BSNS-4910 Senior Seminar in Business & Ethics',['BSNS_4910'],3),
+    ('ECON_2010','ECON-2010 Principles of Macroeconomics',     ['ECON_2010'], 3),
+]
+
 SMKT_REQ = [
     ('BSNS_3130','BSNS-3130 Sport Marketing',                        ['BSNS_3130'], 3),
     ('BSNS_3210','BSNS-3210 Buyer/Seller Relations',                 ['BSNS_3210'], 3),

@@ -19,16 +19,16 @@ ENGINES_DIR  = Path("engines")
 MAX_PULLS    = int(os.environ.get("MAX_PULLS", 1000))
 
 MAJORS = {
-    "management":                    {"label": "Management",                        "engine": "management"},
-    "sport_marketing":               {"label": "Sport Marketing",                   "engine": "sport_marketing"},
-    "marketing":                     {"label": "Marketing",                         "engine": "sport_marketing"},
-    "accounting":                    {"label": "Accounting",                        "engine": "sport_marketing"},
-    "finance":                       {"label": "Finance",                           "engine": "sport_marketing"},
-    "business_analytics":            {"label": "Business Analytics",                "engine": "sport_marketing"},
-    "engineering_management":        {"label": "Engineering Management",            "engine": "sport_marketing"},
-    "global_business":               {"label": "Global Business",                   "engine": "sport_marketing"},
-    "music_entertainment_business":  {"label": "Music & Entertainment Business",    "engine": "sport_marketing"},
-    "business_integrative_leadership":{"label": "Business & Integrative Leadership","engine": "sport_marketing"},
+    "management":                     {"label": "Management",                        "engine": "management"},
+    "sport_marketing":                {"label": "Sport Marketing",                   "engine": "sport_marketing"},
+    "marketing":                      {"label": "Marketing",                         "engine": "fsb_engine"},
+    "accounting":                     {"label": "Accounting",                        "engine": "fsb_engine"},
+    "finance":                        {"label": "Finance",                           "engine": "fsb_engine"},
+    "business_analytics":             {"label": "Business Analytics",                "engine": "fsb_engine"},
+    "engineering_management":         {"label": "Engineering Management",            "engine": "fsb_engine"},
+    "global_business":                {"label": "Global Business",                   "engine": "fsb_engine"},
+    "music_entertainment_business":   {"label": "Music & Entertainment Business",    "engine": "fsb_engine"},
+    "business_integrative_leadership":{"label": "Business & Integrative Leadership", "engine": "fsb_engine"},
 }
 
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
@@ -174,6 +174,10 @@ async def generate(
 
     try:
         mod = load_engine(major)
+        # Set major key and catalog year on fsb_engine before audit
+        if hasattr(mod, 'MAJOR_KEY'):
+            mod.MAJOR_KEY    = major
+            mod.CATALOG_YEAR = catalog_year
         courses = mod.parse_csv(tmp_csv)
         # Apply advisor exceptions before audit
         if exceptions.strip() and hasattr(mod, 'apply_exceptions'):
