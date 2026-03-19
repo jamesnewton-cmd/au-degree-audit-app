@@ -120,7 +120,7 @@ def parse_csv(path):
                 'raw':      r.get('Course Code','').strip().upper(),
                 'name':     r.get('Course Name','').strip(),
                 'cr':       _int(r.get('Credits','0')),
-                'status':   r.get('Status','').strip().lower(),
+                'status':   r.get('Status','').strip().lower().replace('scheduled','current'),
                 'grade':    r.get('Letter Grade','').strip(),
                 'reg_date': r.get('Registration Date','').strip(),
             })

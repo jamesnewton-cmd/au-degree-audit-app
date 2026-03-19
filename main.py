@@ -323,19 +323,55 @@ async def generate_non_fsb(
             for r in non_fsb_result.requirements
         ]
 
-        # Compute simple GPA/credit stats from raw_courses
-        gpa_courses = [c for c in raw_courses if c["grade"].upper() not in ("", "T", "W", "DRP", "NC", "IP", "CR/IP")]
-        gpa_hrs = sum(c["cr"] for c in gpa_courses if c["status"] == "grade posted")
-        gp_map = {"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,
-                  "C-":1.7,"D+":1.3,"D":1.0,"D-":0.7,"F":0.0}
-        qp = sum(c["cr"] * gp_map.get(c["grade"].upper(), 0.0)
-                 for c in gpa_courses if c["status"] == "grade posted")
-        gpa_o = round(qp / gpa_hrs, 2) if gpa_hrs > 0 else 0.0
-        earned = sum(c["cr"] for c in raw_courses
-                     if c["status"] == "grade posted" and c["grade"].upper() not in ("","W","DRP","NC","F"))
-        ip_hrs = sum(c["cr"] for c in raw_courses if c["status"] == "current")
-        sched_hrs = sum(c["cr"] for c in raw_courses if c["status"] == "scheduled")
-        proj = earned + ip_hrs + sched_hrs
+        # Compute GPA/credit stats using same logic as sport_marketing audit()
+        GP = {"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,
+              "C-":1.7,"D+":1.3,"D":1.0,"D-":0.7,"F":0.0}
+        op = oh = mp = mh = qp = 0.0
+        earned = ip_hrs = 0
+        seen_codes = set()
+
+        # Build major course code set from program requirements
+        major_codes_set = set()
+        prog_reqs_for_gpa = get_non_fsb_requirements(major, catalog_year) or {}
+        _skip_gpa = {'name','total_credits','delivery','notes','teaching_fields',
+                     'department','same_as','optional_cma','concentrations','tracks',
+                     'total_major_credits','lead_courses_credits','la_credits',
+                     'elective_credits','min_level','choose_one'}
+        for _k, _v in prog_reqs_for_gpa.items():
+            if _k in _skip_gpa: continue
+            if isinstance(_v, list):
+                for _cid in _v:
+                    if isinstance(_cid, str) and 'xxx' not in _cid.lower():
+                        major_codes_set.add(_cid.strip().upper().replace(' ','_').replace('-','_'))
+
+        for c in raw_courses:
+            g = c["grade"].upper()
+            if g in ("W", "DRP") or c["status"] == "dropped":
+                continue
+            if c["status"] == "current":
+                ip_hrs += c["cr"]
+                continue
+            if c["status"] != "grade posted":
+                continue
+            earned += c["cr"]
+            if g in ("T", "CR", "NC", ""):
+                continue
+            gp = GP.get(g)
+            if gp is None:
+                continue
+            cr = c["cr"]
+            code_key = c["code"]
+            if code_key not in seen_codes:
+                op += gp * cr; oh += cr; qp += gp * cr
+                seen_codes.add(code_key)
+            if c["code"] in major_codes_set or c["raw"].upper().replace('-','_') in major_codes_set:
+                mp += gp * cr; mh += cr
+
+        gpa_o = round(op / oh, 2) if oh else 0.0
+        gpa_m = round(mp / mh, 2) if mh else 0.0
+        gpa_hrs = int(oh)
+        ip_hrs_total = ip_hrs
+        proj = earned + ip_hrs
 
         # Get program display name and full requirement definition
         prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
@@ -479,9 +515,9 @@ async def generate_non_fsb(
             "catalog_year": catalog_year,
             "current_term_label": "2025-26",
             "gpa_o": gpa_o,
-            "gpa_m": round(non_fsb_result.major_gpa, 2),
+            "gpa_m": gpa_m,
             "earned": earned,
-            "ip_hrs": ip_hrs,
+            "ip_hrs": ip_hrs_total,
             "proj": proj,
             "gpa_hrs": gpa_hrs,
             "qp": round(qp, 1),
