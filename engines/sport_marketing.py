@@ -894,13 +894,25 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         courses = courses + [synthetic]
         cm['ENGL_1110'] = synthetic
 
+    # Auto-detect Honors student by presence of any HNRS course
+    is_honors = any(c['code'].startswith('HNRS_') for c in courses)
+
     has_lart = cm.get('LART_1050')
     if not has_lart:
-        synthetic = {'code':'LART_1050','raw':'LART-1050',
-                     'name':'First-Year Seminar (exempt)',
-                     'cr':0,'status':'grade posted','grade':'T','reg_date':''}
-        courses = courses + [synthetic]
-        cm['LART_1050'] = synthetic
+        if is_honors:
+            # Honors students are officially exempt from LART-1050
+            # HNRS-2110 satisfies First Year Experience for Honors students
+            hnrs_2110 = cm.get('HNRS_2110')
+            synthetic = {
+                'code': 'LART_1050', 'raw': 'LART-1050',
+                'name': 'First-Year Seminar (Honors exempt — HNRS-2110)',
+                'cr': 0, 'status': 'grade posted', 'grade': 'T', 'reg_date': ''
+            }
+            if hnrs_2110 and done(hnrs_2110):
+                synthetic['name'] = 'First-Year Seminar (Honors exempt — HNRS-2110)'
+            courses = courses + [synthetic]
+            cm['LART_1050'] = synthetic
+        # Non-Honors students without LART-1050: leave as missing (Not Satisfied)
 
     def find_any(code_list):
         return best(courses, [norm(c.replace(' ','_').replace('-','_')) for c in code_list])
@@ -950,11 +962,14 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f3_2_opts = [c for c in f3_req if '1120' in c] or ['ENGL 1120']
         f3_1_c = find_any(f3_1_opts)
         f3_2_c = find_any(f3_2_opts)
-        # Track if HNRS 2110 was used for F3 (to exclude from W3)
+        # For Honors students: HNRS-2110 satisfies F3 (both rows) AND W3 simultaneously
+        # For non-Honors: HNRS-2110 satisfies F3 OR W3 (not both)
         hnrs_2110_used_for_f3 = (f3_1_c is not None and 'HNRS' in f3_1_c.get('raw','').upper() and '2110' in f3_1_c.get('raw',''))
-        # If HNRS-2110 used for Writing I, it also satisfies Writing II (5-hr course)
+        # HNRS-2110 always satisfies both Writing I and Writing II (5-hr course)
         if hnrs_2110_used_for_f3 and f3_2_c is None:
             f3_2_c = f3_1_c
+        # For Honors students, HNRS-2110 can ALSO satisfy W3 (no OR restriction)
+        hnrs_2110_blocks_w3 = hnrs_2110_used_for_f3 and not is_honors
         la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100 / HNRS-2110)',
                            3, f3_1_c, status_of(f3_1_c)))
         la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (or HNRS-2110)',
@@ -992,7 +1007,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
             w_dcr = wdef.get('credits', 3)
             if isinstance(w_dcr, dict): w_dcr = w_dcr.get(yr, 3)
             # HNRS 2110 satisfies F3 OR W3 — exclude from W3 if already used for F3
-            if wkey == 'W3' and hnrs_2110_used_for_f3:
+            if wkey == 'W3' and hnrs_2110_blocks_w3:
                 w_opts = [o for o in w_opts if 'HNRS' not in o.upper() or '2110' not in o]
             w_c = find_any(w_opts)
             la.append(make_row(wkey, None, wdef.get('label', wkey), w_dcr, w_c, status_of(w_c)))

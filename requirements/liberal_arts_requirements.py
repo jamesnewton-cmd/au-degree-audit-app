@@ -55,11 +55,12 @@ LA_OLD_FRAMEWORK = {
         "label": "F1 Understanding College",
         "credits": 1,
         "courses": {
-            "2022-23": ["LART_1050"],
-            "2023-24": ["LART_1050"],
-            "2024-25": ["LART_1050"],
+            "2022-23": ["LART_1050", "HNRS_2110"],   # Honors students exempt via HNRS-2110
+            "2023-24": ["LART_1050", "HNRS_2110"],
+            "2024-25": ["LART_1050", "HNRS_2110"],
         },
         "special_rule": "F1_SATISFIES_W8_FSB_ONLY",
+        "honors_note": "Honors students exempt from LART-1050; HNRS-2110 satisfies F1",
     },
 
     # ── F2 Civil Discourse & Critical Reasoning ─────────────────────────────
