@@ -962,14 +962,16 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f3_2_opts = [c for c in f3_req if '1120' in c] or ['ENGL 1120']
         f3_1_c = find_any(f3_1_opts)
         f3_2_c = find_any(f3_2_opts)
-        # For Honors students: HNRS-2110 satisfies F3 (both rows) AND W3 simultaneously
-        # For non-Honors: HNRS-2110 satisfies F3 OR W3 (not both)
+        # Check if student has HNRS-2110 regardless of what won Writing I slot
+        hnrs_2110_c = cm.get('HNRS_2110')
+        hnrs_2110_done = hnrs_2110_c is not None and done(hnrs_2110_c)
+        # HNRS-2110 satisfies BOTH Writing I and Writing II (5-hr course)
+        # Even if ENGL-1110 was matched for Writing I, HNRS-2110 covers Writing II
         hnrs_2110_used_for_f3 = (f3_1_c is not None and 'HNRS' in f3_1_c.get('raw','').upper() and '2110' in f3_1_c.get('raw',''))
-        # HNRS-2110 always satisfies both Writing I and Writing II (5-hr course)
-        if hnrs_2110_used_for_f3 and f3_2_c is None:
-            f3_2_c = f3_1_c
+        if f3_2_c is None and hnrs_2110_done:
+            f3_2_c = hnrs_2110_c
         # For Honors students, HNRS-2110 can ALSO satisfy W3 (no OR restriction)
-        hnrs_2110_blocks_w3 = hnrs_2110_used_for_f3 and not is_honors
+        hnrs_2110_blocks_w3 = (hnrs_2110_used_for_f3 or hnrs_2110_done) and not is_honors
         la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100 / HNRS-2110)',
                            3, f3_1_c, status_of(f3_1_c)))
         la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (or HNRS-2110)',
