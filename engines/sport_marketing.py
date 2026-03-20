@@ -111,13 +111,41 @@ def padded(*extra):
 # ── CSV ───────────────────────────────────────────────────────────────────────
 def norm(c): return c.strip().upper().replace('-','_')
 
+def _resolve_transfer_code(course_code, equiv_course):
+    """
+    For ELCT-style transfer codes, try to extract the real AU course code.
+    e.g. 'ELCT-1000-1628902-CHEM-119' -> try equiv_course field first,
+    otherwise return original. Non-ELCT codes pass through unchanged.
+    """
+    code_upper = course_code.strip().upper()
+    if not code_upper.startswith('ELCT'):
+        return course_code
+    # Try Equivalent Course field first (most reliable)
+    if equiv_course and equiv_course.strip():
+        eq = equiv_course.strip().upper()
+        # Check it looks like a real AU course code (DEPT-1234 or DEPT 1234)
+        import re as _re
+        if _re.match(r'^[A-Z]{2,6}[-\x20]\d{3,4}', eq):
+            return eq
+    # Try to extract from the ELCT code itself: ELCT-XXXX-NNNNN-DEPT-NNN
+    # Look for a dept+number pattern at the end
+    import re as _re
+    m = _re.search(r'-([A-Z]{2,6})-(\d{3,4}[A-Z]?)$', code_upper)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}"
+    return course_code
+
+
 def parse_csv(path):
     rows = []
     with open(path, newline='', encoding='utf-8-sig') as f:
         for r in csv.DictReader(f):
+            raw_code = r.get('Course Code','').strip()
+            equiv     = r.get('Equivalent Course','').strip()
+            resolved  = _resolve_transfer_code(raw_code, equiv)
             rows.append({
-                'code':     norm(r.get('Course Code','')),
-                'raw':      r.get('Course Code','').strip().upper(),
+                'code':     norm(resolved),
+                'raw':      resolved.upper(),
                 'name':     r.get('Course Name','').strip(),
                 'cr':       _int(r.get('Credits','0')),
                 'status':   r.get('Status','').strip().lower().replace('scheduled','current'),
@@ -989,11 +1017,14 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
                                'W8 Experiential Ways of Knowing — No required experiential course for this major',
                                0, None, 'Not Satisfied'))
 
-        # WI — two rows using broad known WI course list
-        wi_opts = ['ENGL 3110','ENGL 3190','ENGL 3580','COMM 3130',
-                   'HIST 3260','HIST 3300','BIBL 3000','BSNS 3120','BSNS 4910',
-                   'BIBL_RLGN 3000','ENGR 2090','HIST 3425','POSC 3320','POSC 3450',
-                   'SPAN 3010','ENGL 2500']
+        # WI — use full list from LA framework
+        wi_def = fw.get('WI', {})
+        wi_opts = wi_def.get('courses', {}).get(yr, [])
+        if not wi_opts:
+            wi_opts = ['ENGL_3110','ENGL_3190','ENGL_3580','COMM_3130',
+                       'HIST_3260','HIST_3300','BIBL_3000','RLGN_3000',
+                       'BSNS_3120','BSNS_4910','ENGR_2090','HIST_3425',
+                       'POSC_3320','POSC_3450','SPAN_3010','ENGL_2500']
         wi_c1 = find_any(wi_opts)
         la.append(make_row('WI', None,
                            'WI Writing Intensive #1 — must be from approved WI list',
