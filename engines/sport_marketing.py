@@ -196,14 +196,16 @@ def apply_exceptions(courses, exceptions_text):
 
         upper = line.upper()
 
-        # SUB: TAKEN-CODE = REQUIRED-CODE
+        # SUB: REQUIRED-CODE = TAKEN-CODE
+        # Registrar enters: the required course = the course the student actually took
+        # e.g. SUB: EDUC-2100 = PSYC-2510 means student took PSYC-2510, counts for EDUC-2100
         if upper.startswith('SUB:'):
             try:
                 body = line[4:].strip()
-                taken_raw, req_raw = [x.strip() for x in body.split('=', 1)]
-                taken_code = norm(taken_raw)
+                req_raw, taken_raw = [x.strip() for x in body.split('=', 1)]
                 req_code   = norm(req_raw)
-                # Find the actual taken course record
+                taken_code = norm(taken_raw)
+                # Find the actually-taken course record
                 taken = cm.get(taken_code)
                 if taken:
                     # Inject a clone under the required code so audit() finds it
