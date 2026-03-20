@@ -851,3 +851,34 @@ LA_CROSS_LISTINGS = {
 }
 
 # W8 major-specific course list is in engines/sport_marketing.py (W8_BY_MAJOR dict)
+
+
+# ─────────────────────────────────────────────
+# HELPER FUNCTIONS (required by audit_engine.py)
+# ─────────────────────────────────────────────
+
+def get_la_framework(catalog_year: str) -> str:
+    """Return which LA framework a catalog year uses."""
+    if catalog_year in ["2022-23", "2023-24", "2024-25"]:
+        return "OLD_FRAMEWORK"
+    elif catalog_year == "2025-26":
+        return "RAVEN_CORE"
+    raise ValueError(f"Unknown catalog year: {catalog_year}")
+
+
+def get_la_requirements(catalog_year: str) -> dict:
+    """Return the full LA requirements dict for a given catalog year."""
+    fw = get_la_framework(catalog_year)
+    if fw == "OLD_FRAMEWORK":
+        result = {}
+        for section, data in LA_OLD_FRAMEWORK.items():
+            if section == "years":
+                continue
+            entry = dict(data)
+            for field in ["courses", "credits"]:
+                if field in entry and isinstance(entry[field], dict):
+                    entry[field] = entry[field].get(catalog_year)
+            result[section] = entry
+        return result
+    else:
+        return dict(LA_RAVEN_CORE_2526)
