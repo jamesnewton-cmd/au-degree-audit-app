@@ -904,13 +904,13 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         la.append(make_row('F1', 'LART-1050 First-Year Exper Seminar',
                            'F1 LART-1050 Understanding College', 1, f1_c, status_of(f1_c)))
 
-        # F2 — cross-listed: ENGL 3190, ENGL 3580 (F2 and WI), HIST 2300 (F2 and SI),
-        #       HNRS 2125 (F2 and SI), PSYC 3200 (F2 and SI), SOCI 2450 (F2 OR W7)
-        f2_opts = fw['F2']['courses'].get(yr, [])
-        f2_dcr = fw['F2']['credits']
+        # F2 — full list from LA framework (includes HNRS 2125, HIST 2300, PSYC 3200 cross-listings)
+        f2_def = fw.get('F2', {})
+        f2_opts = f2_def.get('courses', {}).get(yr, [])
+        f2_dcr = f2_def.get('credits', 3)
         if isinstance(f2_dcr, dict): f2_dcr = f2_dcr.get(yr, 3)
         f2_c = find_any(f2_opts)
-        la.append(make_row('F2', None, fw['F2']['label'], f2_dcr, f2_c, status_of(f2_c)))
+        la.append(make_row('F2', None, f2_def.get('label', 'F2 Civil Discourse & Critical Reasoning'), f2_dcr, f2_c, status_of(f2_c)))
 
         # F3 — two rows; HNRS 2110 satisfies F3 OR W3 (not both)
         f3_req = fw['F3'].get('required_courses', ['ENGL 1100', 'ENGL 1110', 'ENGL 1120'])
@@ -1010,11 +1010,15 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
                            'WI Writing Intensive #2 — at least one must be upper-division (3000+)',
                            3, wi_c2, status_of(wi_c2) if wi_c2 else 'Not Satisfied'))
 
-        # SI — cross-listed: ARTH 3040 (W4+SI), ENGL 2220 (W7+SI), HIST 2300 (F2+SI),
-        #       HNRS 2125 (F2+SI), PSYC 3200 (F2+SI), SPAN 3020 (W7+SI)
-        si_opts = ['COMM 1000','COMM 2000','BSNS 3210','BSNS 4480',
-                   'ARTH 3040','ENGL 2220','HIST 2300','HNRS 2125',
-                   'PSYC 3200','SPAN 3020','COMM 2130','COMM 2140']
+        # SI — pull from LA framework; cross-listed courses included
+        si_def = fw.get('SI', {})
+        si_opts = si_def.get('courses', {}).get(yr, [])
+        # Fallback list if not in framework
+        if not si_opts:
+            si_opts = ['COMM_1000','COMM_2000','COMM_2130','COMM_2140',
+                       'ARTH_3040','BSNS_3210','BSNS_4480',
+                       'ENGL_2220','HIST_2300','HNRS_2125',
+                       'PSYC_3200','SPAN_3020']
         si_c = find_any(si_opts)
         la.append(make_row('SI', None,
                            'SI Speaking Intensive — 1 course required from approved SI list',
