@@ -378,7 +378,7 @@ async def generate_non_fsb(
         prog_name = prog_reqs.get("name", major.replace("_", " ").title()) if isinstance(prog_reqs, dict) else major.replace("_", " ").title()
 
         # ── LA rows: run the universal LA audit against this student's courses ──
-        la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year)
+        la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year, major_key=major)
 
         # ── Build complete major requirement rows from program definition ──────
         # mr_rows above only has the basic required[] courses from the engine.

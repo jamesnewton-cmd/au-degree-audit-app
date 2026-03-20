@@ -776,17 +776,85 @@ def build(res, student_name, major_label, out, exceptions=''):
 
 
 # ── NON-FSB LA ROW BUILDER ────────────────────────────────────────────────────
-def build_la_rows_for_non_fsb(courses, catalog_year):
+def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
     """
-    Build LA rows in the same dict shape as audit() produces, using the
-    universal liberal_arts_requirements data (not FSB-specific LA_ROWS).
-    Called by main.py for non-FSB major audits.
+    Build LA rows for non-FSB majors.
+    - W8 auto-satisfy (F1->W8) is FSB-only; non-FSB uses the W8 course list per major.
+    - Cross-listing rules from the LA Requirement Application sheet are applied.
     """
     from requirements.liberal_arts_requirements import LA_OLD_FRAMEWORK, LA_RAVEN_CORE_2526 as LA_NEW_FRAMEWORK
 
+    # ── W8 COURSE LIST PER MAJOR (from W8 Experiential Ways of Knowing sheet) ──
+    W8_BY_MAJOR = {
+        'psychology':              ['PSYC_2850','PSYC_3450','PSYC_4100','PSYC_4210','PSYC_4520'],
+        'cinema_media_arts':       ['COMM_4800'],
+        'public_relations':        ['COMM_4800'],
+        'multimedia_journalism':   ['COMM_4800'],
+        'visual_communication':    ['ARTH_4800'],
+        'english':                 ['ENGL_4910'],
+        'writing':                 ['ENGL_4910'],
+        'education':               ['EDUC_4010'],
+        'elementary_education':    ['EDUC_4010'],
+        'secondary_education':     ['EDUC_4010'],
+        'social_studies_teaching': ['EDUC_4010'],
+        'science_teaching':        ['EDUC_4010'],
+        'math_teaching':           ['EDUC_4010'],
+        'english_teaching':        ['EDUC_4010'],
+        'christian_ministries':    ['CMIN_3340','CMIN_4810','CMIN_4850'],
+        'youth_ministry':          ['CMIN_3340','CMIN_4810','CMIN_4850'],
+        'christian_spiritual_formation': ['RLGN_4960'],
+        'mathematics':             ['MATH_4000'],
+        'exercise_science':        ['EXSC_4160','EXSC_4800'],
+        'sport_rec_leadership':    ['SPRL_4850'],
+        'nursing':                 ['NURS_4560','NURS_4950','NURS_4960','NURS_4970'],
+        'history':                 ['HIST_2300','HIST_3260','HIST_4700','HIST_4800','HIST_4915','HIST_4930',
+                                    'POSC_2810','POSC_4800','POSC_4810','POSC_4820','POSC_4860','POSC_4915',
+                                    'EDUC_4010'],
+        'political_science':       ['POSC_2810','POSC_4800','POSC_4810','POSC_4820','POSC_4860','POSC_4915',
+                                    'POSC_2840'],
+        'polsci_philosophy_economics': ['POSC_2810','POSC_4800','POSC_4810','POSC_4820','POSC_4860',
+                                        'POSC_4915','POSC_2840'],
+        'international_relations': ['HIST_2300','HIST_3260','HIST_4700','HIST_4800','HIST_4915','HIST_4930',
+                                    'POSC_2810','POSC_4800','POSC_4810','POSC_4820','POSC_4860','POSC_4915',
+                                    'EDUC_4010','POSC_2840'],
+        'national_security':       ['POSC_4800','POSC_4810','POSC_4820','POSC_4860','POSC_4915','POSC_4930',
+                                    'POSC_2840'],
+        'criminal_justice':        ['CRIM_4810'],
+        'criminal_justice_online': ['CRIM_4810'],
+        'social_work':             ['SOWK_4850'],
+        'spanish':                 ['FLAN_3500'],
+        'computer_science':        ['CPSC_2800','CPSC_3800','CPSC_4800','CPSC_4960'],
+        'data_science':            ['CPSC_4970'],
+        'cyber_security':          ['CPSC_4480','CPSC_4820','CPSC_4970'],
+        'biochemistry_ba':         ['CHEM_4920'],
+        'biochemistry_bs':         ['CHEM_4920'],
+        'chemistry_ba':            ['CHEM_4920'],
+        'chemistry_bs':            ['CHEM_4920'],
+        'public_history':          ['HIST_4800'],
+        'public_health_ba':        ['PUBH_4950','NURS_4950','PUBH_4810','SOCI_4810'],
+        'public_health_bs':        ['PUBH_4950','NURS_4950','PUBH_4810','SOCI_4810'],
+        'dance':                   ['DANC_4800','DANC_4910'],
+        'theatre':                 ['THEA_4800'],
+        'music':                   ['MUSC_4950','MUSC_4955'],
+        'music_performance_vocal': ['MUPF_4540','MUPF_4550','MUPF_4560','MUPF_4570','MUPF_4580','MUPF_4590'],
+        'music_performance_instrumental': ['MUPF_4540','MUPF_4550','MUPF_4560','MUPF_4570','MUPF_4580','MUPF_4590'],
+        'musical_theatre':         ['MUTR_4500','MUPF_4540'],
+        'worship_arts':            ['MUSC_3800'],
+        'songwriting':             ['MUBS_4500'],
+        'family_science':          ['SOWK_4850'],
+        'sociology':               [],  # No W8 course — biology/sociology exceptions
+        'biology_ba':              [],  # No W8 course
+        'biology_bs':              [],  # No W8 course
+    }
+    # Default W8 for unlisted majors — broad experiential list
+    W8_DEFAULT = ['LART_4500','EDUC_4010','CMIN_4810','EXSC_4800','HIST_4800',
+                  'CPSC_4800','POSC_4800','NURS_4950','SOWK_4850','SPRL_4850']
+
+    w8_courses = W8_BY_MAJOR.get(major_key, W8_DEFAULT)
+
     cm = cmap(courses)
 
-    # Exception rules (same as FSB audit)
+    # Exception rules
     has_1110 = cm.get('ENGL_1110') or cm.get('ENGL_1100')
     has_1120 = cm.get('ENGL_1120')
     if not has_1110 and has_1120:
@@ -833,29 +901,32 @@ def build_la_rows_for_non_fsb(courses, catalog_year):
         # F1
         f1_opts = fw['F1']['courses'].get(yr, ['LART 1050'])
         f1_c = find_any(f1_opts)
-        f1_ok = f1_c is not None and done(f1_c)
         la.append(make_row('F1', 'LART-1050 First-Year Exper Seminar',
                            'F1 LART-1050 Understanding College', 1, f1_c, status_of(f1_c)))
 
-        # F2
+        # F2 — cross-listed: ENGL 3190, ENGL 3580 (F2 and WI), HIST 2300 (F2 and SI),
+        #       HNRS 2125 (F2 and SI), PSYC 3200 (F2 and SI), SOCI 2450 (F2 OR W7)
         f2_opts = fw['F2']['courses'].get(yr, [])
         f2_dcr = fw['F2']['credits']
         if isinstance(f2_dcr, dict): f2_dcr = f2_dcr.get(yr, 3)
         f2_c = find_any(f2_opts)
         la.append(make_row('F2', None, fw['F2']['label'], f2_dcr, f2_c, status_of(f2_c)))
 
-        # F3 — two rows; F3 uses required_courses flat list (no year keys)
+        # F3 — two rows; HNRS 2110 satisfies F3 OR W3 (not both)
         f3_req = fw['F3'].get('required_courses', ['ENGL 1100', 'ENGL 1110', 'ENGL 1120'])
-        f3_1_opts = [c for c in f3_req if '1110' in c or '1100' in c] or ['ENGL 1110', 'ENGL 1100']
+        # Writing I: ENGL 1110, ENGL 1100, or HNRS 2110
+        f3_1_opts = [c for c in f3_req if '1110' in c or '1100' in c or 'HNRS' in c] or ['ENGL 1110', 'ENGL 1100', 'HNRS 2110']
         f3_2_opts = [c for c in f3_req if '1120' in c] or ['ENGL 1120']
         f3_1_c = find_any(f3_1_opts)
         f3_2_c = find_any(f3_2_opts)
-        la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100)',
+        # Track if HNRS 2110 was used for F3 (to exclude from W3)
+        hnrs_2110_used_for_f3 = (f3_1_c is not None and 'HNRS' in f3_1_c.get('raw','').upper() and '2110' in f3_1_c.get('raw',''))
+        la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100 / HNRS-2110)',
                            3, f3_1_c, status_of(f3_1_c)))
         la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (C- or better required)',
                            3, f3_2_c, status_of(f3_2_c)))
 
-        # F4 — uses required_courses flat list
+        # F4
         f4_req = fw['F4'].get('required_courses', ['COMM 1000'])
         f4_opts = [c for c in f4_req if 'COMM' in c] or ['COMM 1000']
         f4_c = find_any(f4_opts)
@@ -880,37 +951,49 @@ def build_la_rows_for_non_fsb(courses, catalog_year):
         f7_c = find_any(f7_opts)
         la.append(make_row('F7', None, fw['F7']['label'], f7_dcr, f7_c, status_of(f7_c)))
 
-        # W1, W2, W3, W5, W6, W7 — standard year-keyed course lists
+        # W1, W2, W3, W5, W6, W7
         for wkey in ['W1','W2','W3','W5','W6','W7']:
             wdef = fw.get(wkey, {})
             w_opts = wdef.get('courses', {}).get(yr, [])
             w_dcr = wdef.get('credits', 3)
             if isinstance(w_dcr, dict): w_dcr = w_dcr.get(yr, 3)
+            # HNRS 2110 satisfies F3 OR W3 — exclude from W3 if already used for F3
+            if wkey == 'W3' and hnrs_2110_used_for_f3:
+                w_opts = [o for o in w_opts if 'HNRS' not in o.upper() or '2110' not in o]
             w_c = find_any(w_opts)
             la.append(make_row(wkey, None, wdef.get('label', wkey), w_dcr, w_c, status_of(w_c)))
 
-        # W4 — nested integrative/AP_plus_AX structure; use integrative list
+        # W4 — check integrative (3hr AE), then AP+AX courses
+        # Integrative satisfies W4 alone; AP+AX together also satisfy it
         w4_def = fw.get('W4', {})
         w4_year_data = w4_def.get('courses', {}).get(yr, {})
-        w4_opts = w4_year_data.get('integrative', []) if isinstance(w4_year_data, dict) else w4_year_data
-        w4_c = find_any(w4_opts)
+        if isinstance(w4_year_data, dict):
+            w4_ae = w4_year_data.get('integrative', [])
+            w4_ap = w4_year_data.get('AP', [])
+            w4_ax = w4_year_data.get('AX', [])
+            w4_all = w4_ae + w4_ap + w4_ax
+        else:
+            w4_all = w4_year_data
+        w4_c = find_any(w4_all)
         la.append(make_row('W4', None, w4_def.get('label', 'W4 Aesthetic Ways of Knowing'),
                            3, w4_c, status_of(w4_c)))
 
-        # W8 — auto-satisfy if F1 done
-        w8_opts = fw.get('W8', {}).get('courses', {}).get(yr, [])
-        if f1_ok:
-            w8_c = cm.get('BSNS_1050') or {
-                'raw':'BSNS-1050','name':'Business as a Profession',
-                'cr':3,'status':'grade posted','grade':'T','reg_date':''}
-            la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing', 2, w8_c, 'Satisfied'))
+        # W8 — non-FSB: NO F1 auto-satisfy. Use major-specific course list from W8 sheet.
+        if w8_courses:
+            w8_c = find_any(w8_courses)
+            la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing',
+                               2, w8_c, status_of(w8_c)))
         else:
-            w8_c = find_any(w8_opts)
-            la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing', 2, w8_c, status_of(w8_c)))
+            # Major has no W8 course (Biology, Sociology) — show Not Satisfied with note
+            la.append(make_row('W8', None,
+                               'W8 Experiential Ways of Knowing — No required experiential course for this major',
+                               0, None, 'Not Satisfied'))
 
-        # WI — two rows; use broad known WI course list
+        # WI — two rows using broad known WI course list
         wi_opts = ['ENGL 3110','ENGL 3190','ENGL 3580','COMM 3130',
-                   'HIST 3260','HIST 3300','BIBL 3000','BSNS 3120','BSNS 4910']
+                   'HIST 3260','HIST 3300','BIBL 3000','BSNS 3120','BSNS 4910',
+                   'BIBL_RLGN 3000','ENGR 2090','HIST 3425','POSC 3320','POSC 3450',
+                   'SPAN 3010','ENGL 2500']
         wi_c1 = find_any(wi_opts)
         la.append(make_row('WI', None,
                            'WI Writing Intensive #1 — must be from approved WI list',
@@ -927,9 +1010,11 @@ def build_la_rows_for_non_fsb(courses, catalog_year):
                            'WI Writing Intensive #2 — at least one must be upper-division (3000+)',
                            3, wi_c2, status_of(wi_c2) if wi_c2 else 'Not Satisfied'))
 
-        # SI
+        # SI — cross-listed: ARTH 3040 (W4+SI), ENGL 2220 (W7+SI), HIST 2300 (F2+SI),
+        #       HNRS 2125 (F2+SI), PSYC 3200 (F2+SI), SPAN 3020 (W7+SI)
         si_opts = ['COMM 1000','COMM 2000','BSNS 3210','BSNS 4480',
-                   'ARTH 3040','ENGL 2220','HIST 2300','SPAN 3020']
+                   'ARTH 3040','ENGL 2220','HIST 2300','HNRS 2125',
+                   'PSYC 3200','SPAN 3020','COMM 2130','COMM 2140']
         si_c = find_any(si_opts)
         la.append(make_row('SI', None,
                            'SI Speaking Intensive — 1 course required from approved SI list',
