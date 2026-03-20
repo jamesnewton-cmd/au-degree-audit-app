@@ -1012,10 +1012,10 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
             la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing',
                                2, w8_c, status_of(w8_c)))
         else:
-            # Major has no W8 course (Biology, Sociology) — show Not Satisfied with note
+            # Major has no W8 course (Biology, Sociology) — exempt, show as Satisfied
             la.append(make_row('W8', None,
-                               'W8 Experiential Ways of Knowing — No required experiential course for this major',
-                               0, None, 'Not Satisfied'))
+                               'W8 Experiential Ways of Knowing — No course required for this major',
+                               0, None, 'Satisfied'))
 
         # WI — use full list from LA framework
         wi_def = fw.get('WI', {})

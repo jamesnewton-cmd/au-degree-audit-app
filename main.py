@@ -283,6 +283,10 @@ async def generate_non_fsb(
         sm_mod = load_engine("sport_marketing")
         raw_courses = sm_mod.parse_csv(tmp_csv)
 
+        # Apply advisor exceptions to course list before audit runs
+        if exceptions.strip() and hasattr(sm_mod, 'apply_exceptions'):
+            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
+
         # Build the sport_marketing-compatible res dict for non-FSB majors
         from engines.non_fsb_audit_engine import run_non_fsb_audit, CourseRecord as NonFSBCourseRecord
         from requirements.non_fsb_programs import get_non_fsb_requirements
