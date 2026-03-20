@@ -317,6 +317,7 @@ LA_OLD_FRAMEWORK = {
                     "ARTH_2000",
                     "COMM_2550",   # AE + SI, 22-23 only
                     "ENGL_3590",
+                    "HNRS_3000",   # Honors only
                     "MUSC_2210",
                 ],
                 "AP": [

@@ -942,7 +942,8 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f2_c = find_any(f2_opts)
         la.append(make_row('F2', None, f2_def.get('label', 'F2 Civil Discourse & Critical Reasoning'), f2_dcr, f2_c, status_of(f2_c)))
 
-        # F3 — two rows; HNRS 2110 satisfies F3 OR W3 (not both)
+        # F3 — two rows; HNRS 2110 satisfies BOTH Writing I AND Writing II (5-hr replacement)
+        # Also satisfies F3 OR W3 (not both) — engine enforces single-use
         f3_req = fw['F3'].get('required_courses', ['ENGL 1100', 'ENGL 1110', 'ENGL 1120'])
         # Writing I: ENGL 1110, ENGL 1100, or HNRS 2110
         f3_1_opts = [c for c in f3_req if '1110' in c or '1100' in c or 'HNRS' in c] or ['ENGL 1110', 'ENGL 1100', 'HNRS 2110']
@@ -951,9 +952,12 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f3_2_c = find_any(f3_2_opts)
         # Track if HNRS 2110 was used for F3 (to exclude from W3)
         hnrs_2110_used_for_f3 = (f3_1_c is not None and 'HNRS' in f3_1_c.get('raw','').upper() and '2110' in f3_1_c.get('raw',''))
+        # If HNRS-2110 used for Writing I, it also satisfies Writing II (5-hr course)
+        if hnrs_2110_used_for_f3 and f3_2_c is None:
+            f3_2_c = f3_1_c
         la.append(make_row('F3', None, 'F3 Writing I — ENGL-1110 (or ENGL-1100 / HNRS-2110)',
                            3, f3_1_c, status_of(f3_1_c)))
-        la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (C- or better required)',
+        la.append(make_row('F3', None, 'F3 Writing II — ENGL-1120 (or HNRS-2110)',
                            3, f3_2_c, status_of(f3_2_c)))
 
         # F4
