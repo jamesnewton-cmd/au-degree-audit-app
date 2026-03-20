@@ -489,7 +489,7 @@ LA_OLD_FRAMEWORK = {
                 "HIST_3240", "HIST_3250", "HIST_3260",   # 3260 also WI
                 "HIST_3280",
                 "HIST_3300",   # also WI
-                "HIST_3320",
+                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
                 "HIST_3360", "HIST_3370",
                 "HIST_3425",   # also WI
                 "HNRS_3221",
@@ -517,7 +517,7 @@ LA_OLD_FRAMEWORK = {
                 "HIST_3240", "HIST_3250", "HIST_3260",
                 "HIST_3280",
                 "HIST_3300",
-                "HIST_3320",
+                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
                 "HIST_3360", "HIST_3370",
                 "HIST_3425",
                 "HNRS_3221",
@@ -545,7 +545,7 @@ LA_OLD_FRAMEWORK = {
                 "HIST_3240", "HIST_3250", "HIST_3260",
                 "HIST_3280",
                 "HIST_3300",
-                "HIST_3320",
+                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
                 "HIST_3360", "HIST_3370",
                 "HIST_3425",
                 "HNRS_3221",
@@ -1175,7 +1175,7 @@ LA_RAVEN_CORE_2526 = {
                 "ENGR_2080", "ENGR_2090",
                 "HIST_3100", "HIST_3190",
                 "HIST_3240", "HIST_3250", "HIST_3260",
-                "HIST_3280", "HIST_3300", "HIST_3320",
+                "HIST_3280", "HIST_3300", "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
                 "HIST_3360", "HIST_3370", "HIST_3425",
                 "HNRS_3221",
                 "LEAD_4550",

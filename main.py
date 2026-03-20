@@ -481,6 +481,9 @@ async def generate_non_fsb(
                         label = f"Choose from: {', '.join(str(x) for x in choose_from[:3])}{'...' if len(choose_from)>3 else ''} ({credits} cr)"
                     else:
                         label = f"{ekey.replace('_',' ').title()} ({credits} cr)"
+                # Skip elective blocks with no matchable course info (notes-only blocks)
+                if not course and not dept and not choose_from:
+                    continue
                 opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
                 c = _find_course(opts) if opts else None
                 if c is None and dept:
