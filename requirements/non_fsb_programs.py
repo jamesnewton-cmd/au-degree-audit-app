@@ -791,9 +791,31 @@ HISTORY_POLSCI = {
         "2022-23": {
             "name": "History",
             "total_credits": 36,
-            "required": ["HIST 4700"],  # senior capstone
-            "elective_upper": {"credits": 27, "dept": "HIST", "min_level": 2000},
-            "notes": "At least 18 hrs upper-division; HIST 4700 does not apply to minor",
+            "required_foundational": ["HIST 2000", "HIST 2300", "HIST 2350"],
+            "foundational_west_choose": {
+                "credits": 3, "choose_from": ["HIST 2030", "HIST 2040"],
+            },
+            "foundational_us_choose": {
+                "credits": 3, "choose_from": ["HIST 2110", "HIST 2120"],
+            },
+            "required_capstone": ["HIST 4930", "HIST 4800"],
+            "american_hist_choose": {
+                "credits": 6,
+                "choose_from": ["HIST 3420","HIST 3425","HIST 3440","HIST 3451",
+                                "HIST 3452","HIST 3470","HIST 3510","HIST 3520",
+                                "HIST 3540","HIST 3560","HIST 4030"],
+            },
+            "european_hist_choose": {
+                "credits": 6,
+                "choose_from": ["HIST 3100","HIST 3135","HIST 3150",
+                                "HIST 3190","HIST 3220","HIST 3280"],
+            },
+            "world_hist_choose": {
+                "credits": 6,
+                "choose_from": ["HIST 3240","HIST 3250","HIST 3260",
+                                "HIST 3300","HIST 3360","HIST 3370"],
+            },
+            "notes": "HIST 4700 does not apply toward the major",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
@@ -1070,7 +1092,7 @@ MUSIC_THEATRE_DANCE = {
             "musc_history_choose": {
                 "credits": 6,
                 "choose_from": ["MUSC 3110", "MUSC 3120", "MUSC 3130"],
-                "notes": "6 hrs from Music History sequence",
+                "notes": "6 hrs from Music History (2 of 3 courses)",
             },
             "required_keyboard": ["MUPF 1050", "MUPF 1060"],
             "keyboard_upper_choose": {
@@ -1086,17 +1108,14 @@ MUSIC_THEATRE_DANCE = {
             "mued_pedagogy_choose": {
                 "credits": 2,
                 "choose_from": ["MUED 3330", "MUED 3350", "MUED 3370"],
-                "notes": "2 hrs from pedagogy electives",
             },
             "mued_diction_choose": {
                 "credits": 2,
                 "choose_from": ["MUED 2510", "MUED 2520", "MUED 3460"],
-                "notes": "2 hrs from diction/techniques sequence",
             },
             "applied_music": {
-                "credits": 8,
-                "dept": ["MUPF"],
-                "notes": "8 hrs applied music lessons, including a half recital",
+                "credits": 8, "dept": ["MUPF"],
+                "notes": "8 hrs applied music lessons including half recital",
             },
             "required_education": [
                 "EDUC 2100", "EDUC 2110", "EDUC 3120", "EDUC 4010", "SPED 2400",
@@ -1104,7 +1123,6 @@ MUSIC_THEATRE_DANCE = {
             "educ_methods_choose": {
                 "credits": 3,
                 "choose_from": ["EDUC 4120", "EDUC 4710"],
-                "notes": "EDUC 4120 (Elementary) or EDUC 4710 (Secondary)",
             },
         },
     },
@@ -1363,18 +1381,20 @@ CHRISTIAN_MINISTRY = {
     "christian_ministries": {
         "2022-23": {
             "name": "Christian Ministries",
-            "total_credits": 49,
+            "total_credits": 46,
             "dept_core": [
                 "BIBL 2000", "BIBL 2050",
-                "RLGN 2000", "RLGN 2130", "RLGN 2150", "RLGN 3040", "RLGN 3060",
-                "RLGN 3300", "RLGN 3320",
+                "RLGN 2000", "RLGN 2130", "RLGN 2150",
+                "RLGN 3040", "RLGN 3060", "RLGN 3300",
             ],
             "ministry_core": [
-                "CMIN 2000", "CMIN 2810", "CMIN 4250", "CMIN 4810",
+                "CMIN 2000", "CMIN 2810",
+                "CMIN 3050", "CMIN 3080", "CMIN 3910",
+                "CMIN 4250", "CMIN 4810",
             ],
-            "elective": {
-                "credits": 9,
-                "notes": "3 hrs from CMIN 3050/3080/3910; 6 hrs from dept offerings",
+            "dept_elective": {
+                "credits": 3, "dept": ["BIBL", "RLGN", "CMIN"],
+                "notes": "3 hrs from additional dept courses",
             },
         },
         "2023-24": {"same_as": "2022-23"},
@@ -1523,19 +1543,14 @@ KINESIOLOGY = {
         "2022-23": {
             "name": "Exercise Science",
             "total_credits": 70,
-            "core": [
-                "PETE 1300", "PETE 2250", "PETE 3720", "PETE 4900",
-                "PEHS 1450", "PEHS 3340", "PEHS 3410",
-                "ATRG 1530",   # becomes EXSC 1530 in 24-25
-                "EXSC 2580",
-                "ACCT 2010",
-                "BSNS 2710", "BSNS 2810",
-            ],
-            "required_science": [
-                "BIOL 2410", "BIOL 2420",   # A&P I and II
-                "BIOL 2230",                 # Microbiology
+            "required_core": [
+                "BIOL 2410", "BIOL 2420",
+                "EXSC 1360", "EXSC 2455", "EXSC 2580",
+                "EXSC 3470", "EXSC 3480", "EXSC 3520", "EXSC 3530",
+                "EXSC 4150", "EXSC 4800", "EXSC 4910",
+                "PSYC 2440",
+                "EXSC 2140",   # Nutrition
                 "CHEM 1000",
-                "PSYC 2000",
             ],
             "required_exsc": [
                 "EXSC 2140", "EXSC 2200", "EXSC 3100", "EXSC 3200",
@@ -1703,12 +1718,19 @@ PSYCHOLOGY = {
         "all_years": {
             "name": "Psychology",
             "total_credits": 30,
-            "required": [
-                "PSYC 2000", "PSYC 2100", "PSYC 2510", "PSYC 4210",
-                "SOCI 3210", "SOCI 3100",
-                "EDUC 2850",  # or PSYC 2850 or SOCI 2850
-                "PSYC 4800",  # internship/field
-            ],
+            "required": ["PSYC 2000", "PSYC 2010"],
+            "capstone": {"credits": 1, "course": "PSYC 4900"},
+            "upper_div_choose": {
+                "credits": 15,
+                "choose_from": [
+                    "PSYC 3010","PSYC 3030","PSYC 3040","PSYC 3060",
+                    "PSYC 3100","PSYC 3120","PSYC 3200","PSYC 3210",
+                    "PSYC 3240","PSYC 3330","PSYC 3400","PSYC 3450",
+                    "PSYC 4030","PSYC 4100","PSYC 4110","PSYC 4140",
+                    "PSYC 4150","PSYC 4510","PSYC 4520","PSYC 4650",
+                ],
+                "notes": "15 hrs from 3000/4000-level PSYC; PSYC 4900 excluded",
+            },
             "choose_one_soci": ["SOCI 3050", "SOCI 3140", "SOCI 3150"],
         },
     },
@@ -1850,12 +1872,16 @@ SOCIAL_WORK_CRIMINAL_JUSTICE = {
     "criminal_justice": {
         "all_years": {
             "name": "Criminal Justice (BA)",
-            "total_credits": "120 total (34 CRIM hrs)",
+            "total_credits": 34,
             "required": [
-                "CRIM 2510", "CRIM 2520", "CRIM 3110", "CRIM 4900",
-                "SOCI 2010",  # or SOCI 2020
+                "CRIM 2510", "CRIM 2520", "CRIM 3110",
                 "SOCI 3700",
             ],
+            "internship": {"credits": 4, "course": "CRIM 4810"},
+            "capstone": {"credits": 3, "course": "CRIM 4900"},
+            "soci_choose": {
+                "credits": 3, "choose_from": ["SOCI 2010", "SOCI 2020"],
+            },
             "crim_elective": {"credits": 9, "dept": "CRIM"},
             "internship": {"credits": 4, "course": "CRIM 4810"},
         },
@@ -2702,31 +2728,27 @@ MUSIC_THEATRE_DANCE_EXTRA = {
             "total_credits": 15,
             "notes": "Admission by audition. Track A: music majors (15-16 hrs). Track B: non-music majors (18 hrs).",
             "required_conducting": ["MUED 2470"],
-            "track_a_applied": {
-                "credits": 6,
-                "dept": ["MUPF"],
-                "notes": "Track A (music majors): 6-8 hrs additional applied study + half recital",
+            "applied_study": {
+                "credits": 6, "dept": ["MUPF"],
+                "notes": "6-8 hrs additional applied study + half recital",
             },
-            "track_a_singers_choose": {
-                "credits": 2,
-                "choose_from": ["MUED 2510", "MUED 2520", "MUED 3350"],
-                "notes": "Singers: MUED 2510, 2520, 3350",
+            "singers_choose": {
+                "credits": 4,
+                "choose_from": ["MUED 2510", "MUED 2520", "MUED 3350",
+                                "MUPF 1150", "MUPF 1160", "MUPF 1170"],
+                "notes": "Singers: MUED 2510/2520/3350 + 2 hrs MUPF 1150/1160/1170",
             },
-            "track_a_vocal_perf_choose": {
-                "credits": 2,
-                "choose_from": ["MUPF 1150", "MUPF 1160", "MUPF 1170"],
-                "notes": "Singers: 2 hrs from MUPF 1150/1160/1170",
+            "pianists_choose": {
+                "credits": 5,
+                "choose_from": ["MUED 3370", "MUSC 3380",
+                                "MUPF 1190", "MUPF 1210", "MUPF 1520", "MUPF 1530"],
+                "notes": "Pianists: MUED 3370 + MUSC 3380 + 3 hrs MUPF",
             },
-            "track_a_piano_choose": {
-                "credits": 3,
-                "choose_from": ["MUPF 1190", "MUPF 1210", "MUPF 1520", "MUPF 1530"],
-                "notes": "Pianists: 3 hrs from MUPF 1190/1210/1520/1530",
-            },
-            "track_a_instrumental_choose": {
+            "instrumental_choose": {
                 "credits": 5,
                 "choose_from": ["MUPF 1190", "MUPF 1230", "MUPF 1250",
                                 "MUPF 1360", "MUPF 1370", "MUPF 1380", "MUPF 1390"],
-                "notes": "Instrumentalists: 5 hrs from ensemble options",
+                "notes": "Instrumentalists: 5 hrs ensembles",
             },
         },
     },
