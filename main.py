@@ -1,50 +1,52 @@
 """
 Anderson University — Degree Audit Web App
 Indy Collab, LLC
+
+Unified engine: all majors (FSB and non-FSB) route through one /generate endpoint.
+FSB majors use their dedicated audit() functions for business core + major rows.
+Non-FSB majors use the dynamic scanner against non_fsb_programs.py definitions.
+All majors share: parse_csv, apply_exceptions, build_la_rows_for_non_fsb, pdf_template.
 """
 
-import os, io, csv, json, hashlib, datetime, tempfile, importlib.util, smtplib
+import os, io, csv, json, datetime, tempfile, importlib.util, smtplib
 from email.message import EmailMessage
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-APP_PASSWORD = os.environ.get("AUDIT_PASSWORD", "ravens2025")   # change in prod
+APP_PASSWORD = os.environ.get("AUDIT_PASSWORD", "ravens2025")
 LOG_FILE     = Path("logs/audit_log.json")
 ENGINES_DIR  = Path("engines")
 MAX_PULLS    = int(os.environ.get("MAX_PULLS", 1000))
 
-MAJORS = {
-    "management":                     {"label": "Management",                        "engine": "management"},
-    "sport_marketing":                {"label": "Sport Marketing",                   "engine": "sport_marketing"},
-    "marketing":                      {"label": "Marketing",                         "engine": "fsb_engine"},
-    "accounting":                     {"label": "Accounting",                        "engine": "fsb_engine"},
-    "finance":                        {"label": "Finance",                           "engine": "fsb_engine"},
-    "business_analytics":             {"label": "Business Analytics",                "engine": "fsb_engine"},
-    "engineering_management":         {"label": "Engineering Management",            "engine": "fsb_engine"},
-    "global_business":                {"label": "Global Business",                   "engine": "fsb_engine"},
-    "music_entertainment_business":   {"label": "Music & Entertainment Business",    "engine": "fsb_engine"},
-    "business_integrative_leadership":{"label": "Business & Integrative Leadership", "engine": "fsb_engine"},
-}
-
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
+
+# ── FSB MAJORS (use dedicated audit engines) ──────────────────────────────────
+FSB_MAJORS = {
+    "management":                      {"label": "Management",                        "engine": "management"},
+    "sport_marketing":                 {"label": "Sport Marketing",                   "engine": "sport_marketing"},
+    "marketing":                       {"label": "Marketing",                         "engine": "fsb_engine"},
+    "accounting":                      {"label": "Accounting",                        "engine": "fsb_engine"},
+    "finance":                         {"label": "Finance",                           "engine": "fsb_engine"},
+    "business_analytics":              {"label": "Business Analytics",                "engine": "fsb_engine"},
+    "engineering_management":          {"label": "Engineering Management",            "engine": "fsb_engine"},
+    "global_business":                 {"label": "Global Business",                   "engine": "fsb_engine"},
+    "music_entertainment_business":    {"label": "Music & Entertainment Business",    "engine": "fsb_engine"},
+    "business_integrative_leadership": {"label": "Business & Integrative Leadership", "engine": "fsb_engine"},
+}
 
 # ── EMAIL ─────────────────────────────────────────────────────────────────────
 GMAIL_USER = os.environ.get("GMAIL_USER", "")
 GMAIL_PASS = os.environ.get("GMAIL_PASS", "")
 
-def send_audit_email(to_addresses: list[str], student_name: str, major_label: str,
-                     pdf_path: str, filename: str):
-    """Send the audit PDF to one or more addresses via Gmail SMTP."""
+def send_audit_email(to_addresses, student_name, major_label, pdf_path, filename):
     if not GMAIL_USER or not GMAIL_PASS:
-        raise RuntimeError("Email credentials not configured (GMAIL_USER / GMAIL_PASS env vars missing).")
+        raise RuntimeError("Email credentials not configured.")
     if not to_addresses:
         return
-
     msg = EmailMessage()
     msg['Subject'] = f"Degree Audit — {student_name} — {major_label}"
     msg['From']    = f"Selah Academic Solutions <{GMAIL_USER}>"
@@ -56,10 +58,8 @@ def send_audit_email(to_addresses: list[str], student_name: str, major_label: st
         f"— Selah Academic Solutions\n"
         f"  audit.selahacademic.com"
     )
-
     with open(pdf_path, 'rb') as f:
         msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename=filename)
-
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(GMAIL_USER, GMAIL_PASS)
         smtp.send_message(msg)
@@ -68,7 +68,6 @@ def send_audit_email(to_addresses: list[str], student_name: str, major_label: st
 app = FastAPI(title="AU Degree Audit", docs_url="/docs", redoc_url=None)
 security = HTTPBasic()
 
-# ── ROUTER (all majors, minors, liberal arts) ─────────────────────────────────
 from engines.audit_routes import router
 app.include_router(router)
 
@@ -104,16 +103,171 @@ def record_pull(user, student, major, catalog):
     return log["total"]
 
 # ── ENGINE LOADER ─────────────────────────────────────────────────────────────
-def load_engine(major_key: str):
-    engine_file = ENGINES_DIR / f"{MAJORS[major_key]['engine']}.py"
+def load_engine(engine_name: str):
+    engine_file = ENGINES_DIR / f"{engine_name}.py"
     if not engine_file.exists():
-        raise HTTPException(status_code=400, detail=f"Engine not found for {major_key}")
+        raise HTTPException(status_code=400, detail=f"Engine not found: {engine_name}")
     spec = importlib.util.spec_from_file_location("engine", engine_file)
     mod  = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
-# ── ROUTES ────────────────────────────────────────────────────────────────────
+# ── SHARED HELPERS ────────────────────────────────────────────────────────────
+def _norm_code(c):
+    return c.strip().upper().replace(' ', '_').replace('-', '_')
+
+def _safe_credits(val, fallback=3):
+    if isinstance(val, int): return val
+    if isinstance(val, float): return int(val)
+    if isinstance(val, str):
+        try: return int(val.split("-")[0])
+        except ValueError: return fallback
+    return fallback
+
+def _status_of_c(c):
+    if c is None: return 'Not Satisfied'
+    if c['status'] == 'grade posted' and c['grade'].upper() not in ('','W','DRP','NC'): return 'Satisfied'
+    if c['status'] == 'current': return 'Current'
+    if c['status'] == 'scheduled': return 'Scheduled'
+    return 'Not Satisfied'
+
+def _build_major_rows(prog_reqs, raw_courses, sm_mod):
+    """
+    Dynamically build major requirement rows from a program definition dict.
+    Handles: list keys (required courses), dict keys with 'credits' (electives/choose blocks).
+    """
+    from engines.sport_marketing import best as sm_best, norm as sm_norm
+
+    def _find_course(code_list):
+        normalized = [sm_norm(c.replace(' ', '_').replace('-', '_')) for c in code_list]
+        return sm_best(raw_courses, normalized)
+
+    course_name_lookup = {}
+    for _c in raw_courses:
+        key = _c['raw'].upper().replace('-', ' ')
+        if _c.get('name') and _c['name'].strip():
+            course_name_lookup[key] = _c['name'].strip()
+
+    def _course_label(course_id, found_course=None):
+        code_clean = course_id.strip().upper().replace('-', ' ')
+        if found_course and found_course.get('name'):
+            return f"{course_id} {found_course['name']}"
+        name = course_name_lookup.get(code_clean, '')
+        return f"{course_id} {name}" if name else course_id
+
+    _skip_keys = {
+        'name', 'total_credits', 'delivery', 'notes', 'teaching_fields',
+        'department', 'concentration_note', 'special_rules', 'same_as',
+        'optional_cma', 'concentrations', 'tracks', 'total_major_credits',
+        'lead_courses_credits', 'la_credits', 'elective_credits',
+        'min_level', 'choose_one', 'accreditation',
+    }
+
+    rows = []
+
+    # Pass 1: list-type keys → individual required course rows
+    for req_key, req_val in prog_reqs.items():
+        if req_key in _skip_keys:
+            continue
+        if isinstance(req_val, list) and req_val:
+            for course_id in req_val:
+                if not isinstance(course_id, str): continue
+                if 'xxx' in course_id.lower() or course_id.upper().count('X') >= 3: continue
+                c = _find_course([course_id])
+                rows.append({
+                    "id":     _norm_code(course_id),
+                    "label":  _course_label(course_id, c),
+                    "status": _status_of_c(c),
+                    "course": c,
+                    "dcr":    3,
+                    "note":   "",
+                })
+
+    # Pass 2: dict-type keys with 'credits' → elective/choose blocks
+    for ekey, edef in prog_reqs.items():
+        if ekey in _skip_keys: continue
+        if not isinstance(edef, (dict, int, float)): continue
+        if isinstance(edef, dict) and 'credits' not in edef: continue
+
+        if isinstance(edef, dict):
+            credits     = _safe_credits(edef.get("credits", 3))
+            dept        = edef.get("dept", "")
+            course      = edef.get("course", "")
+            choose_from = edef.get("choose_from", edef.get("options", edef.get("courses", [])))
+            label       = edef.get("label", "")
+            if not label:
+                if course:
+                    label = f"{course} ({credits} cr)"
+                elif dept:
+                    dept_str = "/".join(dept) if isinstance(dept, list) else dept
+                    label = f"{dept_str} elective — {credits} hrs"
+                elif choose_from:
+                    preview = ', '.join(str(x) for x in choose_from[:3])
+                    suffix  = '...' if len(choose_from) > 3 else ''
+                    label   = f"Choose from: {preview}{suffix} ({credits} cr)"
+                else:
+                    label = f"{ekey.replace('_',' ').title()} ({credits} cr)"
+            # Skip notes-only blocks with nothing matchable
+            if not course and not dept and not choose_from:
+                continue
+            opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
+            c = _find_course(opts) if opts else None
+            if c is None and dept:
+                dept_list    = [dept] if isinstance(dept, str) else dept
+                dept_prefixes = tuple(d.upper() for d in dept_list)
+                c = next((x for x in raw_courses
+                          if x['raw'].upper().startswith(dept_prefixes)
+                          and _status_of_c(x) in ('Satisfied', 'Current', 'Scheduled')), None)
+            rows.append({
+                "id":     _norm_code(ekey),
+                "label":  label,
+                "status": _status_of_c(c),
+                "course": c,
+                "dcr":    credits,
+                "note":   "",
+            })
+        elif isinstance(edef, (int, float)):
+            rows.append({
+                "id":     _norm_code(ekey),
+                "label":  f"{ekey.replace('_',' ').title()} ({int(edef)} hrs)",
+                "status": "Not Satisfied",
+                "course": None,
+                "dcr":    int(edef),
+                "note":   "",
+            })
+
+    return rows
+
+def _compute_gpa(raw_courses, major_codes_set):
+    """Compute overall and major GPA from raw_courses."""
+    GP = {"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,
+          "C-":1.7,"D+":1.3,"D":1.0,"D-":0.7,"F":0.0}
+    op = oh = mp = mh = qp = 0.0
+    earned = ip_hrs = 0
+    seen = set()
+    for c in raw_courses:
+        g = c["grade"].upper()
+        if g in ("W","DRP") or c["status"] == "dropped": continue
+        if c["status"] == "current":
+            ip_hrs += c["cr"]; continue
+        if c["status"] != "grade posted": continue
+        earned += c["cr"]
+        if g in ("T","CR","NC",""): continue
+        gp = GP.get(g)
+        if gp is None: continue
+        cr = c["cr"]
+        if c["code"] not in seen:
+            op += gp * cr; oh += cr; qp += gp * cr
+            seen.add(c["code"])
+        if c["code"] in major_codes_set or c["raw"].upper().replace('-','_') in major_codes_set:
+            mp += gp * cr; mh += cr
+    return (
+        round(op/oh, 2) if oh else 0.0,
+        round(mp/mh, 2) if mh else 0.0,
+        int(oh), earned, ip_hrs, round(qp,1), earned+ip_hrs
+    )
+
+# ── SINGLE UNIFIED GENERATE ENDPOINT ─────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return HTMLResponse(open("templates/index.html").read())
@@ -155,8 +309,6 @@ async def generate(
     advisor_email: str = Form(""),
     student_email: str = Form(""),
 ):
-    if major not in MAJORS:
-        raise HTTPException(400, "Invalid major")
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
@@ -170,68 +322,175 @@ async def generate(
         tmp_csv = tmp_in.name
 
     safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
-    tmp_pdf = tempfile.mktemp(suffix=".pdf")
+    tmp_pdf   = tempfile.mktemp(suffix=".pdf")
 
     try:
-        mod = load_engine(major)
-        # Set major key and catalog year on fsb_engine before audit
-        if hasattr(mod, 'MAJOR_KEY'):
-            mod.MAJOR_KEY    = major
-            mod.CATALOG_YEAR = catalog_year
-        courses = mod.parse_csv(tmp_csv)
-        # Apply advisor exceptions before audit
-        if exceptions.strip() and hasattr(mod, 'apply_exceptions'):
-            courses = mod.apply_exceptions(courses, exceptions)
-        res = mod.audit(courses, minor_key=minor1 or None)
-        res['catalog_year'] = catalog_year
-        res['advisor_notes'] = advisor_notes
+        # ── Always load sport_marketing for shared utilities ──────────────────
+        sm_mod = load_engine("sport_marketing")
+        raw_courses = sm_mod.parse_csv(tmp_csv)
+        if exceptions.strip():
+            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-        # Additional majors — run their requirement sections and merge into res
-        additional_major_sections = []
-        for extra_major_key in [major2, major3]:
-            if not extra_major_key or extra_major_key not in MAJORS:
-                continue
+        # ── Route: FSB vs non-FSB ─────────────────────────────────────────────
+        is_fsb = major in FSB_MAJORS
+
+        if is_fsb:
+            # ── FSB PATH: use dedicated engine audit() ────────────────────────
+            engine_name = FSB_MAJORS[major]["engine"]
+            mod = load_engine(engine_name)
+            if hasattr(mod, 'MAJOR_KEY'):
+                mod.MAJOR_KEY    = major
+                mod.CATALOG_YEAR = catalog_year
+            res = mod.audit(raw_courses, minor_key=minor1 or None)
+            res['catalog_year']   = catalog_year
+            res['advisor_notes']  = advisor_notes
+            major_label = FSB_MAJORS[major]["label"]
+
+            # Additional FSB majors
+            additional_major_sections = []
+            for extra_key in [major2, major3]:
+                if not extra_key or extra_key not in FSB_MAJORS: continue
+                try:
+                    extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
+                    if hasattr(extra_mod, 'MAJOR_KEY'):
+                        extra_mod.MAJOR_KEY    = extra_key
+                        extra_mod.CATALOG_YEAR = catalog_year
+                    extra_res  = extra_mod.audit(raw_courses, minor_key=None)
+                    extra_rows = []
+                    for r in extra_res.get('bc', []):
+                        r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                    for r in extra_res.get('mr', []):
+                        r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                    if extra_rows:
+                        additional_major_sections.append((FSB_MAJORS[extra_key]["label"], extra_rows))
+                except Exception:
+                    pass
+            res['additional_major_sections'] = additional_major_sections
+
+            for extra_minor_key in [minor2, minor3]:
+                if extra_minor_key:
+                    res.setdefault('extra_minor_keys', []).append(extra_minor_key)
+
+        else:
+            # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
+            from requirements.non_fsb_programs import get_non_fsb_requirements, ALL_NON_FSB_PROGRAMS
+
+            if major not in ALL_NON_FSB_PROGRAMS:
+                raise HTTPException(400, f"Unknown major: {major}")
+
+            prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
+            prog_name = prog_reqs.get("name", major.replace("_"," ").title()) if isinstance(prog_reqs, dict) else major.replace("_"," ").title()
+            major_label = prog_name
+
+            # Build major requirement rows
+            mr_rows = _build_major_rows(prog_reqs, raw_courses, sm_mod)
+
+            # Build minor rows if provided
+            minor_rows = None
+            if minor1:
+                minor_reqs = get_non_fsb_requirements(minor1, catalog_year) or {}
+                if minor_reqs:
+                    minor_rows = _build_major_rows(minor_reqs, raw_courses, sm_mod)
+
+            # Major codes set for GPA calculation
+            _skip_gpa = {'name','total_credits','delivery','notes','teaching_fields',
+                         'department','same_as','concentrations','tracks','accreditation',
+                         'total_major_credits','la_credits','elective_credits','min_level'}
+            major_codes_set = set()
+            for _k, _v in prog_reqs.items():
+                if _k in _skip_gpa: continue
+                if isinstance(_v, list):
+                    for _cid in _v:
+                        if isinstance(_cid, str) and 'xxx' not in _cid.lower():
+                            major_codes_set.add(_norm_code(_cid))
+
+            gpa_o, gpa_m, gpa_hrs, earned, ip_hrs, qp, proj = _compute_gpa(raw_courses, major_codes_set)
+
+            # LA rows
+            la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year, major_key=major)
+
+            # Additional non-FSB majors
+            additional_major_sections = []
+            for extra_key in [major2, major3]:
+                if not extra_key: continue
+                # Could be FSB or non-FSB
+                if extra_key in FSB_MAJORS:
+                    try:
+                        extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
+                        if hasattr(extra_mod, 'MAJOR_KEY'):
+                            extra_mod.MAJOR_KEY    = extra_key
+                            extra_mod.CATALOG_YEAR = catalog_year
+                        extra_res  = extra_mod.audit(raw_courses, minor_key=None)
+                        extra_rows = []
+                        for r in extra_res.get('bc', []) + extra_res.get('mr', []):
+                            r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                        if extra_rows:
+                            additional_major_sections.append((FSB_MAJORS[extra_key]["label"], extra_rows))
+                    except Exception:
+                        pass
+                elif extra_key in ALL_NON_FSB_PROGRAMS:
+                    try:
+                        extra_reqs  = get_non_fsb_requirements(extra_key, catalog_year) or {}
+                        extra_name  = extra_reqs.get("name", extra_key.replace("_"," ").title())
+                        extra_rows  = _build_major_rows(extra_reqs, raw_courses, sm_mod)
+                        if extra_rows:
+                            additional_major_sections.append((extra_name, extra_rows))
+                    except Exception:
+                        pass
+
+            res = {
+                "catalog_year":           catalog_year,
+                "current_term_label":     "2025-26",
+                "gpa_o":                  gpa_o,
+                "gpa_m":                  gpa_m,
+                "earned":                 earned,
+                "ip_hrs":                 ip_hrs,
+                "proj":                   proj,
+                "gpa_hrs":                gpa_hrs,
+                "qp":                     qp,
+                "la":                     la_rows,
+                "bc":                     [],
+                "mr":                     mr_rows,
+                "elecs":                  [],
+                "elecs_ip":               [],
+                "ehrs":                   0,
+                "ehrs_ip":                0,
+                "elec_required_hrs":      0,
+                "courses":                raw_courses,
+                "minor_rows":             minor_rows,
+                "minor_key":              minor1 or None,
+                "major_section_label":    f"{prog_name} — {catalog_year}",
+                "major_subsections":      [(f"{prog_name} Required Courses", mr_rows)],
+                "notes_row_text":         "",
+                "elec_opts":              [],
+                "advisor_notes":          advisor_notes,
+                "additional_major_sections": additional_major_sections,
+            }
+
+        # ── Build combined label for multi-major PDFs ─────────────────────────
+        def _label(key):
+            if key in FSB_MAJORS: return FSB_MAJORS[key]["label"]
             try:
-                extra_mod = load_engine(extra_major_key)
-                extra_res = extra_mod.audit(courses, minor_key=None)
-                extra_label = MAJORS[extra_major_key]["label"]
-                # Collect bc + mr rows for this major as an additional section
-                extra_rows = []
-                for r in extra_res.get('bc', []):
-                    r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
-                for r in extra_res.get('mr', []):
-                    r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
-                if extra_rows:
-                    additional_major_sections.append((extra_label, extra_rows))
+                from requirements.non_fsb_programs import get_non_fsb_requirements
+                r = get_non_fsb_requirements(key, catalog_year) or {}
+                return r.get("name", key.replace("_"," ").title()) if isinstance(r,dict) else key
             except Exception:
-                pass
+                return key.replace("_"," ").title()
 
-        # Additional minors
-        for extra_minor_key in [minor2, minor3]:
-            if not extra_minor_key:
-                continue
-            res.setdefault('extra_minor_keys', []).append(extra_minor_key)
+        all_labels = [major_label] + [_label(k) for k in [major2, major3] if k]
+        combined_label = " / ".join(all_labels)
 
-        res['additional_major_sections'] = additional_major_sections
+        # ── Generate PDF ──────────────────────────────────────────────────────
+        sm_mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
 
-        major_label = MAJORS[major]["label"]
-        # Build combined label if multiple majors
-        all_major_labels = [major_label] + [MAJORS[k]["label"] for k in [major2, major3] if k and k in MAJORS]
-        combined_label = " / ".join(all_major_labels)
-
-        mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
-
-        total = record_pull("advisor", student_name, MAJORS[major]["label"], catalog_year)
-
+        total    = record_pull("advisor", student_name, major_label, catalog_year)
         filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
 
-        # Send email if addresses provided
         recipients = [e.strip() for e in [advisor_email, student_email] if e.strip()]
         if recipients:
             try:
                 send_audit_email(recipients, student_name, major_label, tmp_pdf, filename)
             except Exception as email_err:
-                # Don't fail the whole request if email fails — PDF still downloads
                 print(f"Email send failed: {email_err}")
 
         return FileResponse(
@@ -240,15 +499,18 @@ async def generate(
             filename=filename,
             headers={"X-Pulls-Used": str(total), "X-Pulls-Remaining": str(MAX_PULLS - total)}
         )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
     finally:
         os.unlink(tmp_csv)
 
 
-
+# ── LEGACY REDIRECT: keep /generate/non-fsb working during transition ─────────
 @app.post("/generate/non-fsb")
-async def generate_non_fsb(
+async def generate_non_fsb_legacy(
     student_name:  str = Form(...),
     major:         str = Form(...),
     catalog_year:  str = Form(...),
@@ -263,331 +525,67 @@ async def generate_non_fsb(
     advisor_email: str = Form(""),
     student_email: str = Form(""),
 ):
-    if catalog_year not in CATALOG_YEARS:
-        raise HTTPException(400, "Invalid catalog year")
+    """Legacy endpoint — redirects to unified /generate."""
+    # Re-read the transcript since we already consumed it
+    transcript_bytes = await transcript.read()
 
-    log = load_log()
-    if log["total"] >= MAX_PULLS:
-        raise HTTPException(429, "Annual pull limit reached. Contact Indy Collab to renew.")
+    # Create a fake UploadFile-like object
+    from fastapi import UploadFile as FUF
+    import io
+    fake_file = FUF(filename=transcript.filename, file=io.BytesIO(transcript_bytes))
 
-    csv_bytes = await transcript.read()
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
-        tmp_in.write(csv_bytes)
-        tmp_csv = tmp_in.name
-
-    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
-    tmp_pdf = tempfile.mktemp(suffix=".pdf")
-
-    try:
-        # Parse CSV using shared parser
-        sm_mod = load_engine("sport_marketing")
-        raw_courses = sm_mod.parse_csv(tmp_csv)
-
-        # Apply advisor exceptions to course list before audit runs
-        if exceptions.strip() and hasattr(sm_mod, 'apply_exceptions'):
-            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
-
-        # Build the sport_marketing-compatible res dict for non-FSB majors
-        from engines.non_fsb_audit_engine import run_non_fsb_audit, CourseRecord as NonFSBCourseRecord
-        from requirements.non_fsb_programs import get_non_fsb_requirements
-
-        transcript_records = [
-            NonFSBCourseRecord(
-                course_id=c["raw"],
-                grade=c["grade"],
-                credits=c["cr"],
-                term=c.get("reg_date", ""),
-            )
-            for c in raw_courses
-        ]
-
-        student = {"name": student_name, "id": "", "catalog_year": catalog_year}
-        non_fsb_result = run_non_fsb_audit(
-            program_key=major,
-            catalog_year=catalog_year,
-            student=student,
-            transcript=transcript_records,
-        )
-
-        # Convert NonFSBAuditResult → res dict shaped for the shared PDF template
-        def _status(s):
-            return "Not Satisfied" if s == "Not Met" else s
-
-        mr_rows = [
-            {
-                "id": r.label.replace(" ", "_").upper()[:20],
-                "label": r.label,
-                "status": _status(r.status),
-                "course": {"raw": r.course_used, "name": "", "cr": 0,
-                           "grade": "", "status": "grade posted", "reg_date": ""}
-                          if r.course_used else None,
-                "dcr": 3,
-                "note": r.notes or "",
-            }
-            for r in non_fsb_result.requirements
-        ]
-
-        # Compute GPA/credit stats using same logic as sport_marketing audit()
-        GP = {"A":4.0,"A-":3.7,"B+":3.3,"B":3.0,"B-":2.7,"C+":2.3,"C":2.0,
-              "C-":1.7,"D+":1.3,"D":1.0,"D-":0.7,"F":0.0}
-        op = oh = mp = mh = qp = 0.0
-        earned = ip_hrs = 0
-        seen_codes = set()
-
-        # Build major course code set from program requirements
-        major_codes_set = set()
-        prog_reqs_for_gpa = get_non_fsb_requirements(major, catalog_year) or {}
-        _skip_gpa = {'name','total_credits','delivery','notes','teaching_fields',
-                     'department','same_as','optional_cma','concentrations','tracks',
-                     'total_major_credits','lead_courses_credits','la_credits',
-                     'elective_credits','min_level','choose_one'}
-        for _k, _v in prog_reqs_for_gpa.items():
-            if _k in _skip_gpa: continue
-            if isinstance(_v, list):
-                for _cid in _v:
-                    if isinstance(_cid, str) and 'xxx' not in _cid.lower():
-                        major_codes_set.add(_cid.strip().upper().replace(' ','_').replace('-','_'))
-
-        for c in raw_courses:
-            g = c["grade"].upper()
-            if g in ("W", "DRP") or c["status"] == "dropped":
-                continue
-            if c["status"] == "current":
-                ip_hrs += c["cr"]
-                continue
-            if c["status"] != "grade posted":
-                continue
-            earned += c["cr"]
-            if g in ("T", "CR", "NC", ""):
-                continue
-            gp = GP.get(g)
-            if gp is None:
-                continue
-            cr = c["cr"]
-            code_key = c["code"]
-            if code_key not in seen_codes:
-                op += gp * cr; oh += cr; qp += gp * cr
-                seen_codes.add(code_key)
-            if c["code"] in major_codes_set or c["raw"].upper().replace('-','_') in major_codes_set:
-                mp += gp * cr; mh += cr
-
-        gpa_o = round(op / oh, 2) if oh else 0.0
-        gpa_m = round(mp / mh, 2) if mh else 0.0
-        gpa_hrs = int(oh)
-        ip_hrs_total = ip_hrs
-        proj = earned + ip_hrs
-
-        # Get program display name and full requirement definition
-        prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
-        prog_name = prog_reqs.get("name", major.replace("_", " ").title()) if isinstance(prog_reqs, dict) else major.replace("_", " ").title()
-
-        # ── LA rows: run the universal LA audit against this student's courses ──
-        la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year, major_key=major)
-
-        # ── Build complete major requirement rows from program definition ──────
-        # mr_rows above only has the basic required[] courses from the engine.
-        # Rebuild fully from prog_reqs so electives, internships, etc. appear.
-        def _norm_code(c):
-            return c.strip().upper().replace(' ', '_').replace('-', '_')
-
-        def _find_course(code_list):
-            """Find best matching course from raw_courses for a list of codes."""
-            from engines.sport_marketing import best as sm_best, norm as sm_norm
-            normalized = [sm_norm(c.replace(' ', '_').replace('-', '_')) for c in code_list]
-            return sm_best(raw_courses, normalized)
-
-        def _status_of_c(c):
-            if c is None: return 'Not Satisfied'
-            if c['status'] == 'grade posted' and c['grade'].upper() not in ('','W','DRP','NC'): return 'Satisfied'
-            if c['status'] == 'current': return 'Current'
-            if c['status'] == 'scheduled': return 'Scheduled'
-            return 'Not Satisfied'
-
-        # Build a code->name lookup from the transcript so requirement labels show course names
-        course_name_lookup = {}
-        for _c in raw_courses:
-            code_key = _c['raw'].upper().replace('-', ' ')
-            if _c.get('name') and _c['name'].strip():
-                course_name_lookup[code_key] = _c['name'].strip()
-
-        def _course_label(course_id, found_course=None):
-            """Return 'CODE Name' if name is known, else just 'CODE'."""
-            code_clean = course_id.strip().upper().replace('-', ' ')
-            if found_course and found_course.get('name'):
-                return f"{course_id} {found_course['name']}"
-            name = course_name_lookup.get(code_clean, '')
-            if name:
-                return f"{course_id} {name}"
-            return course_id
+    return await generate(
+        student_name=student_name, major=major, catalog_year=catalog_year,
+        transcript=fake_file, exceptions=exceptions, advisor_notes=advisor_notes,
+        minor1=minor1, minor2=minor2, minor3=minor3,
+        major2=major2, major3=major3,
+        advisor_email=advisor_email, student_email=student_email,
+    )
 
 
-        full_mr_rows = []
-
-        # Keys to skip — not course lists or elective blocks
-        _skip_keys = {
-            'name', 'total_credits', 'delivery', 'notes', 'teaching_fields',
-            'department', 'concentration_note', 'special_rules', 'same_as',
-            'optional_cma', 'concentrations', 'tracks', 'total_major_credits',
-            'lead_courses_credits', 'la_credits', 'elective_credits',
-            'min_level', 'choose_one',  # choose_one handled separately below
-        }
-
-        # Dynamically process all list-type keys as course arrays
-        # and all dict-type keys with 'credits' as elective blocks
-        for req_key, req_val in prog_reqs.items():
-            if req_key in _skip_keys:
-                continue
-
-            if isinstance(req_val, list) and req_val:
-                # It's a list of course codes — add each as a requirement row
-                # Use key name as subsection hint for label prefix
-                key_label = req_key.replace('_', ' ').title()
-                for course_id in req_val:
-                    if not isinstance(course_id, str): continue
-                    # Skip placeholder codes like 'HIST 3xxx'
-                    if 'xxx' in course_id.lower() or 'X' * 3 in course_id.upper():
-                        continue
-                    c = _find_course([course_id])
-                    s = _status_of_c(c)
-                    full_mr_rows.append({
-                        "id": _norm_code(course_id),
-                        "label": _course_label(course_id, c),
-                        "status": s, "course": c, "dcr": 3, "note": "",
-                    })
-
-        def _safe_credits(val, fallback=3):
-            """Convert credits to int — handles strings like '8-9' by taking the minimum."""
-            if isinstance(val, int): return val
-            if isinstance(val, float): return int(val)
-            if isinstance(val, str):
-                try: return int(val.split("-")[0])
-                except ValueError: return fallback
-            return fallback
-
-        # Dynamically process all dict-type keys with 'credits' as elective/supplemental blocks
-        for ekey, edef in prog_reqs.items():
-            if ekey in _skip_keys: continue
-            if not isinstance(edef, (dict, int, float)): continue
-            if isinstance(edef, dict) and 'credits' not in edef: continue
-            if isinstance(edef, dict):
-                credits = _safe_credits(edef.get("credits", 3))
-                dept = edef.get("dept", "")
-                course = edef.get("course", "")
-                choose_from = edef.get("choose_from", edef.get("options", edef.get("courses", [])))
-                label = edef.get("label", "")
-                if not label:
-                    if course:
-                        label = f"{course} ({credits} cr)"
-                    elif dept:
-                        dept_str = "/".join(dept) if isinstance(dept, list) else dept
-                        label = f"{dept_str} elective — {credits} hrs"
-                    elif choose_from:
-                        label = f"Choose from: {', '.join(str(x) for x in choose_from[:3])}{'...' if len(choose_from)>3 else ''} ({credits} cr)"
-                    else:
-                        label = f"{ekey.replace('_',' ').title()} ({credits} cr)"
-                # Skip elective blocks with no matchable course info (notes-only blocks)
-                if not course and not dept and not choose_from:
-                    continue
-                opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
-                c = _find_course(opts) if opts else None
-                if c is None and dept:
-                    dept_list = [dept] if isinstance(dept, str) else dept
-                    dept_prefixes = tuple(d.upper() for d in dept_list)
-                    c = next((x for x in raw_courses
-                              if x['raw'].upper().startswith(dept_prefixes)
-                              and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
-                s = _status_of_c(c)
-                full_mr_rows.append({
-                    "id": _norm_code(ekey), "label": label, "status": s,
-                    "course": c, "dcr": credits, "note": "",
-                })
-            elif isinstance(edef, (int, float)):
-                # e.g. additional_hours: 4
-                full_mr_rows.append({
-                    "id": _norm_code(ekey), "label": f"{ekey.replace('_',' ').title()} ({int(edef)} hrs)",
-                    "status": "Not Satisfied", "course": None, "dcr": int(edef), "note": "",
-                })
-            elif isinstance(edef, list):
-                for course_id in edef:
-                    c = _find_course([str(course_id)])
-                    full_mr_rows.append({
-                        "id": _norm_code(str(course_id)), "label": _course_label(str(course_id), c),
-                        "status": _status_of_c(c), "course": c, "dcr": 3, "note": "",
-                    })
-
-        # Use full_mr_rows if we got more info, else fall back to the engine result
-        final_mr = full_mr_rows if full_mr_rows else mr_rows
-
-        res = {
-            "catalog_year": catalog_year,
-            "current_term_label": "2025-26",
-            "gpa_o": gpa_o,
-            "gpa_m": gpa_m,
-            "earned": earned,
-            "ip_hrs": ip_hrs_total,
-            "proj": proj,
-            "gpa_hrs": gpa_hrs,
-            "qp": round(qp, 1),
-            # LA section — now fully populated from universal LA audit
-            "la": la_rows,
-            # No business core for non-FSB
-            "bc": [],
-            # Full major requirements
-            "mr": final_mr,
-            # No electives section (electives folded into mr rows above)
-            "elecs": [],
-            "elecs_ip": [],
-            "ehrs": 0,
-            "ehrs_ip": 0,
-            "elec_required_hrs": 0,
-            # Course history
-            "courses": raw_courses,
-            # Minor
-            "minor_rows": None,
-            "minor_key": None,
-            # Template labels
-            "major_section_label": f"{prog_name} — {catalog_year}",
-            "major_subsections": [(f"{prog_name} Required Courses", final_mr)],
-            "notes_row_text": "",
-            "elec_opts": [],
-            "advisor_notes": advisor_notes,
-            "additional_major_sections": [],
-        }
-
-        sm_mod.build(res, student_name, prog_name, tmp_pdf, exceptions=exceptions)
-
-        total = record_pull("advisor", student_name, major, catalog_year)
-        filename = f"{safe_name}_{major.replace('_', ' ').title()}_Audit.pdf"
-
-        recipients = [e.strip() for e in [advisor_email, student_email] if e.strip()]
-        if recipients:
-            try:
-                send_audit_email(recipients, student_name, major, tmp_pdf, filename)
-            except Exception as email_err:
-                print(f"Email send failed: {email_err}")
-
-        return FileResponse(
-            tmp_pdf,
-            media_type="application/pdf",
-            filename=filename,
-            headers={"X-Pulls-Used": str(total), "X-Pulls-Remaining": str(MAX_PULLS - total)}
-        )
-    except Exception as e:
-        raise HTTPException(500, f"Audit generation failed: {str(e)}")
-    finally:
-        os.unlink(tmp_csv)
-
+# ── STATUS / UTILITY ENDPOINTS ────────────────────────────────────────────────
 @app.get("/ping")
 def ping():
     return {"ok": True}
 
 @app.get("/status")
 def status():
+    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
     log = load_log()
+    all_majors = (
+        [v["label"] for v in FSB_MAJORS.values()] +
+        [v.get("name", k) if isinstance(v, dict) else k
+         for k, v in ALL_NON_FSB_PROGRAMS.items()]
+    )
     return {
-        "total_pulls":     log["total"],
-        "remaining_pulls": max(0, MAX_PULLS - log["total"]),
-        "max_pulls":       MAX_PULLS,
-        "majors_available": [v["label"] for v in MAJORS.values()],
-        "catalog_years":   CATALOG_YEARS,
+        "total_pulls":      log["total"],
+        "remaining_pulls":  max(0, MAX_PULLS - log["total"]),
+        "max_pulls":        MAX_PULLS,
+        "majors_available": all_majors,
+        "catalog_years":    CATALOG_YEARS,
     }
+
+@app.get("/catalog-years")
+def catalog_years():
+    return {"catalog_years": CATALOG_YEARS}
+
+@app.get("/majors/{year}")
+def majors_for_year(year: str):
+    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
+    if year not in CATALOG_YEARS:
+        raise HTTPException(400, "Invalid catalog year")
+    fsb = [{"key": k, "label": v["label"], "type": "FSB"} for k, v in FSB_MAJORS.items()]
+    non_fsb = []
+    for k in ALL_NON_FSB_PROGRAMS:
+        try:
+            r = get_non_fsb_requirements(k, year)
+            if r:
+                name = r.get("name", k.replace("_"," ").title()) if isinstance(r,dict) else k
+                non_fsb.append({"key": k, "label": name, "type": "non-FSB"})
+        except Exception:
+            pass
+    return {"year": year, "majors": fsb + non_fsb}
+
+@app.get("/programs/all/{year}")
+def programs_all(year: str):
+    return majors_for_year(year)
