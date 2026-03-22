@@ -2083,7 +2083,29 @@ TEACHER_EDUCATION = {
         "all_years": {
             "name": "Education (Non-License) BA",
             "total_credits": 30,
-            "notes": "For students seeking non-teaching education careers (camps, religious ed, etc.)",
+            "required": [
+                "EDUC 2000", "EDUC 2030", "EDUC 2100", "EDUC 2110",
+                "EDUC 2170", "EDUC 2200", "EDUC 2460",
+                "PETE 3710", "SPED 2400",
+            ],
+            "internship": {"credits": 3, "course": "EDUC 4810"},
+            "notes": "Non-license; does not satisfy Indiana teaching licensure",
+        },
+    },
+    "education_minor": {
+        "all_years": {
+            "name": "Education Minor (Non-License)",
+            "total_credits": 16,
+            "required": [
+                "EDUC 2000", "EDUC 2100", "EDUC 2110",
+                "EDUC 2460", "SPED 2400",
+            ],
+            "internship": {"credits": 3, "course": "EDUC 4810"},
+            "elective_educ": {
+                "credits": 2,
+                "dept": ["EDUC", "SPED"],
+                "notes": "Remaining hrs from approved Teacher Ed courses",
+            },
         },
     },
     "minors": {
@@ -2888,6 +2910,16 @@ TEACHER_EDUCATION_EXTRA = {
             "notes": "Licensure requires additional testing and student teaching in special ed setting.",
         },
     },
+    "education_minor": {
+        "all_years": {
+            "name": "Education Minor (Non-License)",
+            "total_credits": 16,
+            "required": [
+                "EDUC 2000", "EDUC 2100", "EDUC 2110",
+                "EDUC 2460", "EDUC 4810", "SPED 2400",
+            ],
+        },
+    },
     "teaching_minor": {
         "all_years": {
             "name": "Teaching Minor",
@@ -3102,6 +3134,7 @@ ALL_NON_FSB_PROGRAMS = {
     # Teacher Education
     "elementary_education": TEACHER_EDUCATION["elementary_education"],
     "education_non_license": TEACHER_EDUCATION["education_non_license"],
+    "education_minor":       TEACHER_EDUCATION["education_minor"],
     # Interdisciplinary
     "pact_minor":           INTERDISCIPLINARY["peace_conflict_transformation_minor"],
     "womens_studies_minor": INTERDISCIPLINARY["womens_studies_minor"],
@@ -3163,6 +3196,7 @@ ALL_NON_FSB_PROGRAMS = {
     "sociology_minor":               SOCIAL_WORK_EXTRA["sociology_minor"],
     # ── Teacher Education extras ──────────────
     "special_ed_minor":              TEACHER_EDUCATION_EXTRA["special_ed_minor"],
+    "education_minor":               TEACHER_EDUCATION_EXTRA["education_minor"],
     "teaching_minor":                TEACHER_EDUCATION_EXTRA["teaching_minor"],
     # ── FSB Complementary Majors ──────────────
     "business_admin_complementary":  FSB_COMPLEMENTARY["business_admin_complementary"],
