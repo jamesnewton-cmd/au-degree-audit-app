@@ -1062,18 +1062,50 @@ MUSIC_THEATRE_DANCE = {
         "all_years": {
             "name": "Music Education K-12/P-12 (BMus)",
             "total_credits": 101,
-            "notes": "Largest degree program at AU; includes student teaching",
             "required_theory": [
                 "MUSC 1010", "MUSC 1020", "MUSC 1030", "MUSC 1040",
-                "MUSC 2110", "MUSC 2330",
+                "MUSC 2010", "MUSC 2020", "MUSC 2030", "MUSC 2040",
+                "MUSC 2110", "MUSC 2330", "MUSC 3030", "MUSC 3040",
+            ],
+            "musc_history_choose": {
+                "credits": 6,
+                "choose_from": ["MUSC 3110", "MUSC 3120", "MUSC 3130"],
+                "notes": "6 hrs from Music History sequence",
+            },
+            "required_keyboard": ["MUPF 1050", "MUPF 1060"],
+            "keyboard_upper_choose": {
+                "credits": 2,
+                "choose_from": ["MUPF 1710", "MUPF 2030", "MUPF 2040"],
+            },
+            "required_mued": [
+                "MUED 1000", "MUED 1100", "MUED 1200", "MUED 1300", "MUED 1400",
                 "MUED 2470",
+                "MUED 3100", "MUED 3110", "MUED 3120", "MUED 3130",
+                "MUED 3470", "MUED 3480", "MUED 4700",
             ],
+            "mued_pedagogy_choose": {
+                "credits": 2,
+                "choose_from": ["MUED 3330", "MUED 3350", "MUED 3370"],
+                "notes": "2 hrs from pedagogy electives",
+            },
+            "mued_diction_choose": {
+                "credits": 2,
+                "choose_from": ["MUED 2510", "MUED 2520", "MUED 3460"],
+                "notes": "2 hrs from diction/techniques sequence",
+            },
+            "applied_music": {
+                "credits": 8,
+                "dept": ["MUPF"],
+                "notes": "8 hrs applied music lessons, including a half recital",
+            },
             "required_education": [
-                "MUED 3310", "MUED 3320", "MUED 3330", "MUED 3350",
-                "MUED 3370", "MUED 3480", "MUED 4100", "MUED 4800",
+                "EDUC 2100", "EDUC 2110", "EDUC 3120", "EDUC 4010", "SPED 2400",
             ],
-            "applied": {"credits": 10},
-            "major_ensemble": {"credits": 8},
+            "educ_methods_choose": {
+                "credits": 3,
+                "choose_from": ["EDUC 4120", "EDUC 4710"],
+                "notes": "EDUC 4120 (Elementary) or EDUC 4710 (Secondary)",
+            },
         },
     },
     "musical_theatre_bmus": {
@@ -2668,10 +2700,33 @@ MUSIC_THEATRE_DANCE_EXTRA = {
         "all_years": {
             "name": "Music Performance Minor",
             "total_credits": 15,
-            "notes": "Admission by audition. Two tracks: for music majors (15-16 hrs) and non-music majors (18 hrs). Includes additional applied study, half recital, and pedagogy/methods courses.",
-            "elective_upper": {
-                "credits": 15, "dept": ["MUPF", "MUED", "MUSC"],
-                "notes": "Track-specific courses per instrument (voice/piano/instrumental)",
+            "notes": "Admission by audition. Track A: music majors (15-16 hrs). Track B: non-music majors (18 hrs).",
+            "required_conducting": ["MUED 2470"],
+            "track_a_applied": {
+                "credits": 6,
+                "dept": ["MUPF"],
+                "notes": "Track A (music majors): 6-8 hrs additional applied study + half recital",
+            },
+            "track_a_singers_choose": {
+                "credits": 2,
+                "choose_from": ["MUED 2510", "MUED 2520", "MUED 3350"],
+                "notes": "Singers: MUED 2510, 2520, 3350",
+            },
+            "track_a_vocal_perf_choose": {
+                "credits": 2,
+                "choose_from": ["MUPF 1150", "MUPF 1160", "MUPF 1170"],
+                "notes": "Singers: 2 hrs from MUPF 1150/1160/1170",
+            },
+            "track_a_piano_choose": {
+                "credits": 3,
+                "choose_from": ["MUPF 1190", "MUPF 1210", "MUPF 1520", "MUPF 1530"],
+                "notes": "Pianists: 3 hrs from MUPF 1190/1210/1520/1530",
+            },
+            "track_a_instrumental_choose": {
+                "credits": 5,
+                "choose_from": ["MUPF 1190", "MUPF 1230", "MUPF 1250",
+                                "MUPF 1360", "MUPF 1370", "MUPF 1380", "MUPF 1390"],
+                "notes": "Instrumentalists: 5 hrs from ensemble options",
             },
         },
     },
