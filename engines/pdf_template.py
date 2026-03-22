@@ -224,6 +224,10 @@ def build(res, student_name, major_label, out, exceptions=''):
     mr_ok   = all(r['status'] == 'Satisfied' for r in res['mr'])
     elec_ok = (elec_required_hrs == 0) or (ehrs + ehrs_ip >= elec_required_hrs)
     prog_ok = bc_ok and mr_ok and elec_ok
+    # Programs satisfied also counts projected/scheduled courses
+    bc_ok_proj = all(r['status'] in ('Satisfied','Current','Scheduled') for r in res.get('bc', []))
+    mr_ok_proj = all(r['status'] in ('Satisfied','Current','Scheduled') for r in res['mr'])
+    prog_ok = prog_ok or (bc_ok_proj and mr_ok_proj and elec_ok)
     proj120 = proj >= 120
     gpa_ok  = gpa_o >= 2.0
     mgpa_ok = gpa_m >= 2.0

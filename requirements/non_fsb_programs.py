@@ -279,8 +279,8 @@ COMPUTER_SCIENCE = {
                 "CPSC 3380", "CPSC 3410", "CPSC 4420", "CPSC 4430",
                 "CPSC 4950", "CPSC 4960",
             ],
-            "elective_upper": {"credits": 6, "min_level": 2000},
-            "math": {"credits": "3-4"},
+            "elective_upper": {"credits": 6, "dept": ["CPSC","ENGR","MATH"]},
+            "math": {"credits": "3-4", "dept": "MATH"},
         },
         "2024-25": {"same_as": "2023-24"},
         "2025-26": None,  # Only BS in 25-26 catalog listing
@@ -340,7 +340,7 @@ COMPUTER_SCIENCE = {
             "name": "Computer Science Minor",
             "total_credits": 16,
             "required": ["CPSC 2020", "CPSC 2100"],
-            "elective_upper": {"credits": 10, "min_level": 2000},
+            "elective_upper": {"credits": 10, "dept": ["CPSC","ENGR"]},
         },
     },
     "cybersecurity_major": {
@@ -381,7 +381,20 @@ COMPUTER_SCIENCE = {
         },
     },
     "data_science_ba": {
-        "2022-23": None,  # Verify — may exist but not prominent in 22-23 catalog
+        "2022-23": {
+            "name": "Data Science (BA)",
+            "total_credits": 57,
+            "required": [
+                "MATH 2010", "MATH 2120", "POSC 2420",
+                "CPSC 1400", "CPSC 1500", "CPSC 2040", "CPSC 2080",
+                "CPSC 2100", "CPSC 2330", "CPSC 2500",
+                "CPSC 3520", "CPSC 4100", "CPSC 4430",
+                "CPSC 4950", "CPSC 4960", "PHIL 3250",
+            ],
+            "comm_elective": {"credits": 3, "dept": ["COMM","ENGL"]},
+            "domain_elective": {"credits": 3, "dept": ["PSYC","SOCI","BSNS","BIOL","POSC"]},
+        },
+        "dummy_2022_23": None,  # replaced above
         "2023-24": {
             "name": "Data Science (BA)",
             "total_credits": 55,
@@ -401,6 +414,20 @@ COMPUTER_SCIENCE = {
         },
     },
     "data_science_bs": {
+        "2022-23": {
+            "name": "Data Science (BS)",
+            "total_credits": 72,
+            "required": [
+                "MATH 2010", "MATH 2020", "MATH 3010", "MATH 3020", "MATH 4010",
+                "POSC 2420",
+                "CPSC 1400", "CPSC 1500", "CPSC 2040", "CPSC 2080",
+                "CPSC 2100", "CPSC 2330", "CPSC 2500",
+                "CPSC 3520", "CPSC 4100", "CPSC 4430",
+                "CPSC 4950", "CPSC 4960", "PHIL 3250",
+            ],
+            "comm_elective": {"credits": 4, "dept": ["COMM","ENGL"]},
+            "domain_elective": {"credits": 4, "dept": ["PSYC","SOCI","BSNS","BIOL","POSC"]},
+        },
         "2023-24": {
             "name": "Data Science (BS)",
             "total_credits": 65,
@@ -426,7 +453,7 @@ COMPUTER_SCIENCE = {
             "name": "Information Systems Minor",
             "total_credits": 15,
             "required": ["CPSC 2020", "CPSC 2100"],
-            "elective": {"credits": 9},
+            "elective": {"credits": 9, "dept": ["CPSC","BSNS"]},
         },
     },
 }
@@ -445,6 +472,9 @@ MATHEMATICS = {
         },
     },
     "actuarial_science_ba": {
+        "2022-23": {"same_as": "2025-26"},
+        "2023-24": {"same_as": "2025-26"},
+        "2024-25": {"same_as": "2025-26"},
         "2025-26": {
             "name": "Actuarial Science (BA)",
             "total_credits": 66,
@@ -590,7 +620,7 @@ COMMUNICATION = {
                 "COMM 2850", "COMM 3130", "COMM 3200", "COMM 3230",
                 "COMM 4000", "COMM 4800",
             ],
-            "elective": {"credits": 7},
+            "elective": {"credits": 7, "dept": "PSYC"},
         },
         "2024-25": {"same_as": "2023-24"},
         "2025-26": {"same_as": "2023-24", "dept": "Humanities"},
@@ -771,7 +801,7 @@ ENGLISH = {
                 "COMM 2140",
             ],
             "applied_music": {"credits": 4},
-            "elective": {"credits": 9},
+            "elective": {"credits": 9, "dept": ["PSYC","SOCI","CMIN","EDUC"]},
         },
     },
     "english_minors": {
@@ -899,9 +929,10 @@ HISTORY_POLSCI = {
             "advanced": {
                 "credits": 12,
                 "required": ["POSC 3510"],
-                "choose_from": ["ECON 3110", "ECON 3210", "PHIL/POSC/HIST 3010", "PHIL/RLGN 3250"],
+                "choose_from": ["ECON 3110","ECON 3210","PHIL 3010","POSC 3010",
+                                  "HIST 3010","PHIL 3250","RLGN 3250"],
             },
-            "elective": {"credits": 12},
+            "elective": {"credits": 12, "dept": ["POSC","PHIL","ECON"]},
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
@@ -950,7 +981,7 @@ HISTORY_POLSCI = {
                 "name": "Public History Minor",
                 "total_credits": 18,
                 "required": ["HIST 3600", "HIST 3610"],
-                "elective": {"credits": 9},
+                "elective": {"credits": 9, "dept": ["PSYC","SOCI","CMIN","EDUC"]},
             },
         },
         "polsci_minor": {
@@ -1000,7 +1031,7 @@ MODERN_LANGUAGES = {
                 "MLAN 3500", "MLAN 4900",
             ],
             "choose_one": ["SPAN 3400", "SPAN 3440"],
-            "study_abroad_or_internship": {"credits": 6},
+            "study_abroad_or_internship": {"credits": 6, "dept": "SPAN"},
         },
     },
     "spanish_complementary": {
@@ -1008,7 +1039,7 @@ MODERN_LANGUAGES = {
             "name": "Spanish Complementary Major",
             "total_credits": 30,
             "required": ["MLAN 3500", "MLAN 4900"],
-            "span_courses": {"credits": 26, "min_level": "beyond SPAN 2010"},
+            "span_courses": {"credits": 26, "dept": "SPAN"},
         },
     },
     "spanish_education": {
@@ -1075,8 +1106,8 @@ MUSIC_THEATRE_DANCE = {
                 "MUED 2470",
                 "MUBS 3470",
             ],
-            "applied_primary": {"credits": 22, "notes": "Private study in primary area; half + full recital"},
-            "major_ensemble": {"credits": 7},
+            "applied_primary": {"credits": 22, "dept": ["MUPF"], "notes": "Private study in primary area; half + full recital"},
+            "major_ensemble": {"credits": 7, "dept": ["MUPF"]},
             "elective": {"credits": 4, "choose_from": ["MUSC 3030", "MUSC 3100", "MUSC 4900", "MUBS 2050"]},
         },
     },
@@ -1091,8 +1122,8 @@ MUSIC_THEATRE_DANCE = {
                 "MUED 2470", "MUED 3480",
                 "MUBS 3470",
             ],
-            "applied": {"credits": 22},
-            "major_ensemble": {"credits": 7},
+            "applied": {"credits": 22, "dept": ["MUPF"]},
+            "major_ensemble": {"credits": 7, "dept": ["MUPF"]},
         },
     },
     "music_education_bmus": {
@@ -1196,9 +1227,9 @@ MUSIC_THEATRE_DANCE = {
                 "MUPF 4910",
                 "THEA 2110", "THEA 2120", "THEA 2210", "THEA 3110",
             ],
-            "voice_study": {"credits": 6, "from": "MUPF 2700 or 4700"},
-            "piano_study": {"credits": 2, "from": ["MUPF 1050", "MUPF 1060", "MUPF 1710", "MUPF 1720", "MUPF 2030"]},
-            "mupf_1170": {"credits": 2},
+            "voice_study": {"credits": 6, "choose_from": ["MUPF 2700", "MUPF 4700"]},
+            "piano_study": {"credits": 2, "choose_from": ["MUPF 1050","MUPF 1060","MUPF 1710","MUPF 1720","MUPF 2030"]},
+            "mupf_1170": {"credits": 2, "course": "MUPF 1170"},
         },
     },
     "music_ba": {
@@ -1213,12 +1244,12 @@ MUSIC_THEATRE_DANCE = {
             "tracks": {
                 "Theory and History": {
                     "required": ["MUSC 2020", "MUSC 2030", "MUSC 2040", "MUSC 3110"],
-                    "elective": {"credits": 7},
+                    "elective": {"credits": 7, "dept": "PSYC"},
                 },
                 "Composition": {
                     "required": ["MUSC 2020", "MUSC 3040"],
                     "applied": {"credits": 4},
-                    "elective": {"credits": 6},
+                    "elective": {"credits": 6, "dept": "DANC"},
                 },
             },
         },
@@ -1280,7 +1311,7 @@ MUSIC_THEATRE_DANCE = {
                 "credits": 8,
                 "choose_from": ["THEA 2120", "THEA 2420", "THEA 3110", "THEA 3120",
                                 "MUPF 1070-1390", "MUPF 2700", "MUPF 4910",
-                                "Dance technique courses"],
+                                "DANC 1420"],
             },
         },
     },
@@ -1329,9 +1360,9 @@ MUSIC_THEATRE_DANCE = {
                 "MUBS 3470",
                 "MUPF 1050", "MUPF 1060",
             ],
-            "applied": {"credits": 4},
-            "ensembles": {"credits": 4},
-            "elective": {"credits": 6},
+            "applied": {"credits": 4, "dept": ["MUPF"]},
+            "ensembles": {"credits": 4, "dept": ["MUPF"]},
+            "elective": {"credits": 6, "dept": ["MUSC","MUPF","MUED"]},
         },
     },
     "complementary_dance": {
@@ -1339,8 +1370,8 @@ MUSIC_THEATRE_DANCE = {
             "name": "Complementary Dance Major",
             "total_credits": 33,
             "required": ["DANC 1150", "DANC 1580", "DANC 1590", "DANC 3000"],
-            "technique": {"credits": 9},
-            "elective": {"credits": 12},
+            "technique": {"credits": 9, "dept": "DANC"},
+            "elective": {"credits": 12, "dept": "DANC"},
         },
     },
     "minors": {
@@ -1380,8 +1411,8 @@ MUSIC_THEATRE_DANCE = {
                 "name": "Dance Minor",
                 "total_credits": 18,
                 "required": ["DANC 1580", "DANC 1590", "DANC 3000"],
-                "technique": {"credits": 6},
-                "elective": {"credits": 6},
+                "technique": {"credits": 6, "dept": "DANC"},
+                "elective": {"credits": 6, "dept": "DANC"},
             },
         },
     },
@@ -1714,7 +1745,7 @@ NURSING = {
             ],
             "supporting_courses": [
                 "BIBL 2000", "ENGL 1110", "ENGL 1120",
-                "COMM 1000", "MATH courses", "PSYC 2510",
+                "COMM 1000", "MATH 2010", "PSYC 2510",
             ],
         },
     },
@@ -1764,10 +1795,10 @@ PSYCHOLOGY = {
             "name": "Psychology Complementary Major",
             "total_credits": 26,
             "required": [
-                "PSYC 2000", "PSYC 2510", "PSYC 4210",
-                "SOCI 3100", "SOCI 3210",
+                "PSYC 2000", "PSYC 2010",
             ],
-            "elective": {"credits": 9},
+            "upper_div_elective": {"credits": 12, "dept": "PSYC"},
+            "dummy_elective": {"credits": 9},
         },
     },
     "youth_leadership_development": {
@@ -1780,7 +1811,7 @@ PSYCHOLOGY = {
                 "EDUC 2110",
                 "CMIN 2000",
             ],
-            "elective": {"credits": 9},
+            "elective": {"credits": 9, "dept": ["PSYC","SOCI","CMIN","EDUC"]},
         },
     },
     "psychology_minor": {
@@ -1788,8 +1819,8 @@ PSYCHOLOGY = {
             "name": "Psychology Minor",
             "total_credits": 16,
             "required": ["PSYC 2000"],
-            "upper_div": {"credits": 6, "dept": "PSYC", "min_level": 3000},
-            "elective": {"credits": 7},
+            "upper_div_psyc": {"credits": 6, "dept": "PSYC", "min_level": 3000},
+            "elective": {"credits": 7, "dept": "PSYC"},
         },
     },
 }
@@ -1914,7 +1945,7 @@ SOCIAL_WORK_CRIMINAL_JUSTICE = {
                 "SOCI 2010",  # or 2020
                 "SOCI 3700",
             ],
-            "crim_elective": {"credits": 9},
+            "crim_elective": {"credits": 9, "dept": "CRIM"},
             "experience": {"credits": 4, "from": "CRIM 4810"},
         },
     },
@@ -1928,7 +1959,7 @@ SOCIAL_WORK_CRIMINAL_JUSTICE = {
             ],
             "choose_one_soci": ["SOCI 2010", "SOCI 2020"],
             "additional_crim": {"credits": 9, "dept": "CRIM"},
-            "la": {"credits": "12-14", "notes": "From liberal arts program"},
+            "la": {"credits": 12, "dept": ["HIST","POSC","PSYC","SOCI","ENGL","BIBL","COMM"], "notes": "From liberal arts program"},
             "other": {"credits": "varies"},
         },
     },
@@ -2251,7 +2282,7 @@ ENGINEERING = {
                     "RLGN 2130", "RLGN 3040", "RLGN 3120",
                     "PSYC 2000", "PSYC 2100", "PSYC 3200",
                     "SOCI 2020", "SOCI 2100", "SOCI 4350",
-                    "SPAN beyond 1020",
+                    "SPAN 2010",
                 ],
             },
         },
@@ -2727,6 +2758,7 @@ MUSIC_THEATRE_DANCE_EXTRA = {
             "choose_one_danc": ["DANC 3010", "DANC 3020"],
             "elective_upper": {
                 "credits": 6,
+                "dept": "DANC",
                 "notes": "1 hr DANC 1150, 1 hr DANC 1160, 2 hrs modern technique, 1 hr jazz, 2 hrs ballet",
             },
         },
@@ -2943,6 +2975,7 @@ LIBERAL_ARTS_INTERCULTURAL = {
             "required": ["LART 1050"],
             "elective_upper": {
                 "credits": 30,
+                "dept": ["LART","HIST","COMM","ENGL","PSYC","SOCI","SPAN","POSC","RLGN","PHIL"],
                 "notes": "30-hr concentration in approved subject area(s)",
             },
         },
@@ -2957,7 +2990,7 @@ PROFESSIONAL_DEVELOPMENT = {
             "total_credits": 120,
             "required": ["LART 4500"],
             "elective_upper": {
-                "credits": 30, "min_level": 1000,
+                "credits": 30, "dept": ["LEAD","BSNS","COMM","PSYC","EDUC"],
                 "notes": "30-hr concentration in approved subject area (must have 2.0 GPA in concentration area); plan approved by program director",
             },
         },

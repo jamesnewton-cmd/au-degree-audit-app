@@ -211,21 +211,47 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod):
             if not course and not dept and not choose_from:
                 continue
             opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
-            c = _find_course(opts) if opts else None
-            if c is None and dept:
-                dept_list    = [dept] if isinstance(dept, str) else dept
-                dept_prefixes = tuple(d.upper() for d in dept_list)
-                c = next((x for x in raw_courses
-                          if x['raw'].upper().startswith(dept_prefixes)
-                          and _status_of_c(x) in ('Satisfied', 'Current', 'Scheduled')), None)
-            rows.append({
-                "id":     _norm_code(ekey),
-                "label":  label,
-                "status": _status_of_c(c),
-                "course": c,
-                "dcr":    credits,
-                "note":   "",
-            })
+
+            # For multi-course choose blocks (e.g. credits=6 = 2 x 3cr courses),
+            # generate one row per required course so each shows separately
+            course_size = 3  # most AU courses are 3 credits
+            num_needed  = max(1, round(credits / course_size)) if not course else 1
+
+            if num_needed > 1 and opts:
+                # Find up to num_needed distinct matching courses
+                from engines.sport_marketing import norm as sm_norm
+                used_codes = set()
+                for slot in range(num_needed):
+                    remaining_opts = [o for o in opts
+                                      if sm_norm(o.replace(' ','_').replace('-','_')) not in used_codes]
+                    c = _find_course(remaining_opts) if remaining_opts else None
+                    if c:
+                        used_codes.add(c['code'])
+                    slot_label = f"{label} ({slot+1} of {num_needed})" if c or slot == 0 else label
+                    rows.append({
+                        "id":     _norm_code(f"{ekey}_{slot+1}"),
+                        "label":  slot_label,
+                        "status": _status_of_c(c),
+                        "course": c,
+                        "dcr":    course_size,
+                        "note":   "",
+                    })
+            else:
+                c = _find_course(opts) if opts else None
+                if c is None and dept:
+                    dept_list    = [dept] if isinstance(dept, str) else dept
+                    dept_prefixes = tuple(d.upper() for d in dept_list)
+                    c = next((x for x in raw_courses
+                              if x['raw'].upper().startswith(dept_prefixes)
+                              and _status_of_c(x) in ('Satisfied', 'Current', 'Scheduled')), None)
+                rows.append({
+                    "id":     _norm_code(ekey),
+                    "label":  label,
+                    "status": _status_of_c(c),
+                    "course": c,
+                    "dcr":    credits,
+                    "note":   "",
+                })
         elif isinstance(edef, (int, float)):
             rows.append({
                 "id":     _norm_code(ekey),
