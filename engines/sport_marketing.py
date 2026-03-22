@@ -220,6 +220,28 @@ def apply_exceptions(courses, exceptions_text):
             except Exception:
                 pass
 
+        # MAP: TAKEN-CODE = AREA-OR-KEY
+        # Count a course toward an LA area or major requirement without naming
+        # a specific course to replace. e.g. MAP: PSYC-2510 = W5
+        elif upper.startswith('MAP:'):
+            try:
+                body = line[4:].strip()
+                taken_raw, area_raw = [x.strip() for x in body.split('=', 1)]
+                taken_code = norm(taken_raw)
+                area_key   = area_raw.strip().upper().replace(' ','_').replace('-','_')
+                taken = cm.get(taken_code)
+                if taken:
+                    synthetic = dict(taken)
+                    synthetic['code'] = f'__MAP__{area_key}__{taken_code}'
+                    synthetic['raw']  = taken['raw']
+                    synthetic['name'] = taken['name'] + f' (mapped to {area_raw.upper()})'
+                    synthetic['__map_area__'] = area_key
+                    synthetic['__map_taken_code__'] = taken_code
+                    courses.append(synthetic)
+                    cm[synthetic['code']] = synthetic
+            except Exception:
+                pass
+
         # WAIVE: COURSE-CODE
         elif upper.startswith('WAIVE:'):
             try:
@@ -897,6 +919,14 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
     # Auto-detect Honors student by presence of any HNRS course
     is_honors = any(c['code'].startswith('HNRS_') for c in courses)
 
+    # Build MAP lookup: area_key -> list of taken course codes mapped to that area
+    # These come from MAP: TAKEN = AREA exceptions injected by apply_exceptions
+    map_by_area = {}
+    for c in courses:
+        area = c.get('__map_area__')
+        if area:
+            map_by_area.setdefault(area, []).append(c.get('__map_taken_code__', c['code']))
+
     has_lart = cm.get('LART_1050')
     if not has_lart:
         if is_honors:
@@ -951,7 +981,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f2_opts = f2_def.get('courses', {}).get(yr, [])
         f2_dcr = f2_def.get('credits', 3)
         if isinstance(f2_dcr, dict): f2_dcr = f2_dcr.get(yr, 3)
-        f2_c = find_any(f2_opts)
+        f2_c = find_any(f2_opts + map_by_area.get('F2',[]))
         la.append(make_row('F2', None, f2_def.get('label', 'F2 Civil Discourse & Critical Reasoning'), f2_dcr, f2_c, status_of(f2_c)))
 
         # F3 — two rows; HNRS 2110 satisfies BOTH Writing I AND Writing II (5-hr replacement)
@@ -987,7 +1017,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         f5_opts = fw['F5']['courses'].get(yr, [])
         f5_dcr = fw['F5'].get('credits', 3)
         if isinstance(f5_dcr, dict): f5_dcr = f5_dcr.get(yr, 3)
-        f5_c = find_any(f5_opts)
+        f5_c = find_any(f5_opts + map_by_area.get('F5',[]))
         la.append(make_row('F5', None, fw['F5']['label'], f5_dcr, f5_c, status_of(f5_c)))
 
         # F6
@@ -1011,7 +1041,9 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
             # HNRS 2110 satisfies F3 OR W3 — exclude from W3 if already used for F3
             if wkey == 'W3' and hnrs_2110_blocks_w3:
                 w_opts = [o for o in w_opts if 'HNRS' not in o.upper() or '2110' not in o]
-            w_c = find_any(w_opts)
+            # Check MAP exceptions for this area
+            mapped = map_by_area.get(wkey, [])
+            w_c = find_any(w_opts + mapped) if mapped else find_any(w_opts)
             la.append(make_row(wkey, None, wdef.get('label', wkey), w_dcr, w_c, status_of(w_c)))
 
         # W4 — check integrative (3hr AE), then AP+AX courses
@@ -1025,13 +1057,13 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
             w4_all = w4_ae + w4_ap + w4_ax
         else:
             w4_all = w4_year_data
-        w4_c = find_any(w4_all)
+        w4_c = find_any(w4_all + map_by_area.get('W4',[]))
         la.append(make_row('W4', None, w4_def.get('label', 'W4 Aesthetic Ways of Knowing'),
                            3, w4_c, status_of(w4_c)))
 
         # W8 — non-FSB: NO F1 auto-satisfy. Use major-specific course list from W8 sheet.
-        if w8_courses:
-            w8_c = find_any(w8_courses)
+        if w8_courses or map_by_area.get('W8'):
+            w8_c = find_any((w8_courses or []) + map_by_area.get('W8',[]))
             la.append(make_row('W8', None, 'W8 Experiential Ways of Knowing',
                                2, w8_c, status_of(w8_c)))
         else:
@@ -1048,7 +1080,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
                        'HIST_3260','HIST_3300','BIBL_3000','RLGN_3000',
                        'BSNS_3120','BSNS_4910','ENGR_2090','HIST_3425',
                        'POSC_3320','POSC_3450','SPAN_3010','ENGL_2500']
-        wi_c1 = find_any(wi_opts)
+        wi_c1 = find_any(wi_opts + map_by_area.get('WI',[]))
         la.append(make_row('WI', None,
                            'WI Writing Intensive #1 — must be from approved WI list',
                            3, wi_c1, status_of(wi_c1)))
@@ -1073,7 +1105,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
                        'ARTH_3040','BSNS_3210','BSNS_4480',
                        'ENGL_2220','HIST_2300','HNRS_2125',
                        'PSYC_3200','SPAN_3020']
-        si_c = find_any(si_opts)
+        si_c = find_any(si_opts + map_by_area.get('SI',[]))
         la.append(make_row('SI', None,
                            'SI Speaking Intensive — 1 course required from approved SI list',
                            3, si_c, status_of(si_c)))

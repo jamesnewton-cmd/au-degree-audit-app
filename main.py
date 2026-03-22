@@ -262,6 +262,40 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod):
                 "note":   "",
             })
 
+    # Apply MAP exceptions to major rows
+    # MAP entries targeting a specific course code inject a satisfied clone
+    for c in raw_courses:
+        area = c.get('__map_area__')
+        if not area:
+            continue
+        taken_code = c.get('__map_taken_code__', c['code'])
+        # Check if any existing row has an id matching the area (normalized)
+        area_norm = area.strip().upper().replace('-','_').replace(' ','_')
+        matched = False
+        for row in rows:
+            if row['id'] == area_norm:
+                # Override this row with the mapped course
+                from engines.sport_marketing import norm as sm_norm
+                taken = next((x for x in raw_courses if x['code'] == sm_norm(taken_code)), None)
+                if taken:
+                    row['course'] = taken
+                    row['status'] = _status_of_c(taken)
+                matched = True
+                break
+        if not matched:
+            # No existing row for this area — add a new one
+            from engines.sport_marketing import norm as sm_norm
+            taken = next((x for x in raw_courses if x['code'] == sm_norm(taken_code)), None)
+            if taken:
+                rows.append({
+                    "id":     area_norm,
+                    "label":  f"{taken.get('name', taken_code)} (mapped to {area})",
+                    "status": _status_of_c(taken),
+                    "course": taken,
+                    "dcr":    taken.get('cr', 3),
+                    "note":   f"Advisor exception: mapped to {area}",
+                })
+
     return rows
 
 def _compute_gpa(raw_courses, major_codes_set):
