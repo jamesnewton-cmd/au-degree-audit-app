@@ -255,7 +255,7 @@ def build(res, student_name, major_label, out, exceptions=''):
                 else 'Eligible to Walk (projected or scheduled)')
     elig_rows = [
         [Paragraph('Eligibility Check', P['elig_hdr']), Paragraph('Status', P['elig_hdr_r'])],
-        [Paragraph('LA (Projected) satisfied', P['elig_lbl']),                    yn(la_ok)],
+        [Paragraph('LA (Projected) satisfied', P['elig_lbl']),                    yn(la_ok or la_ok_pend)],
         [Paragraph('Programs satisfied (Projected or Scheduled)', P['elig_lbl']), yn(prog_ok)],
         [Paragraph('Projected Hours ≥120', P['elig_lbl']),                        yn(proj120)],
         [Paragraph('Cumulative GPA ≥2.0', P['elig_lbl']),                         yn(gpa_ok)],
