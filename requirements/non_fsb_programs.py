@@ -128,7 +128,11 @@ BIOLOGY = {
         "all_years": {
             "name": "Biology Minor",
             "total_credits": 16,
-            "notes": "Select from BIOL courses; at least 8 hrs upper-division",
+            "required": ["BIOL 2210", "BIOL 2220"],
+            "upper_div": {
+                "credits": 8, "dept": "BIOL",
+                "notes": "8 hrs from upper-division BIOL courses (3000+)",
+            },
         },
     },
 }
@@ -1050,7 +1054,18 @@ MODERN_LANGUAGES = {
     "spanish_education": {
         "2022-23": {
             "name": "Spanish Education (P-12)",
-            "total_credits": "91-93",
+            "total_credits": 91,
+            "required_span": [
+                "SPAN 2020", "SPAN 3010", "SPAN 3020", "SPAN 3140",
+                "SPAN 3200", "SPAN 3400",
+            ],
+            "span_choose": {"credits": 3, "choose_from": ["SPAN 3440","SPAN 4350","SPAN 4360"]},
+            "mlan_required": ["MLAN 3500", "MLAN 4700", "MLAN 4900"],
+            "required_educ": [
+                "EDUC 2000", "EDUC 2100", "EDUC 2110", "EDUC 2460",
+                "EDUC 2520", "EDUC 2860", "EDUC 3000", "EDUC 3100",
+                "EDUC 3120", "EDUC 4010",
+            ],
             "notes": "Spanish BA + Education licensure requirements",
         },
         "2023-24": {"same_as": "2022-23"},
@@ -1179,7 +1194,25 @@ MUSIC_THEATRE_DANCE = {
         "2022-23": {
             "name": "Musical Theatre (BMus)",
             "total_credits": 80,
-            "notes": "Distinct from BA Musical Theatre — uses BMus Theory + Theatre",
+            "required_theory": [
+                "MUSC 1010", "MUSC 1020", "MUSC 1030", "MUSC 1040",
+                "MUSC 2010", "MUSC 2030", "MUSC 2110", "MUSC 2330", "MUSC 3180",
+                "MUED 2510",
+            ],
+            "musc_hist_choose": {"credits": 3, "choose_from": ["MUSC 3120","MUSC 3130"]},
+            "piano_choose": {"credits": 2, "choose_from": ["MUPF 1050","MUPF 1060","MUPF 1710","MUPF 2710","MUPF 2030"]},
+            "voice_applied": {"credits": 10, "dept": ["MUPF"], "notes": "10 hrs applied voice incl. MUPF 4540"},
+            "voice_ensemble": ["MUPF 1170"],
+            "major_ensemble": {"credits": 8, "dept": ["MUPF"]},
+            "required_mutr": [
+                "MUTR 2410", "MUTR 2420", "MUTR 3210", "MUTR 3220",
+                "MUTR 3410", "MUTR 4500", "MUTR 4910",
+            ],
+            "required_thea": ["THEA 2110","THEA 2120","THEA 2210","THEA 2220","THEA 3110","THEA 3120"],
+            "dance_tap":    {"credits": 2, "choose_from": ["DANC 1120","DANC 2120","DANC 3120"]},
+            "dance_jazz":   {"credits": 2, "choose_from": ["DANC 1320","DANC 2320","DANC 3320"]},
+            "dance_ballet": {"credits": 2, "choose_from": ["DANC 1420","DANC 2420","DANC 3420"]},
+            "dance_improv": ["DANC 2110"],
         },
         "2025-26": {
             "name": "Musical Theatre (BMus)",
@@ -1780,14 +1813,16 @@ NURSING = {
     "rn_bsn": {
         "all_years": {
             "name": "RN-BSN (Completion Track)",
+            "total_credits": 30,
+            "nurs_core": {"credits": 30, "dept": ["NURS"], "notes": "30 hrs NURS completion courses"},
             "notes": "For licensed RNs completing BSN; accelerated online format",
         },
     },
     "accelerated_bsn": {
         "all_years": {
             "name": "Accelerated BSN",
-            "notes": "For students with prior bachelor's degree; GPA 2.75+ required",
-            "prerequisites": [
+            "total_credits": 60,
+            "required_prereqs": [
                 "BIOL 2410", "BIOL 2420", "PSYC 2000", "PSYC 2510",
                 "CHEM 1000", "BIOL 2230",
             ],
@@ -1967,6 +2002,7 @@ SOCIAL_WORK_CRIMINAL_JUSTICE = {
     "criminal_justice_online": {
         "all_years": {
             "name": "Criminal Justice Online (BA)",
+            "total_credits": 34,
             "required": [
                 "CRIM 2510", "CRIM 2520", "CRIM 3110", "CRIM 4900",
                 "SOCI 2010",  # or 2020
@@ -2222,6 +2258,7 @@ INTERDISCIPLINARY = {
     "honors_program": {
         "all_years": {
             "name": "Honors Program",
+            "total_credits": 0,
             "notes": "Not a standalone major — HNRS courses count toward LA requirements",
             "courses_count_toward": {
                 "F2": ["HNRS 2125"],
@@ -3061,13 +3098,13 @@ PROFESSIONAL_DEVELOPMENT = {
 # FSB MINORS (inlined from fsb_minors.py)
 # ─────────────────────────────────────────────
 FSB_MINORS = {
-    "sport_marketing_minor": {'2022-23': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2023-24': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2024-25': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2025-26': {'name': 'Sports Management Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['COMM 2130', 'COMM 2140', 'SPRL 3300']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}},
+    "sport_marketing_minor": {'2022-23': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_elective': {'credits': 9, 'choose_from': ['BSNS 3210','BSNS 3220','BSNS 3550','BSNS 4400','BSNS 4550','BSNS 4800']}, 'fsb_majors_track_legacy': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2023-24': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2024-25': {'name': 'Sport Marketing Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['BSNS 3210', 'BSNS 3220', 'BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'BSNS 4800']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}, '2025-26': {'name': 'Sports Management Minor', 'total_credits': 18, 'fsb_majors_track': {'required': ['BSNS 3130', 'BSNS 4360', 'BSNS 4560'], 'choose_6_from': ['COMM 2130', 'COMM 2140', 'SPRL 3300']}, 'non_fsb_track': {'required': ['BSNS 2810'], 'choose_12_from_sm_major': True, 'plus_3_from_core': True}}},
     "accounting_minor": {'2022-23': {'name': 'Accounting Minor', 'total_credits': 15, 'required': ['ACCT 2010', 'ACCT 2020'], 'choose_9_from': ['ACCT 3010', 'ACCT 3020', 'ACCT 3110', 'ACCT 3500', 'ACCT 4020', 'ACCT 4050', 'ACCT 4100']}, '2023-24': {'same_as': '2022-23', 'name': 'Accounting Minor', 'total_credits': 15}, '2024-25': {'same_as': '2022-23', 'name': 'Accounting Minor', 'total_credits': 15}, '2025-26': {'same_as': '2022-23', 'name': 'Accounting Minor', 'total_credits': 15}},
     "economics_minor": {'2022-23': {'name': 'Economics Minor', 'total_credits': 18, 'required': ['ECON 2010', 'ECON 2020', 'ECON 3020', 'ECON 3410'], 'choose_6_from': ['ECON 3110', 'ECON 3210', 'ECON 3850', 'ECON 4020', 'BSNS 4240', 'POSC 2200']}, '2023-24': {'same_as': '2022-23', 'name': 'Economics Minor', 'total_credits': 18}, '2024-25': {'same_as': '2022-23', 'name': 'Economics Minor', 'total_credits': 18}, '2025-26': {'same_as': '2022-23', 'name': 'Economics Minor', 'total_credits': 18}},
-    "entrepreneurship_minor": {'2022-23': {'name': 'Entrepreneurship Minor', 'fsb_total': 18, 'non_fsb_total': 15, 'core_required': ['BSNS 2810', 'BSNS 3850'], 'choose_from': ['BSNS 3100', 'BSNS 3240', 'BSNS 3510', 'BSNS 4050']}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
+    "entrepreneurship_minor": {'2022-23': {'name': 'Entrepreneurship Minor', 'total_credits': 18, 'fsb_total': 18, 'non_fsb_total': 15, 'core_required': ['BSNS 2810', 'BSNS 3850'], 'choose_from': ['BSNS 3100', 'BSNS 3240', 'BSNS 3510', 'BSNS 4050']}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
     "finance_minor": {'2022-23': {'name': 'Finance Minor', 'total_credits': 18, 'required': ['ACCT 2010', 'BSNS 2510', 'BSNS 3350', 'BSNS 4150', 'ECON 3410'], 'elective': {'credits': 3, 'choose_from': ['BSNS 3150', 'BSNS 4160', 'BSNS 4240', 'BSNS 4320']}}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
-    "global_business_minor": {'2022-23': {'name': 'Global Business Minor', 'fsb_total': 15, 'non_fsb_total': 18, 'required': ['BSNS 3120', 'BSNS 4120', 'BSNS 4250'], 'choose_from': ['BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'ECON 3850']}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
-    "management_minor": {'2022-23': {'name': 'Management Minor', 'fsb_total': 15, 'non_fsb_total': 18, 'required': ['BSNS 2810', 'BSNS 3230', 'BSNS 4010', 'BSNS 4480'], 'elective': {'credits': 3, 'choose_from': ['BSNS 3100', 'BSNS 3240', 'BSNS 3510', 'BSNS 4050']}}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
+    "global_business_minor": {'2022-23': {'name': 'Global Business Minor', 'total_credits': 15, 'fsb_total': 15, 'non_fsb_total': 18, 'required': ['BSNS 3120', 'BSNS 4120', 'BSNS 4250'], 'choose_from': ['BSNS 3550', 'BSNS 4400', 'BSNS 4550', 'ECON 3850']}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
+    "management_minor": {'2022-23': {'name': 'Management Minor', 'total_credits': 18, 'fsb_total': 15, 'non_fsb_total': 18, 'required': ['BSNS 2810', 'BSNS 3230', 'BSNS 4010', 'BSNS 4480'], 'elective': {'credits': 3, 'choose_from': ['BSNS 3100', 'BSNS 3240', 'BSNS 3510', 'BSNS 4050']}}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
     "marketing_minor": {'2022-23': {'name': 'Marketing Minor', 'total_credits': 18, 'required': ['BSNS 2710', 'BSNS 3210', 'BSNS 3220', 'BSNS 4110', 'BSNS 4330'], 'elective': {'credits': 3, 'choose_from': ['BSNS 3400', 'BSNS 3550', 'BSNS 4400', 'COMM 2200']}}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},
     "music_entertainment_business_minor": {'2022-23': {'name': 'Music & Entertainment Business Minor', 'total_credits': 18, 'required': ['BSNS 3320', 'BSNS 3330', 'BSNS 3360', 'MUBS 2010', 'MUBS 2020', 'MUBS 3100']}, '2023-24': None, '2024-25': None, '2025-26': None},
     "social_media_minor": {'2022-23': {'name': 'Social Media Minor', 'total_credits': 15, 'required': ['BSNS 3400', 'BSNS 4400', 'COMM 2200'], 'elective': {'credits': 6, 'choose_from': ['BSNS 3550', 'BSNS 4550', 'COMM 2240', 'COMM 3150']}}, '2023-24': {'same_as': '2022-23'}, '2024-25': {'same_as': '2022-23'}, '2025-26': {'same_as': '2022-23'}},

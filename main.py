@@ -144,7 +144,8 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
     Dynamically build major requirement rows from a program definition dict.
     Handles: list keys (required courses), dict keys with 'credits' (electives/choose blocks).
     """
-    from engines.sport_marketing import best as sm_best, norm as sm_norm
+    sm_best = sm_mod.best
+    sm_norm = sm_mod.norm
 
     def _find_course(code_list):
         normalized = [sm_norm(c.replace(' ', '_').replace('-', '_')) for c in code_list]
@@ -228,7 +229,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
 
             if num_needed > 1 and opts:
                 # Find up to num_needed distinct matching courses
-                from engines.sport_marketing import norm as sm_norm
+                sm_norm = sm_mod.norm
                 used_codes = set()
                 for slot in range(num_needed):
                     remaining_opts = [o for o in opts
@@ -319,7 +320,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                         course_size = 3
                         num_needed  = max(1, round(credits / course_size)) if not course else 1
                         if num_needed > 1 and opts:
-                            from engines.sport_marketing import norm as sm_norm
+                            sm_norm = sm_mod.norm
                             used = set()
                             for slot in range(num_needed):
                                 remaining = [o for o in opts
@@ -374,7 +375,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
         for row in rows:
             if row['id'] == area_norm:
                 # Override this row with the mapped course
-                from engines.sport_marketing import norm as sm_norm
+                sm_norm = sm_mod.norm
                 taken = next((x for x in raw_courses if x['code'] == sm_norm(taken_code)), None)
                 if taken:
                     row['course'] = taken
@@ -383,7 +384,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                 break
         if not matched:
             # No existing row for this area — add a new one
-            from engines.sport_marketing import norm as sm_norm
+            sm_norm = sm_mod.norm
             taken = next((x for x in raw_courses if x['code'] == sm_norm(taken_code)), None)
             if taken:
                 rows.append({
