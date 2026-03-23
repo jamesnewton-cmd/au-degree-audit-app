@@ -3010,3 +3010,18 @@ def get_non_fsb_requirements(program_key: str, year: str):
     if not prog:
         return None
     return _yr(prog, year)
+
+
+def program_exists_in_year(program_key: str, catalog_year: str) -> bool:
+    """Return True if a program exists for a given catalog year."""
+    req = get_non_fsb_requirements(program_key, catalog_year)
+    return req is not None
+
+
+def list_programs_by_year(catalog_year: str) -> list:
+    """Return list of all program keys available in a given catalog year."""
+    available = []
+    for key in ALL_NON_FSB_PROGRAMS:
+        if program_exists_in_year(key, catalog_year):
+            available.append(key)
+    return available
