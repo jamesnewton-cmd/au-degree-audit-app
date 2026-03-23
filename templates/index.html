@@ -529,6 +529,12 @@
           <div id="major1Tag"></div>
           <input type="hidden" name="major1" id="major1Val">
         </div>
+        <div class="field" id="conc1Section" style="display:none;">
+          <label>Concentration <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if required)</span></label>
+          <select name="concentration" id="conc1Select" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);">
+            <option value="">— No concentration selected —</option>
+          </select>
+        </div>
         <div class="field">
           <label>Second Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
@@ -539,6 +545,12 @@
           <div id="major2Tag"></div>
           <input type="hidden" name="major2" id="major2Val">
         </div>
+        <div class="field" id="conc2Section" style="display:none;">
+          <label>Concentration — Second Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if required)</span></label>
+          <select name="concentration2" id="conc2Select" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);">
+            <option value="">— No concentration selected —</option>
+          </select>
+        </div>
         <div class="field">
           <label>Third Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
@@ -548,6 +560,12 @@
           </div>
           <div id="major3Tag"></div>
           <input type="hidden" name="major3" id="major3Val">
+        </div>
+        <div class="field" id="conc3Section" style="display:none;">
+          <label>Concentration — Third Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if required)</span></label>
+          <select name="concentration3" id="conc3Select" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);">
+            <option value="">— No concentration selected —</option>
+          </select>
         </div>
 
         <!-- MINORS -->
@@ -644,7 +662,7 @@
         <div id="exceptionsSection">
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field">
-          <textarea name="exceptions" id="exceptionsInput" rows="4" placeholder="One per line. Examples:&#10;SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;SUB: EDUC-2100 = PSYC-2510&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;MAP: PSYC-2510 = W5&#10;WAIVE: PEHS-1000&#10;STATUS: BSNS-4560 = current" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
+          <textarea name="exceptions" id="exceptionsInput" rows="8" placeholder="One per line. Examples:&#10;SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;SUB: EDUC-2100 = PSYC-2510&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;MAP: PSYC-2510 = W5&#10;WAIVE: PEHS-1000&#10;STATUS: BSNS-4560 = current" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
           <div style="font-size:0.73rem;color:var(--muted);margin-top:0.35rem;line-height:1.5;">
             <strong>SUB: REQUIRED = TAKEN</strong> &nbsp;·&nbsp; substitute one course for a requirement<br>
             <strong>WAIVE: COURSE</strong> &nbsp;·&nbsp; mark a requirement as advisor-waived<br>
@@ -653,13 +671,8 @@
         </div>
         </div><!-- end exceptionsSection -->
 
-        <!-- ADVISOR NOTES -->
-        <div id="advisorNotesSection">
-        <div class="section-label">Advisor Notes <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — prints on PDF)</span></div>
-        <div class="field">
-          <textarea name="advisor_notes" id="advisorNotesInput" rows="3" placeholder="Enter any notes for the advisor that will appear on the audit PDF…" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
-        </div>
-        </div><!-- end advisorNotesSection -->
+        <!-- ADVISOR NOTES removed per request — will be added back later -->
+        <input type="hidden" name="advisor_notes" id="advisorNotesInput" value="">
 
         <!-- REGISTRAR NOTE TO ADVISOR -->
         <div id="registrarNoteSection">
@@ -819,6 +832,43 @@ makeAC('minor1Input','minor1Drop','minor1Tag','minor1Val', () => minorPrograms);
 makeAC('minor2Input','minor2Drop','minor2Tag','minor2Val', () => minorPrograms);
 makeAC('minor3Input','minor3Drop','minor3Tag','minor3Val', () => minorPrograms);
 
+// ── CONCENTRATION DROPDOWNS ───────────────────────────────────────────────────
+// Concentrations by program key — populated from non_fsb_programs.py
+const CONCENTRATIONS = {
+  'exercise_science': ['Clinical Exercise Physiology', 'Pre-Health', 'Sports Performance'],
+  'public_relations': ['Standard PR', 'Event Planning and Management', 'Social Media'],
+  'music_business':   ['Audio Forensics', 'Entrepreneurship', 'Record Production', 'Songwriting'],
+  'dance':            ['Dance Performance', 'Dance Business', 'Dance Education', 'Dance Wellness'],
+  'music_ba':         ['Voice Performance', 'Instrumental', 'Theory and History'],
+};
+
+function updateConcDropdown(majorValId, concSectionId, concSelectId) {
+  const majorKey = document.getElementById(majorValId).value;
+  const section  = document.getElementById(concSectionId);
+  const select   = document.getElementById(concSelectId);
+  const options  = CONCENTRATIONS[majorKey];
+  if (options && options.length) {
+    select.innerHTML = '<option value="">— No concentration selected —</option>' +
+      options.map(o => `<option value="${o}">${o}</option>`).join('');
+    section.style.display = '';
+  } else {
+    select.innerHTML = '<option value="">— No concentration selected —</option>';
+    section.style.display = 'none';
+  }
+}
+
+// Hook into major autocomplete selection
+['major1Val','major2Val','major3Val'].forEach((valId, i) => {
+  const observer = new MutationObserver(() => {
+    updateConcDropdown(valId, `conc${i+1}Section`, `conc${i+1}Select`);
+  });
+  observer.observe(document.getElementById(valId), { attributes: true, attributeFilter: ['value'] });
+  // Also trigger on input change
+  document.getElementById(valId).addEventListener('change', () => {
+    updateConcDropdown(valId, `conc${i+1}Section`, `conc${i+1}Select`);
+  });
+});
+
 // ── Status ────────────────────────────────────────────────────────────────────
 function updateStatus(data) {
   const el = document.getElementById('statusVal');
@@ -954,6 +1004,9 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     form.set('minor1', document.getElementById('minor1Val').value || '');
     form.set('minor2', document.getElementById('minor2Val').value || '');
     form.set('minor3', document.getElementById('minor3Val').value || '');
+    form.set('concentration',  document.getElementById('conc1Select').value || '');
+    form.set('concentration2', document.getElementById('conc2Select').value || '');
+    form.set('concentration3', document.getElementById('conc3Select').value || '');
     // Registrar note is screen-only — store it to show after generation
     const registrarNote = document.getElementById('registrarNoteInput').value.trim();
     const endpoint = '/generate';
@@ -993,6 +1046,8 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
       ['major1Val','major2Val','major3Val','minor1Val','minor2Val','minor3Val'].forEach(id => document.getElementById(id).value = '');
+    ['conc1Select','conc2Select','conc3Select'].forEach(id => { document.getElementById(id).value = ''; });
+    ['conc1Section','conc2Section','conc3Section'].forEach(id => { document.getElementById(id).style.display = 'none'; });
       ['major1Tag','major2Tag','major3Tag','minor1Tag','minor2Tag','minor3Tag'].forEach(id => document.getElementById(id).innerHTML = '');
       document.getElementById('fileName').style.display = 'none';
     } catch(err) { toast('Network error. Please try again.', true); }

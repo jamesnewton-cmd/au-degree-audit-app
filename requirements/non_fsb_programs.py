@@ -636,8 +636,15 @@ COMMUNICATION = {
                 "COMM 4000", "COMM 4800",
             ],
             "concentrations": {
-                "Event Planning": ["COMM 3860", "COMM 4340"],
-                "Social Media": ["BSNS 3400", "BSNS 4400"],
+                "Standard PR": {},
+                "Event Planning and Management": {
+                    "required": ["COMM 3860", "COMM 4340"],
+                    "elective": {"credits": 3, "choose_from": ["BSNS 3150","COMM 3230","ENGL 3140"]},
+                },
+                "Social Media": {
+                    "required": ["BSNS 4400"],
+                    "elective": {"credits": 3, "choose_from": ["BSNS 3550","COMM 3230","CPSC 1200","ENGL 3140"]},
+                },
             },
         },
     },
@@ -1603,6 +1610,32 @@ KINESIOLOGY = {
             "chem_choose": {
                 "credits": 4,
                 "choose_from": ["CHEM 1000","CHEM 2110"],
+            },
+            "concentrations": {
+                "Clinical Exercise Physiology": {
+                    "required": ["EXSC 4050", "EXSC 4160"],
+                    "elective": {
+                        "credits": 10,
+                        "choose_from": ["BIOL 2010","EXSC 4010","EXSC 2440",
+                                        "PSYC 3450","EXSC 2550","EXSC 3300"],
+                    },
+                },
+                "Pre-Health": {
+                    "elective": {
+                        "credits": 14,
+                        "choose_from": ["BIOL 2010","BIOL 2210","BIOL 2220",
+                                        "CHEM 2120","MATH 2120","PHYS 2140",
+                                        "PHYS 2150","PSYC 2510","PSYC 3120",
+                                        "PSYC 3450","SOCI 2010"],
+                    },
+                },
+                "Sports Performance": {
+                    "elective": {
+                        "credits": 14,
+                        "dept": ["EXSC","PEHS","PETE","ATRG"],
+                        "notes": "14 hrs from approved sports performance courses",
+                    },
+                },
             },
             "required_science": [
                 "BIOL 2410", "BIOL 2420",   # A&P I and II

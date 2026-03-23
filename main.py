@@ -131,7 +131,7 @@ def _status_of_c(c):
     if c['status'] == 'scheduled': return 'Scheduled'
     return 'Not Satisfied'
 
-def _build_major_rows(prog_reqs, raw_courses, sm_mod):
+def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
     """
     Dynamically build major requirement rows from a program definition dict.
     Handles: list keys (required courses), dict keys with 'credits' (electives/choose blocks).
@@ -262,6 +262,45 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod):
                 "note":   "",
             })
 
+    # Apply concentration courses if one was selected
+    if concentration and isinstance(prog_reqs.get('concentrations'), dict):
+        conc_data = prog_reqs['concentrations'].get(concentration)
+        if conc_data and isinstance(conc_data, dict):
+            conc_reqs = {k: v for k, v in conc_data.items() if k not in SKIP_KEYS}
+            conc_rows = []
+            # List-type keys = required courses
+            for ckey, cval in conc_reqs.items():
+                if isinstance(cval, list):
+                    for course_id in cval:
+                        if not isinstance(course_id, str): continue
+                        c = _find_course([course_id])
+                        conc_rows.append({
+                            "id":     _norm_code(course_id),
+                            "label":  f"[{concentration}] {_course_label(course_id, c)}",
+                            "status": _status_of_c(c),
+                            "course": c, "dcr": 3, "note": "",
+                        })
+                elif isinstance(cval, dict) and 'credits' in cval:
+                    credits   = _safe_credits(cval.get('credits', 3))
+                    dept      = cval.get('dept', '')
+                    course    = cval.get('course', '')
+                    choose_from = cval.get('choose_from', [])
+                    label = f"[{concentration}] {cval.get('notes', ckey.replace('_',' ').title())} ({credits} cr)"
+                    if not course and not dept and not choose_from: continue
+                    opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
+                    c = _find_course(opts) if opts else None
+                    if c is None and dept:
+                        dept_list = [dept] if isinstance(dept, str) else dept
+                        dept_prefixes = tuple(d.upper() for d in dept_list)
+                        c = next((x for x in raw_courses
+                                  if x['raw'].upper().startswith(dept_prefixes)
+                                  and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
+                    conc_rows.append({
+                        "id": _norm_code(f"conc_{ckey}"), "label": label,
+                        "status": _status_of_c(c), "course": c, "dcr": credits, "note": "",
+                    })
+            rows.extend(conc_rows)
+
     # Apply MAP exceptions to major rows
     # MAP entries targeting a specific course code inject a satisfied clone
     for c in raw_courses:
@@ -359,9 +398,12 @@ async def generate(
     major:         str = Form(...),
     catalog_year:  str = Form(...),
     transcript:    UploadFile = File(...),
-    exceptions:    str = Form(""),
-    advisor_notes: str = Form(""),
-    minor1:        str = Form(""),
+    exceptions:      str = Form(""),
+    advisor_notes:   str = Form(""),
+    concentration:   str = Form(""),
+    concentration2:  str = Form(""),
+    concentration3:  str = Form(""),
+    minor1:          str = Form(""),
     minor2:        str = Form(""),
     minor3:        str = Form(""),
     major2:        str = Form(""),
@@ -443,7 +485,8 @@ async def generate(
             major_label = prog_name
 
             # Build major requirement rows
-            mr_rows = _build_major_rows(prog_reqs, raw_courses, sm_mod)
+            mr_rows = _build_major_rows(prog_reqs, raw_courses, sm_mod,
+                                           concentration=concentration)
 
             # Build minor rows if provided
             minor_rows = None
@@ -575,9 +618,12 @@ async def generate_non_fsb_legacy(
     major:         str = Form(...),
     catalog_year:  str = Form(...),
     transcript:    UploadFile = File(...),
-    exceptions:    str = Form(""),
-    advisor_notes: str = Form(""),
-    minor1:        str = Form(""),
+    exceptions:      str = Form(""),
+    advisor_notes:   str = Form(""),
+    concentration:   str = Form(""),
+    concentration2:  str = Form(""),
+    concentration3:  str = Form(""),
+    minor1:          str = Form(""),
     minor2:        str = Form(""),
     minor3:        str = Form(""),
     major2:        str = Form(""),
