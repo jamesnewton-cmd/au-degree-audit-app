@@ -897,6 +897,15 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         'sociology':               [],  # No W8 course — biology/sociology exceptions
         'biology_ba':              [],  # No W8 course
         'biology_bs':              [],  # No W8 course
+        # Engineering majors — W8 via ENGR senior design / systems
+        'electrical_engineering_bs':  ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'mechanical_engineering_bs':  ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'computer_engineering_bs':    ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'civil_engineering_bs':       ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'mechatronics_engineering_bs':['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'engineering_physics_bs':     ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'engineering_management':     ['ENGR_2090','ENGR_4950','ENGR_4960'],
+        'humanitarian_engineering_complementary': ['ENGR_2090','ENGR_4950','ENGR_4960'],
     }
     # Default W8 for unlisted majors — broad experiential list
     W8_DEFAULT = ['LART_4500','EDUC_4010','CMIN_4810','EXSC_4800','HIST_4800',

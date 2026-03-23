@@ -663,10 +663,15 @@
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field">
           <textarea name="exceptions" id="exceptionsInput" rows="8" placeholder="One per line. Examples:&#10;SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;SUB: EDUC-2100 = PSYC-2510&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;MAP: PSYC-2510 = W5&#10;WAIVE: PEHS-1000&#10;STATUS: BSNS-4560 = current" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
-          <div style="font-size:0.73rem;color:var(--muted);margin-top:0.35rem;line-height:1.5;">
-            <strong>SUB: REQUIRED = TAKEN</strong> &nbsp;·&nbsp; substitute one course for a requirement<br>
-            <strong>WAIVE: COURSE</strong> &nbsp;·&nbsp; mark a requirement as advisor-waived<br>
-            <strong>STATUS: COURSE = current / scheduled / satisfied</strong> &nbsp;·&nbsp; override enrollment status
+          <div style="font-size:0.73rem;color:var(--muted);margin-top:0.35rem;line-height:1.7;">
+            <strong>SUB: REQUIRED-COURSE = TAKEN-COURSE</strong> &nbsp;·&nbsp; substitute one course for a requirement slot<br>
+            <span style="padding-left:1rem;color:#888;">Example: <code>SUB: EDUC-2100 = PSYC-2510</code> &nbsp;— student took PSYC-2510, counts for EDUC-2100</span><br>
+            <strong>MAP: TAKEN-COURSE = AREA</strong> &nbsp;·&nbsp; map a course toward an LA area (F1–F7, W1–W8, WI, SI)<br>
+            <span style="padding-left:1rem;color:#888;">Example: <code>MAP: PSYC-2510 = W5</code> &nbsp;— count PSYC-2510 toward W5 Social &amp; Behavioral</span><br>
+            <strong>WAIVE: COURSE</strong> &nbsp;·&nbsp; mark a requirement as advisor-waived (0 credits)<br>
+            <span style="padding-left:1rem;color:#888;">Example: <code>WAIVE: COMM-1000</code> &nbsp;— waive COMM-1000 requirement</span><br>
+            <strong>STATUS: COURSE = current / scheduled / satisfied</strong> &nbsp;·&nbsp; override a course's enrollment status<br>
+            <span style="padding-left:1rem;color:#888;">Example: <code>STATUS: BSNS-4560 = current</code> &nbsp;— mark BSNS-4560 as in-progress</span>
           </div>
         </div>
         </div><!-- end exceptionsSection -->
