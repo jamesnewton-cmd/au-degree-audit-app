@@ -113,6 +113,14 @@ def load_engine(engine_name: str):
     return mod
 
 # ── SHARED HELPERS ────────────────────────────────────────────────────────────
+SKIP_KEYS = {
+    'name','total_credits','delivery','notes','note','teaching_fields','department',
+    'concentration_note','special_rules','same_as','optional_cma','concentrations',
+    'tracks','total_major_credits','lead_courses_credits','la_credits','elective_credits',
+    'min_level','choose_one','accreditation','prerequisites','dummy_2022_23',
+    'dummy_elective','required_old','dept_dummy','upper_div_psyc',
+}
+
 def _norm_code(c):
     return c.strip().upper().replace(' ', '_').replace('-', '_')
 
@@ -266,39 +274,88 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
     if concentration and isinstance(prog_reqs.get('concentrations'), dict):
         conc_data = prog_reqs['concentrations'].get(concentration)
         if conc_data and isinstance(conc_data, dict):
-            conc_reqs = {k: v for k, v in conc_data.items() if k not in SKIP_KEYS}
             conc_rows = []
-            # List-type keys = required courses
-            for ckey, cval in conc_reqs.items():
+
+            def _process_conc_block(ckey, cval, prefix=""):
+                """Recursively process a concentration block into audit rows."""
+                label_prefix = f"[{concentration}]" if not prefix else f"[{concentration} — {prefix}]"
                 if isinstance(cval, list):
                     for course_id in cval:
                         if not isinstance(course_id, str): continue
                         c = _find_course([course_id])
                         conc_rows.append({
-                            "id":     _norm_code(course_id),
-                            "label":  f"[{concentration}] {_course_label(course_id, c)}",
+                            "id":     _norm_code(f"conc_{course_id}"),
+                            "label":  f"{label_prefix} {_course_label(course_id, c)}",
                             "status": _status_of_c(c),
                             "course": c, "dcr": 3, "note": "",
                         })
-                elif isinstance(cval, dict) and 'credits' in cval:
-                    credits   = _safe_credits(cval.get('credits', 3))
-                    dept      = cval.get('dept', '')
-                    course    = cval.get('course', '')
-                    choose_from = cval.get('choose_from', [])
-                    label = f"[{concentration}] {cval.get('notes', ckey.replace('_',' ').title())} ({credits} cr)"
-                    if not course and not dept and not choose_from: continue
-                    opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
-                    c = _find_course(opts) if opts else None
-                    if c is None and dept:
-                        dept_list = [dept] if isinstance(dept, str) else dept
-                        dept_prefixes = tuple(d.upper() for d in dept_list)
-                        c = next((x for x in raw_courses
-                                  if x['raw'].upper().startswith(dept_prefixes)
-                                  and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
-                    conc_rows.append({
-                        "id": _norm_code(f"conc_{ckey}"), "label": label,
-                        "status": _status_of_c(c), "course": c, "dcr": credits, "note": "",
-                    })
+                elif isinstance(cval, dict):
+                    # Has 'required' list and/or elective sub-blocks
+                    if 'required' in cval:
+                        for course_id in cval['required']:
+                            if not isinstance(course_id, str): continue
+                            c = _find_course([course_id])
+                            conc_rows.append({
+                                "id":     _norm_code(f"conc_{course_id}"),
+                                "label":  f"{label_prefix} {_course_label(course_id, c)}",
+                                "status": _status_of_c(c),
+                                "course": c, "dcr": 3, "note": "",
+                            })
+                    # Process elective/choose sub-blocks
+                    for sub_key, sub_val in cval.items():
+                        if sub_key in ('required', 'notes', 'name'): continue
+                        if not isinstance(sub_val, dict) or 'credits' not in sub_val: continue
+                        credits     = _safe_credits(sub_val.get('credits', 3))
+                        dept        = sub_val.get('dept', '')
+                        course      = sub_val.get('course', '')
+                        choose_from = sub_val.get('choose_from', [])
+                        note_txt    = sub_val.get('notes', sub_key.replace('_',' ').title())
+                        label       = f"{label_prefix} {note_txt} ({credits} cr)"
+                        if not course and not dept and not choose_from: continue
+                        opts = [course] if course else (choose_from if isinstance(choose_from, list) else [])
+                        # For multi-course blocks find multiple matches
+                        course_size = 3
+                        num_needed  = max(1, round(credits / course_size)) if not course else 1
+                        if num_needed > 1 and opts:
+                            from engines.sport_marketing import norm as sm_norm
+                            used = set()
+                            for slot in range(num_needed):
+                                remaining = [o for o in opts
+                                             if sm_norm(o.replace(' ','_').replace('-','_')) not in used]
+                                c = _find_course(remaining) if remaining else None
+                                if c is None and dept:
+                                    dept_list = [dept] if isinstance(dept, str) else dept
+                                    dept_pfx  = tuple(d.upper() for d in dept_list)
+                                    seen_codes = used
+                                    c = next((x for x in raw_courses
+                                              if x['raw'].upper().startswith(dept_pfx)
+                                              and x['code'] not in seen_codes
+                                              and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
+                                if c: used.add(c['code'])
+                                slot_lbl = f"{label} ({slot+1} of {num_needed})" if num_needed > 1 else label
+                                conc_rows.append({
+                                    "id": _norm_code(f"conc_{sub_key}_{slot+1}"),
+                                    "label": slot_lbl, "status": _status_of_c(c),
+                                    "course": c, "dcr": course_size, "note": "",
+                                })
+                        else:
+                            c = _find_course(opts) if opts else None
+                            if c is None and dept:
+                                dept_list = [dept] if isinstance(dept, str) else dept
+                                dept_pfx  = tuple(d.upper() for d in dept_list)
+                                c = next((x for x in raw_courses
+                                          if x['raw'].upper().startswith(dept_pfx)
+                                          and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
+                            conc_rows.append({
+                                "id": _norm_code(f"conc_{sub_key}"), "label": label,
+                                "status": _status_of_c(c), "course": c,
+                                "dcr": credits, "note": "",
+                            })
+
+            for ckey, cval in conc_data.items():
+                if ckey in SKIP_KEYS: continue
+                _process_conc_block(ckey, cval)
+
             rows.extend(conc_rows)
 
     # Apply MAP exceptions to major rows
