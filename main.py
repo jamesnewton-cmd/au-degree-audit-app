@@ -260,6 +260,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                     "dcr":    credits,
                     "note":   "",
                 })
+                if c: used_required_codes.add(c['code'])
         elif isinstance(edef, (int, float)):
             rows.append({
                 "id":     _norm_code(ekey),
@@ -326,10 +327,10 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                                 if c is None and dept:
                                     dept_list = [dept] if isinstance(dept, str) else dept
                                     dept_pfx  = tuple(d.upper() for d in dept_list)
-                                    seen_codes = used
                                     c = next((x for x in raw_courses
                                               if x['raw'].upper().startswith(dept_pfx)
-                                              and x['code'] not in seen_codes
+                                              and x['code'] not in used
+                                              and x['code'] not in used_required_codes
                                               and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
                                 if c: used.add(c['code'])
                                 slot_lbl = f"{label} ({slot+1} of {num_needed})" if num_needed > 1 else label
@@ -345,6 +346,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                                 dept_pfx  = tuple(d.upper() for d in dept_list)
                                 c = next((x for x in raw_courses
                                           if x['raw'].upper().startswith(dept_pfx)
+                                          and x['code'] not in used_required_codes
                                           and _status_of_c(x) in ('Satisfied','Current','Scheduled')), None)
                             conc_rows.append({
                                 "id": _norm_code(f"conc_{sub_key}"), "label": label,
