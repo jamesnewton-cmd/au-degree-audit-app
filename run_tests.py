@@ -360,8 +360,60 @@ for tc in TEST_CASES:
         check(False, f"{name}: EXCEPTION", str(e))
         traceback.print_exc()
 
-# ── [6] LA requirements ───────────────────────────────────────────────────────
-print("\n[6] LA REQUIREMENTS — framework and course lists")
+# ── [6] FSB ENGINE TESTS ─────────────────────────────────────────────────────
+print("\n[6] FSB ENGINES — all 10 majors run without crashing")
+import os
+
+FSB_TESTS = [
+    ('sport_marketing',               'engines/sport_marketing.py',  'sport_marketing',   True),
+    ('management',                    'engines/management.py',        'management',        False),
+    ('marketing',                     'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('accounting',                    'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('finance',                       'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('business_analytics',            'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('engineering_management',        'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('global_business',               'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('music_entertainment_business',  'engines/fsb_engine.py',        'fsb_engine',        True),
+    ('business_integrative_leadership','engines/fsb_engine.py',       'fsb_engine',        True),
+]
+
+_fsb_courses = sm.parse_csv('/mnt/user-data/uploads/Joaquin_B__.csv')
+for major_key, engine_path, engine_name, has_minor in FSB_TESTS:
+    full_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), engine_path)
+    try:
+        eng = load(full_path, engine_name)
+        if hasattr(eng, 'MAJOR_KEY'):
+            eng.MAJOR_KEY    = major_key
+            eng.CATALOG_YEAR = '2022-23'
+        res = eng.audit(_fsb_courses, minor_key=None) if has_minor else eng.audit(_fsb_courses)
+        check('mr' in res and 'la' in res,
+              f"FSB {major_key}: audit() returns mr and la rows")
+    except Exception as e:
+        check(False, f"FSB {major_key}: audit() runs without error", str(e))
+
+# ── [7] ALL NON-FSB PROGRAMS PRODUCE ROWS ────────────────────────────────────
+print("\n[7] ALL NON-FSB PROGRAMS — scanner produces rows for all 151 programs")
+_all_crashes = []
+_zero_rows   = []
+for prog in sorted(nfp.ALL_NON_FSB_PROGRAMS):
+    try:
+        req = nfp.get_non_fsb_requirements(prog, '2022-23')
+        if not req or not isinstance(req, dict): continue
+        rows = helpers._build_major_rows(req, _fsb_courses, sm)
+        if len(rows) == 0 and prog != 'honors_program':
+            _zero_rows.append(prog)
+    except Exception as e:
+        _all_crashes.append(f"{prog}: {e}")
+
+check(len(_all_crashes) == 0,
+      f"All {len(nfp.ALL_NON_FSB_PROGRAMS)} programs scan without crashing",
+      "; ".join(_all_crashes[:3]) if _all_crashes else "")
+check(len(_zero_rows) == 0,
+      "No programs produce zero rows (except honors_program)",
+      f"zero-row: {_zero_rows}" if _zero_rows else "")
+
+# ── [8] LA requirements ───────────────────────────────────────────────────────
+print("\n[8] LA REQUIREMENTS — framework and course lists")
 try:
     la = load('/home/claude/liberal_arts_requirements.py', 'la')
     req_la = la.get_la_requirements('2022-23')
