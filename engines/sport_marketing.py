@@ -1088,7 +1088,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=''):
         wi_c2 = None
         for opt in wi_opts:
             candidate = cm.get(norm(opt.replace(' ','_')))
-            if candidate and done(candidate):
+            if candidate and (done(candidate) or ip(candidate)):
                 if candidate['raw'].upper().replace('-','_') != wi_c1_code:
                     wi_c2 = candidate
                     break
