@@ -1225,17 +1225,42 @@ SOCIAL_SCIENCES = {
     },
     "criminal_justice_major": {
         "2022-23": {
-            "name": "Criminal Justice (online)",
+            "name": "Criminal Justice",
             "total_credits": 120,
             "required": [
                 "CRIM 2510", "CRIM 2520", "CRIM 3110", "CRIM 4900",
-                "SOCI 2010",
                 "SOCI 3700",
+            ],
+            "choose_one": [
+                {"name": "Sociology", "choose_from": ["SOCI 2010", "SOCI 2020"]},
             ],
             "elective_groups": [
                 {"name": "CRIM internship", "credits": 4,
                  "choose_from": ["CRIM 4810"],
-                 "notes": "4 hrs from CRIM 4810 (credits may be earned from professional experience)"},
+                 "notes": "4 hrs from CRIM 4810"},
+                {"name": "CRIM electives", "credits": 9, "dept": "CRIM",
+                 "notes": "9 hrs from additional CRIM courses"},
+            ],
+        },
+        "2023-24": {"same_as": "2022-23"},
+    },
+    "criminal_justice_major_online": {
+        "2022-23": {
+            "name": "Criminal Justice (Online)",
+            "total_credits": 120,
+            "required": [
+                "CRIM 2510", "CRIM 2520", "CRIM 3110", "CRIM 4900",
+                "SOCI 3700",
+            ],
+            "choose_one": [
+                {"name": "Sociology", "choose_from": ["SOCI 2010", "SOCI 2020"]},
+            ],
+            "elective_groups": [
+                {"name": "CRIM internship", "credits": 4,
+                 "choose_from": ["CRIM 4810"],
+                 "notes": "4 hrs from CRIM 4810 (professional experience counts)"},
+                {"name": "CRIM electives", "credits": 9, "dept": "CRIM",
+                 "notes": "9 hrs from additional CRIM courses"},
             ],
         },
         "2023-24": {"same_as": "2022-23"},
@@ -2351,7 +2376,7 @@ SPORT_REC = {
 PUBLIC_HEALTH = {
     "public_health_ba": {
         "2022-23": {
-            "name": "Public Health (BA/BS)",
+            "name": "Public Health",
             "total_credits": 48,
             "required": [
                 "PSYC 2000",
@@ -2865,34 +2890,8 @@ MISC_MINORS = {
         },
         "2023-24": {"same_as": "2022-23"},
     },
-    "christian_ministries_complementary2": {
-        "2022-23": {
-            "name": "Christian Ministries Complementary Major",
-            "total_credits": 28,
-            "required": [
-                "BIBL 2000",
-                "RLGN 2130", "RLGN 2150", "RLGN 3040", "RLGN 3060",
-                "CMIN 2000",
-            ],
-            "elective_groups": [
-                {"name": "Ministry practice", "credits": 1,
-                 "choose_from": ["CMIN 2810", "CMIN 4810", "CMIN 3340"]},
-                {"name": "Ministry elective", "credits": 3,
-                 "choose_from": ["CMIN 3050", "CMIN 3080", "CMIN 3910"]},
-            ],
-        },
-        "2023-24": {"same_as": "2022-23"},
-    },
-    "psychology_complementary2": {
-        "all_years": {
-            "name": "Psychology Complementary Major",
-            "total_credits": 26,
-            "required": ["PSYC 2000", "PSYC 2010", "PSYC 4900"],
-            "elective_groups": [
-                {"name": "Psychology electives", "credits": 12, "dept": "PSYC", "min_level": 3000},
-            ],
-        },
-    },
+
+
     "spanish_complementary": {
         "2022-23": {
             "name": "Spanish Complementary Major",
