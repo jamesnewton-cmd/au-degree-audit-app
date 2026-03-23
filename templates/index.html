@@ -1043,6 +1043,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       }
       toast('✓ Audit generated!' + emailMsg + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
       loadStatus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
       ['major1Val','major2Val','major3Val','minor1Val','minor2Val','minor3Val'].forEach(id => document.getElementById(id).value = '');
