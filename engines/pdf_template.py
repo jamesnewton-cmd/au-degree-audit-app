@@ -135,9 +135,9 @@ def xfer(c):   return c['grade'].upper() == 'T'
 def drop(c):   return c['grade'].upper() in ('DRP', 'W') or c['status'] == 'dropped'
 
 def status_para(s):
-    if s == 'Satisfied':  return Paragraph('✓ Satisfied', P['sat'])
-    if s == 'Current':    return Paragraph('⟳ Current',   P['cur'])
-    if s == 'Scheduled':  return Paragraph('◷ Scheduled', P['cur'])
+    if s == 'Satisfied':  return Paragraph('✓ Satisfied',          P['sat'])
+    if s == 'Current':    return Paragraph('✓ Satisfied (pending)', P['sat'])
+    if s == 'Scheduled':  return Paragraph('✓ Satisfied (pending)', P['sat'])
     return Paragraph('✗ Not Satisfied', P['nos'])
 
 def grade_disp(c):
@@ -779,17 +779,31 @@ def build(res, student_name, major_label, out, exceptions=''):
                              f"Must complete {float(short)} additional credit hours before graduation"))
 
     wi_items = []
-    wi_sat = sum(1 for r in res['la'] if r['area'] == 'WI' and r['status'] == 'Satisfied')
-    wi_cur_rows = [r for r in res['la'] if r['area'] == 'WI' and r['status'] in ('Current', 'Scheduled')]
-    if wi_sat < 2:
-        wi_courses = [r for r in res['la'] if r['area'] == 'WI' and r['status'] == 'Satisfied']
-        completed_str = ', '.join(f"{r['course']['raw']} {r['course']['name']}" for r in wi_courses if r.get('course')) if wi_courses else 'none'
-        cur_str = ''
-        if wi_cur_rows:
-            cur_parts = [f"{r['course']['raw']} {r['course']['name']}" for r in wi_cur_rows if r.get('course')]
-            cur_str = f" | Currently enrolled: {', '.join(cur_parts)}" if cur_parts else ''
-        wi_items.append((f"Writing Intensive: {wi_sat} of 2 satisfied ({completed_str}){cur_str}",
-                         "Still need 2 WI-designated courses (at least 1 upper-division 3000+) — see advisor"))
+    wi_rows = [r for r in res['la'] if r['area'] == 'WI']
+    wi_sat = sum(1 for r in wi_rows if r['status'] == 'Satisfied')
+    wi_pend = sum(1 for r in wi_rows if r['status'] in ('Current', 'Scheduled'))
+    if wi_sat + wi_pend < 2:
+        # Show each WI slot separately
+        for i, r in enumerate(wi_rows, 1):
+            slot_label = f"WI Writing Intensive #{i}"
+            if r.get('course'):
+                course_str = f"{r['course']['raw']} {r['course']['name']}"
+                if r['status'] == 'Satisfied':
+                    action = f"✓ Satisfied — {course_str}"
+                elif r['status'] in ('Current', 'Scheduled'):
+                    action = f"⟳ In Progress — {course_str} — complete with passing grade"
+                else:
+                    action = "Enroll in a WI-designated course (at least 1 must be upper-division 3000+)"
+            else:
+                action = "Enroll in a WI-designated course (at least 1 must be upper-division 3000+)"
+            wi_items.append((slot_label, action))
+    elif wi_sat < 2 and wi_pend > 0:
+        # Has enough combined but not all fully satisfied yet
+        for i, r in enumerate(wi_rows, 1):
+            if r['status'] in ('Current', 'Scheduled') and r.get('course'):
+                course_str = f"{r['course']['raw']} {r['course']['name']}"
+                wi_items.append((f"WI Writing Intensive #{i}",
+                                 f"⟳ In Progress — {course_str} — complete with passing grade"))
 
     ap_section("Liberal Arts — Current",   la_cur,       GOLD_BAR)
     ap_section("Liberal Arts — Scheduled", la_sched,     GOLD_BAR)
