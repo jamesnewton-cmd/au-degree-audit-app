@@ -439,7 +439,6 @@ COMPUTER_SCIENCE = {
         },
         "2024-25": {"same_as": "2023-24"},
         "2025-26": {"same_as": "2023-24"},
-        "2022-23": None,
     },
     "data_science_minor": {
         "all_years": {
@@ -807,7 +806,6 @@ ENGLISH = {
                 "MUBS 2010", "MUBS 2020",
                 "COMM 2140",
             ],
-            "applied_music": {"credits": 4},
             "elective": {"credits": 9, "dept": ["PSYC","SOCI","CMIN","EDUC"]},
         },
     },
@@ -1657,29 +1655,6 @@ KINESIOLOGY = {
                     },
                 },
             },
-            "required_science": [
-                "BIOL 2410", "BIOL 2420",   # A&P I and II
-                "BIOL 2230",                 # Microbiology
-                "CHEM 1000",
-                "PSYC 2000",
-            ],
-            "required_exsc": [
-                "EXSC 2140", "EXSC 2200", "EXSC 3100", "EXSC 3200",
-                "EXSC 4110", "EXSC 4120", "EXSC 4910",
-            ],
-            "concentrations": {
-                "Clinical Exercise Physiology": [
-                    "EXSC 4050", "EXSC 4160",
-                ],
-                "Pre-Health": {
-                    "credits": 12,
-                    "choose_from": [
-                        "BIOL 2010", "BIOL 2210", "BIOL 2220", "CHEM 2120",
-                        "MATH 2120", "PSYC 2510",
-                    ],
-                },
-                "Sports Performance": ["ATRG 1530", "EXSC 4010"],
-            },
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {
@@ -1987,7 +1962,6 @@ SOCIAL_WORK_CRIMINAL_JUSTICE = {
             "capstone": {"credits": 3, "course": "CRIM 4900"},
             "soci_choose": {"credits": 3, "choose_from": ["SOCI 2010","SOCI 2020"]},
             "crim_elective": {"credits": 9, "dept": "CRIM"},
-            "internship": {"credits": 4, "course": "CRIM 4810"},
         },
     },
     "criminal_justice_online": {
@@ -3266,7 +3240,6 @@ ALL_NON_FSB_PROGRAMS = {
     "sociology_minor":               SOCIAL_WORK_EXTRA["sociology_minor"],
     # ── Teacher Education extras ──────────────
     "special_ed_minor":              TEACHER_EDUCATION_EXTRA["special_ed_minor"],
-    "education_minor":               TEACHER_EDUCATION_EXTRA["education_minor"],
     "teaching_minor":                TEACHER_EDUCATION_EXTRA["teaching_minor"],
     # FSB Minors
     "accounting_minor":              FSB_MINORS["accounting_minor"],
