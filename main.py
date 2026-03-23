@@ -172,6 +172,7 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
     }
 
     rows = []
+    used_required_codes = set()  # track codes already used by required rows
 
     # Pass 1: list-type keys → individual required course rows
     for req_key, req_val in prog_reqs.items():
