@@ -198,7 +198,7 @@ def build(res, student_name, major_label, out, exceptions=''):
         [Paragraph('Cumulative GPA', P['met_lbl']),      Paragraph(str(gpa_o), P['met_val'])],
         [Paragraph(f'Major GPA ({major_label[:6]})', P['met_lbl']), Paragraph(str(gpa_m), P['met_val'])],
     ]
-    mw = [CW * 0.20, CW * 0.11]
+    mw = [CW * 0.5, CW * 0.5]
     met_t = Table(met_rows, colWidths=mw)
     met_sty = [
         ('BACKGROUND', (0,0), (-1,0), MAROON),
@@ -248,7 +248,7 @@ def build(res, student_name, major_label, out, exceptions=''):
         sty = P['elig_yes'] if b else P['elig_no']
         return Paragraph('YES' if b else 'NO', sty)
 
-    ew = [CW * 0.45, CW * 0.13]
+    ew = [CW * 0.5, CW * 0.5]
     grad_lbl = ('Eligible to Graduate — Pending passage of current courses' if elig_pend
                 else 'Eligible to Graduate (all requirements met)')
     walk_lbl = ('Eligible to Walk — Pending passage of current courses' if elig_pend
@@ -278,13 +278,9 @@ def build(res, student_name, major_label, out, exceptions=''):
         elig_sty.append(('BACKGROUND', (0,i), (-1,i), ROW_ODD if i % 2 == 1 else ROW_EVEN))
     elig_t.setStyle(TableStyle(elig_sty))
 
-    side = Table([[met_t, Spacer(0.15*inch,1), elig_t]], colWidths=[sum(mw), 0.15*inch, sum(ew)])
-    side.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('LEFTPADDING', (0,0), (-1,-1), 0), ('RIGHTPADDING', (0,0), (-1,-1), 0),
-        ('TOPPADDING', (0,0), (-1,-1), 0), ('BOTTOMPADDING', (0,0), (-1,-1), 0),
-    ]))
-    story.append(side)
+    story.append(met_t)
+    story.append(Spacer(1, 8))
+    story.append(elig_t)
     story.append(Spacer(1, 10))
 
     # Exceptions note
