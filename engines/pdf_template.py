@@ -185,7 +185,7 @@ def build(res, student_name, major_label, out, exceptions=''):
     story.append(title_t)
     story.append(Spacer(1, 8))
 
-        story.append(Spacer(1, 10))
+    story.append(Spacer(1, 10))
     # Exceptions note
     if exceptions and exceptions.strip():
         exc_lines = [l.strip() for l in exceptions.strip().splitlines() if l.strip() and not l.strip().startswith('#')]
