@@ -196,7 +196,7 @@ def build(res, student_name, major_label, out, exceptions=''):
         [Paragraph('GPA Hours', P['met_lbl']),           Paragraph(str(float(res['gpa_hrs'])), P['met_val'])],
         [Paragraph('Quality Points', P['met_lbl']),      Paragraph(str(res['qp']), P['met_val'])],
         [Paragraph('Cumulative GPA', P['met_lbl']),      Paragraph(str(gpa_o), P['met_val'])],
-        [Paragraph(f'Major GPA ({major_label[:6]})', P['met_lbl']), Paragraph(str(gpa_m), P['met_val'])],
+        [Paragraph(f'Major GPA ({major_label})', P['met_lbl']), Paragraph(str(gpa_m), P['met_val'])],
     ]
     mw = [CW * 0.5, CW * 0.5]
     met_t = Table(met_rows, colWidths=mw)
