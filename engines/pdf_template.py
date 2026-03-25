@@ -196,7 +196,7 @@ def build(res, student_name, major_label, out, exceptions=''):
         [Paragraph('GPA Hours', P['met_lbl']),           Paragraph(str(float(res['gpa_hrs'])), P['met_val'])],
         [Paragraph('Quality Points', P['met_lbl']),      Paragraph(str(res['qp']), P['met_val'])],
         [Paragraph('Cumulative GPA', P['met_lbl']),      Paragraph(str(gpa_o), P['met_val'])],
-        [Paragraph(f'Major GPA ({major_label})', P['met_lbl']), Paragraph(str(gpa_m), P['met_val'])],
+        Paragraph(f'Major GPA ({major_label})', P['met_lbl']), Paragraph(str(gpa_m), P['met_val'])],
     ]
     mw = [CW * 0.5, CW * 0.5]
     met_t = Table(met_rows, colWidths=mw)
@@ -282,7 +282,7 @@ def build(res, student_name, major_label, out, exceptions=''):
              colWidths=[CW*0.48, 0.04*inch, CW*0.48])
 
 side.setStyle(TableStyle([
-    ('VALIGN', (0,0), (-1,-1), 'TOP')
+         ('VALIGN', (0,0), (-1,-1), 'TOP')
 ]))
 
 story.append(side)
