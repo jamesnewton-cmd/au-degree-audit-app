@@ -200,7 +200,6 @@ class AuditEngine:
     c.code.replace("-", "_").replace(" ", "_").strip()
     for c in completed_courses if c.passing
 }
-        }
 
         for key, req in la_reqs.items():
             courses = req.get("courses", [])
