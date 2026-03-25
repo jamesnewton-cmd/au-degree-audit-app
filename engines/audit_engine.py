@@ -192,7 +192,41 @@ class AuditEngine:
             major=self.major_reqs.get("name", self.major_key) if self.major_reqs else self.major_key,
         )
 
+        # ── Liberal Arts evaluation ──────────────────────────────────────────
+        la_results = []
+        la_reqs = get_la_requirements(self.catalog_year)
+
         completed_codes = {c.code for c in completed_courses if c.passing}
+
+        for key, req in la_reqs.items():
+            courses = req.get("courses", [])
+
+            # Flatten nested structures like W4
+            if isinstance(courses, dict):
+                flat_courses = []
+                for v in courses.values():
+                    if isinstance(v, list):
+                        flat_courses.extend(v)
+                    elif isinstance(v, dict):
+                        for sub in v.values():
+                            if isinstance(sub, list):
+                                flat_courses.extend(sub)
+                courses = flat_courses
+
+            matched = [c for c in courses if c in completed_codes] if isinstance(courses, list) else []
+            status = "Satisfied" if matched else "Not Satisfied"
+
+            la_results.append(
+                RequirementResult(
+                    label=req.get("label", key),
+                    status=status,
+                    satisfying_courses=matched,
+                )
+            )
+
+        result.liberal_arts = la_results         
+            
+
 
         # Compute GPAs
         result.overall_gpa = self._compute_gpa(completed_courses)
