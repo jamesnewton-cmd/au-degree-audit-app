@@ -195,7 +195,11 @@ class AuditEngine:
         # ── Liberal Arts evaluation ──────────────────────────────────────────
         la_results = []
         la_reqs = get_la_requirements(self.catalog_year)
-        completed_codes = {c.code.replace("-", "_") for c in completed_courses if c.passing}
+
+        completed_codes = {
+            c.code.split()[0].replace("-", "_")
+            for c in completed_courses if c.passing
+        }
 
         for key, req in la_reqs.items():
             courses = req.get("courses", [])
