@@ -196,7 +196,7 @@ class AuditEngine:
         la_results = []
         la_reqs = get_la_requirements(self.catalog_year)
 
-        completed_codes = {c.code for c in completed_courses if c.passing}
+        completed_codes = {c.code.replace("-", "_") for c in completed_courses if c.passing}
 
         for key, req in la_reqs.items():
             courses = req.get("courses", [])
@@ -213,7 +213,7 @@ class AuditEngine:
                                 flat_courses.extend(sub)
                 courses = flat_courses
 
-            matched = [c for c in courses if c in completed_codes] if isinstance(courses, list) else []
+           matched = [c for c in courses if c in completed_codes] if isinstance(courses, list) else []
             status = "Satisfied" if matched else "Not Satisfied"
 
             la_results.append(
