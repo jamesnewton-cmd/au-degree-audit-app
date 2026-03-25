@@ -303,8 +303,25 @@ class AuditEngine:
 
         # F7 — Personal Wellness
         f7_courses = LA_OLD_FRAMEWORK["F7"]["courses"][year]
-        f7 = self._check_any_course("F7 Personal Wellness", f7_courses, completed_codes)
 
+        f7_found = None
+        for c in courses:
+            c_code = c.code.replace("-", "_").replace(" ", "_").strip()
+            if c_code in f7_courses and c.passing:
+                f7_found = c
+                break
+
+        f7 = RequirementResult(
+            label="F7 Personal Wellness",
+            status="Satisfied" if f7_found else "Not Satisfied",
+            satisfying_course=f7_found.code if f7_found else None,
+            satisfying_courses=[f7_found.code] if f7_found else [],
+            credits_earned=f7_found.credits if f7_found else 0.0,
+            credits_required=2.0,
+            notes="" if f7_found else f"Options: {', '.join(f7_courses)}",
+        )
+        results.append(f7)
+        
         # W1 — Christian Ways of Knowing
         w1_courses = LA_OLD_FRAMEWORK["W1"]["courses"][year]
         w1 = self._check_any_course("W1 Christian Ways of Knowing", w1_courses, completed_codes)
