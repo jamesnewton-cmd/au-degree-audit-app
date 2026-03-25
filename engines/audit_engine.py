@@ -302,8 +302,8 @@ class AuditEngine:
         results.append(f6)
 
         # F7 — Personal Wellness
-        f7 = self._check_single_course("F7 Personal Wellness", "PEHS 1000", completed_codes)
-        results.append(f7)
+        f7_courses = LA_OLD_FRAMEWORK["F7"]["courses"][year]
+        f7 = self._check_any_course("F7 Personal Wellness", f7_courses, completed_codes)
 
         # W1 — Christian Ways of Knowing
         w1_courses = LA_OLD_FRAMEWORK["W1"]["courses"][year]
