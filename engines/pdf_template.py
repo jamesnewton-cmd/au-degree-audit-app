@@ -278,10 +278,15 @@ def build(res, student_name, major_label, out, exceptions=''):
         elig_sty.append(('BACKGROUND', (0,i), (-1,i), ROW_ODD if i % 2 == 1 else ROW_EVEN))
     elig_t.setStyle(TableStyle(elig_sty))
 
-    story.append(met_t)
-    story.append(Spacer(1, 8))
-    story.append(elig_t)
-    story.append(Spacer(1, 10))
+    side = Table([[met_t, Spacer(0.2*inch,1), elig_t]],
+             colWidths=[CW*0.48, 0.04*inch, CW*0.48])
+
+side.setStyle(TableStyle([
+    ('VALIGN', (0,0), (-1,-1), 'TOP')
+]))
+
+story.append(side)
+story.append(Spacer(1, 10))
 
     # Exceptions note
     if exceptions and exceptions.strip():
