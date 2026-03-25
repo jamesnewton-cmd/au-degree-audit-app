@@ -761,25 +761,25 @@ class AuditEngine:
         )
 
     def _check_any_course(self, label: str, options: list, completed: set) -> RequirementResult:
-    norm_completed = {
-        c.replace("-", "_").replace(" ", "_").strip()
-        for c in completed
-    }
+        norm_completed = {
+            c.replace("-", "_").replace(" ", "_").strip()
+            for c in completed
+        }
 
-    found = [
-        c for c in options
-        if c.replace("-", "_").replace(" ", "_").strip() in norm_completed
-    ]
+        found = [
+            c for c in options
+            if c.replace("-", "_").replace(" ", "_").strip() in norm_completed
+        ]
 
-    status = "Satisfied" if found else "Not Satisfied"
+        status = "Satisfied" if found else "Not Satisfied"
 
-    return RequirementResult(
-        label=label,
-        status=status,
-        satisfying_course=found[0] if found else None,
-        satisfying_courses=found,
-        notes=f"Options: {', '.join(options)}" if not found else "",
-    )
+        return RequirementResult(
+            label=label,
+            status=status,
+            satisfying_course=found[0] if found else None,
+            satisfying_courses=found,
+            notes=f"Options: {', '.join(options)}" if not found else "",
+        )
 
 
 # ─────────────────────────────────────────────
