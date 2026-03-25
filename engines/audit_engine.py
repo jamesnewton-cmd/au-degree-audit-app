@@ -197,8 +197,9 @@ class AuditEngine:
         la_reqs = get_la_requirements(self.catalog_year)
 
         completed_codes = {
-            c.code.split()[0].replace("-", "_")
-            for c in completed_courses if c.passing
+    c.code.replace("-", "_").replace(" ", "_").strip()
+    for c in completed_courses if c.passing
+}
         }
 
         for key, req in la_reqs.items():
