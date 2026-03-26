@@ -177,7 +177,7 @@ class AuditEngine:
     # PUBLIC ENTRY POINT
     # ─────────────────────────────────────────────
 
-    def run_audit(
+       def run_audit(
         self,
         completed_courses: list[CourseRecord],
         student_name: str = "",
@@ -192,52 +192,10 @@ class AuditEngine:
             major=self.major_reqs.get("name", self.major_key) if self.major_reqs else self.major_key,
         )
 
-        # ── Liberal Arts evaluation ──────────────────────────────────────────
-        la_results = []
-        la_reqs = get_la_requirements(self.catalog_year)
-
-        c_code = {
+        completed_codes = {
             self._norm(c.code)
             for c in completed_courses if c.passing
         }
-
-        return RequirementResult(
-            label=label,
-            status=status,
-            satisfying_course=found[0] if found else None,
-            satisfying_courses=found,
-            notes=f"Options: {', '.join(options)}" if not found else "",
-        )
-
-        for key, req in la_reqs.items():
-            courses = req.get("courses", [])
-
-            # Flatten nested structures like W4
-            if isinstance(courses, dict):
-                flat_courses = []
-                for v in courses.values():
-                    if isinstance(v, list):
-                        flat_courses.extend(v)
-                    elif isinstance(v, dict):
-                        for sub in v.values():
-                            if isinstance(sub, list):
-                                flat_courses.extend(sub)
-                courses = flat_courses
-
-            matched = [c for c in courses if c in c_code = ] if isinstance(courses, list) else []
-            status = "Satisfied" if matched else "Not Satisfied"
-
-            la_results.append(
-                RequirementResult(
-                    label=req.get("label", key),
-                    status=status,
-                    satisfying_courses=matched,
-                )
-            )
-
-        result.liberal_arts = la_results         
-            
-
 
         # Compute GPAs
         result.overall_gpa = self._compute_gpa(completed_courses)
@@ -773,11 +731,11 @@ class AuditEngine:
             f"See Student Action Plan for details."
         )
 
-    # ─────────────────────────────────────────────
+       # ─────────────────────────────────────────────
     # HELPERS
     # ─────────────────────────────────────────────
 
-        def _norm(self, code: str) -> str:
+    def _norm(self, code: str) -> str:
         return code.split()[0].upper().replace("-", "_").replace(" ", "_").strip()
 
     def _check_single_course(self, label: str, code: str, completed: set) -> RequirementResult:
@@ -789,7 +747,7 @@ class AuditEngine:
             satisfying_course=norm_code if status == "Satisfied" else None,
         )
 
-        def _check_any_course(self, label: str, options: list, completed: set) -> RequirementResult:
+    def _check_any_course(self, label: str, options: list, completed: set) -> RequirementResult:
         found = [c for c in options if self._norm(c) in completed]
         status = "Satisfied" if found else "Not Satisfied"
 
@@ -801,20 +759,7 @@ class AuditEngine:
             notes=f"Options: {', '.join(options)}" if not found else "",
         )
 
-        found = [
-            c for c in options
-            if c.replace("-", "_").replace(" ", "_").strip() in norm_completed
-        ]
-
-        status = "Satisfied" if found else "Not Satisfied"
-
-        return RequirementResult(
-            label=label,
-            status=status,
-            satisfying_course=found[0] if found else None,
-            satisfying_courses=found,
-            notes=f"Options: {', '.join(options)}" if not found else "",
-        )
+      
 
 
 # ─────────────────────────────────────────────
