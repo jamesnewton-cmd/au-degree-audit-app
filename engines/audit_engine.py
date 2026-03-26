@@ -177,7 +177,7 @@ class AuditEngine:
     # PUBLIC ENTRY POINT
     # ─────────────────────────────────────────────
 
-       def run_audit(
+    def run_audit(
         self,
         completed_courses: list[CourseRecord],
         student_name: str = "",
@@ -365,12 +365,15 @@ class AuditEngine:
 
         return results
 
-    def _check_f3(self, completed_codes, courses, year) -> RequirementResult:
+        def _check_f3(self, completed_codes, courses, year) -> RequirementResult:
         """F3: ENGL 1100/1110 + ENGL 1120 + 2 WI courses."""
-        engl_base = ("ENGL 1100" in completed_codes or "ENGL 1110" in completed_codes)
-        engl_1120 = "ENGL 1120" in completed_codes
+        engl_base = (
+            self._norm("ENGL 1100") in completed_codes or
+            self._norm("ENGL 1110") in completed_codes
+        )
+        engl_1120 = self._norm("ENGL 1120") in completed_codes
         wi_courses = LA_OLD_FRAMEWORK["F3"]["wi_courses"][year]
-        wi_found = [c for c in wi_courses if c in completed_codes and c != "ENGL 1120"]
+        wi_found = [c for c in wi_courses if self._norm(c) in completed_codes and self._norm(c) != self._norm("ENGL 1120")]
         wi_satisfied = len(wi_found) >= 2
 
         all_good = engl_base and engl_1120 and wi_satisfied
@@ -389,10 +392,9 @@ class AuditEngine:
             satisfying_courses=wi_found,
             notes="; ".join(missing_parts) if missing_parts else "",
         )
-
-    def _check_f4(self, completed_codes, year) -> RequirementResult:
+       def _check_f4(self, completed_codes, year) -> RequirementResult:
         """F4: COMM 1000 + 1 SI course."""
-        comm1000 = "COMM 1000" in completed_codes
+        comm1000 = self._norm("COMM 1000") in completed_codes
         si_courses = LA_OLD_FRAMEWORK["F4"]["si_courses"][year]
         si_found = [c for c in si_courses if c in completed_codes]
 
@@ -415,7 +417,7 @@ class AuditEngine:
         """W4: Integrative AE course OR AP + AX combo."""
         w4_data = LA_OLD_FRAMEWORK["W4"]["courses"][year]
         integrative = w4_data.get("integrative", [])
-        found_integrative = [c for c in integrative if c in completed_codes]
+        found_integrative = [c for c in integrative if self._norm(c) in completed_codes]
 
         # For simplicity, check integrative courses; AP/AX logic requires course flags
         # Future enhancement: parse AP/AX course attributes from transcript data
