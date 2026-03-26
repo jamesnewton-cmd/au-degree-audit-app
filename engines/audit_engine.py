@@ -268,7 +268,7 @@ class AuditEngine:
         results.append(f6)
 
         # F7 — Personal Wellness
-        f7_courses = LA_OLD_FRAMEWORK["F7"]["courses"][year]
+        f7_courses = [self._norm(c) for c in LA_OLD_FRAMEWORK["F7"]["courses"][year]]
 
         f7_found = None
         for c in courses:
