@@ -196,10 +196,18 @@ class AuditEngine:
         la_results = []
         la_reqs = get_la_requirements(self.catalog_year)
 
-        completed_codes = {
-    c.code.replace("-", "_").replace(" ", "_").strip()
-    for c in completed_courses if c.passing
-}
+        c_code = {
+            self._norm(c.code)
+            for c in completed_courses if c.passing
+        }
+
+        return RequirementResult(
+            label=label,
+            status=status,
+            satisfying_course=found[0] if found else None,
+            satisfying_courses=found,
+            notes=f"Options: {', '.join(options)}" if not found else "",
+        )
 
         for key, req in la_reqs.items():
             courses = req.get("courses", [])
@@ -216,7 +224,7 @@ class AuditEngine:
                                 flat_courses.extend(sub)
                 courses = flat_courses
 
-            matched = [c for c in courses if c in completed_codes] if isinstance(courses, list) else []
+            matched = [c for c in courses if c in c_code = ] if isinstance(courses, list) else []
             status = "Satisfied" if matched else "Not Satisfied"
 
             la_results.append(
@@ -306,7 +314,7 @@ class AuditEngine:
 
         f7_found = None
         for c in courses:
-            c_code = c.code.replace("-", "_").replace(" ", "_").strip()
+            c_code = self._norm(c.code)
             if c_code in f7_courses and c.passing:
                 f7_found = c
                 break
@@ -769,19 +777,29 @@ class AuditEngine:
     # HELPERS
     # ─────────────────────────────────────────────
 
+        def _norm(self, code: str) -> str:
+        return code.split()[0].upper().replace("-", "_").replace(" ", "_").strip()
+
     def _check_single_course(self, label: str, code: str, completed: set) -> RequirementResult:
-        status = "Satisfied" if code in completed else "Not Satisfied"
+        norm_code = self._norm(code)
+        status = "Satisfied" if norm_code in completed else "Not Satisfied"
         return RequirementResult(
             label=label,
             status=status,
-            satisfying_course=code if status == "Satisfied" else None,
+            satisfying_course=norm_code if status == "Satisfied" else None,
         )
 
-    def _check_any_course(self, label: str, options: list, completed: set) -> RequirementResult:
-        norm_completed = {
-            c.replace("-", "_").replace(" ", "_").strip()
-            for c in completed
-        }
+        def _check_any_course(self, label: str, options: list, completed: set) -> RequirementResult:
+        found = [c for c in options if self._norm(c) in completed]
+        status = "Satisfied" if found else "Not Satisfied"
+
+        return RequirementResult(
+            label=label,
+            status=status,
+            satisfying_course=found[0] if found else None,
+            satisfying_courses=found,
+            notes=f"Options: {', '.join(options)}" if not found else "",
+        )
 
         found = [
             c for c in options
