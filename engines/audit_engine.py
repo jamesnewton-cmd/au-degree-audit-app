@@ -365,7 +365,7 @@ class AuditEngine:
 
         return results
 
-        def _check_f3(self, completed_codes, courses, year) -> RequirementResult:
+    def _check_f3(self, completed_codes, courses, year) -> RequirementResult:
         """F3: ENGL 1100/1110 + ENGL 1120 + 2 WI courses."""
         engl_base = (
             self._norm("ENGL 1100") in completed_codes or
@@ -392,7 +392,7 @@ class AuditEngine:
             satisfying_courses=wi_found,
             notes="; ".join(missing_parts) if missing_parts else "",
         )
-       def _check_f4(self, completed_codes, year) -> RequirementResult:
+    def _check_f4(self, completed_codes, year) -> RequirementResult:
         """F4: COMM 1000 + 1 SI course."""
         comm1000 = self._norm("COMM 1000") in completed_codes
         si_courses = LA_OLD_FRAMEWORK["F4"]["si_courses"][year]
