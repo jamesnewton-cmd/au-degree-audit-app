@@ -518,7 +518,7 @@ async def generate(
             major_label = FSB_MAJORS[major]["label"]
             res["major_section_label"] = f"{major_label} Major — {catalog_year}"
             res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
-            res["eligible_to_walk"] = mod.eligible_to_walk(res)
+            res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
             print("eligible_to_walk:", res["eligible_to_walk"])
         else:
             # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
