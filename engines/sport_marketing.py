@@ -350,7 +350,19 @@ def status_of(c):
     if ip(c):     return 'Current'
     if sched(c):  return 'Scheduled'
     return 'Not Satisfied'
+def is_completed_passing(c):
+    status = (c.get("status") or "").strip().lower()
+    grade = (c.get("grade") or "").strip().upper()
+    return status == "grade posted" and grade not in {"F", "NC", "W", "DRP", ""}
 
+def is_in_progress_or_scheduled(c):
+    status = (c.get("status") or "").strip().lower()
+    return status in {"current", "scheduled", "in_progress"}
+
+def is_walk_satisfied(c):
+    if c is None:
+        return False
+    return is_completed_passing(c) or is_in_progress_or_scheduled(c)
 def status_para(s):
     if s == 'Satisfied':     return Paragraph(s, P['sat'])
     if s == 'Current':       return Paragraph(s, P['cur'])
