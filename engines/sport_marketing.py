@@ -426,7 +426,7 @@ LA_ROWS = [
     ('F3','ENGL-1110 Rhetoric and Composition',
      'F3 ENGL-1110 Writing I — ENGL-1110 (or ENGL-1100/HNRS-2110)', ['ENGL_1110','ENGL_1100','HNRS_2110'], 3),
     ('F3','ENGL-1120 Rhetoric and Research',
-     'F3 ENGL-1120 Writing II — ENGL-1120 (grade of C- or better required)', ['ENGL_1120'], 3),
+     'F3 ENGL-1120 Writing II — ENGL-1120 (or HNRS-2110)', ['ENGL_1120','HNRS_2110'], 3),
     ('F4','COMM-1000 Intro to Speech Communication',
      'F4 COMM-1000 Speaking & Listening (COMM-1000 + 1 SI)', ['COMM_1000'], 3),
     ('F5','MATH-1300 Finite Mathematics',
