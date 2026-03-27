@@ -1,4 +1,5 @@
 """
+print("MAJOR_KEY:", MAJOR_KEY)
 Anderson University — Generic FSB Major Engine
 Handles: Marketing, Accounting, Finance, Business Analytics,
          Engineering Management, Global Business,
