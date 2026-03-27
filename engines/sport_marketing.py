@@ -1180,12 +1180,22 @@ if __name__ == '__main__':
 
 def eligible_to_walk(res):
     # --- LA ---
-    la_ok = True
-    for row in res.get("la", []):
-        status = (row.get("status") or "").lower()
-        if status not in {"satisfied", "current"}:
-            la_ok = False
-            break
+la_ok = True
+for row in res.get("la", []):
+    status = (row.get("status") or "").lower()
+
+    # allow satisfied, current, scheduled
+    if status in {"satisfied", "current", "scheduled"}:
+        continue
+
+    # if missing BUT has a recommendation (means planned path)
+    if status == "not satisfied":
+        action = (row.get("note") or "").lower()
+        if "enroll" in action or "advisor" in action:
+            continue
+
+    la_ok = False
+    break
 
     # --- Major / Program ---
     program_rows = []
