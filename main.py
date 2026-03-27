@@ -484,53 +484,51 @@ async def generate(
         tmp_in.write(csv_bytes)
         tmp_csv = tmp_in.name
 
-    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
-    tmp_pdf   = tempfile.mktemp(suffix=".pdf")
+safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
+tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
-    try:
-        sm_mod = load_engine("sport_marketing")
-        raw_courses = sm_mod.parse_csv(tmp_csv)
+try:
+    sm_mod = load_engine("sport_marketing")
+    raw_courses = sm_mod.parse_csv(tmp_csv)
 
-        if exceptions.strip():
-            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
+    if exceptions.strip():
+        raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-        is_fsb = major in FSB_MAJORS
+    is_fsb = major in FSB_MAJORS
 
-        if is_fsb:
-            engine_name = FSB_MAJORS[major]["engine"]
-            mod = load_engine(engine_name)
+    if is_fsb:
+        engine_name = FSB_MAJORS[major]["engine"]
+        mod = load_engine(engine_name)
 
-            print("major:", major)
-            print("engine_name:", engine_name)
-            print("mod:", mod.__name__)
+        print("major:", major)
+        print("engine_name:", engine_name)
+        print("mod:", mod.__name__)
 
-            if hasattr(mod, "MAJOR_KEY"):
-                mod.MAJOR_KEY = major
-                mod.CATALOG_YEAR = catalog_year
+        if hasattr(mod, "MAJOR_KEY"):
+            mod.MAJOR_KEY = major
+            mod.CATALOG_YEAR = catalog_year
 
-            try:
-                res = mod.audit(raw_courses, minor_key=minor1 or None)
-            except TypeError:
-                res = mod.audit(raw_courses)
+        try:
+            res = mod.audit(raw_courses, minor_key=minor1 or None)
+        except TypeError:
+            res = mod.audit(raw_courses)
 
-            res["catalog_year"] = catalog_year
-            res["advisor_notes"] = advisor_notes
-            major_label = FSB_MAJORS[major]["label"]
+        res["catalog_year"] = catalog_year
+        res["advisor_notes"] = advisor_notes
+        major_label = FSB_MAJORS[major]["label"]
 
-        else:
-            res = sm_mod.audit(raw_courses)
-            res["catalog_year"] = catalog_year
-            res["advisor_notes"] = advisor_notes
-            major_label = major
+    else:
+        res = sm_mod.audit(raw_courses)
+        res["catalog_year"] = catalog_year
+        res["advisor_notes"] = advisor_notes
+        major_label = major
 
-    except Exception as e:
-        raise e
+    for extra_minor_key in [minor2, minor3]:
+        if extra_minor_key:
+            res.setdefault("extra_minor_keys", []).append(extra_minor_key)
 
-
-
-            for extra_minor_key in [minor2, minor3]:
-                if extra_minor_key:
-                    res.setdefault('extra_minor_keys', []).append(extra_minor_key)
+except Exception as e:
+    raise e
 
         else:
             # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
