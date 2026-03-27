@@ -602,12 +602,11 @@ async def generate(
                         pass
 
                 elif extra_key in ALL_NON_FSB_PROGRAMS:
-                
+                    try:
                         extra_reqs = get_non_fsb_requirements(extra_key, catalog_year) or {}
                         extra_name = extra_reqs.get(
                             "name", extra_key.replace("_", " ").title()
                         )
-                                    try:
                         extra_rows = _build_major_rows(extra_reqs, raw_courses, sm_mod)
                         if extra_rows:
                             additional_major_sections.append((extra_name, extra_rows))
@@ -639,7 +638,7 @@ async def generate(
                 "courses": raw_courses,
                 "minor_rows": minor_rows,
                 "minor_key": minor1 or None,
-                "major_section_label": f"{major_label} — {catalog_year}",
+                "major_section_label": f"{major_label} Major — {catalog_year}",
                 "major_subsections": [(f"{major_label} Required Courses", mr_rows)],
                 "notes_row_text": "",
                 "elec_opts": [],
