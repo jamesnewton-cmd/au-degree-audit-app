@@ -484,66 +484,64 @@ async def generate(
         tmp_in.write(csv_bytes)
         tmp_csv = tmp_in.name
 
-safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
-tmp_pdf = tempfile.mktemp(suffix=".pdf")
+    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
+    tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
-try:
-    sm_mod = load_engine("sport_marketing")
-    raw_courses = sm_mod.parse_csv(tmp_csv)
+    try:
+        sm_mod = load_engine("sport_marketing")
+        raw_courses = sm_mod.parse_csv(tmp_csv)
 
-    if exceptions.strip():
-        raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
+        if exceptions.strip():
+            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-    is_fsb = major in FSB_MAJORS
+        is_fsb = major in FSB_MAJORS
 
-    if is_fsb:
-        engine_name = FSB_MAJORS[major]["engine"]
-        mod = load_engine(engine_name)
+        if is_fsb:
+            engine_name = FSB_MAJORS[major]["engine"]
+            mod = load_engine(engine_name)
 
-        print("major:", major)
-        print("engine_name:", engine_name)
-        print("mod:", mod.__name__)
+            print("major:", major)
+            print("engine_name:", engine_name)
+            print("mod:", mod.__name__)
 
-        if hasattr(mod, "MAJOR_KEY"):
-            mod.MAJOR_KEY = major
-            mod.CATALOG_YEAR = catalog_year
+            if hasattr(mod, "MAJOR_KEY"):
+                mod.MAJOR_KEY = major
+                mod.CATALOG_YEAR = catalog_year
 
-        try:
-            res = mod.audit(raw_courses, minor_key=minor1 or None)
-        except TypeError:
-            res = mod.audit(raw_courses)
+            try:
+                res = mod.audit(raw_courses, minor_key=minor1 or None)
+            except TypeError:
+                res = mod.audit(raw_courses)
 
-        res["catalog_year"] = catalog_year
-        res["advisor_notes"] = advisor_notes
-        major_label = FSB_MAJORS[major]["label"]
-
-    else:
-        res = sm_mod.audit(raw_courses)
-        res["catalog_year"] = catalog_year
-        res["advisor_notes"] = advisor_notes
-        major_label = major
-
-    for extra_minor_key in [minor2, minor3]:
-        if extra_minor_key:
-            res.setdefault("extra_minor_keys", []).append(extra_minor_key)
-
-except Exception as e:
-    raise e
+            res["catalog_year"] = catalog_year
+            res["advisor_notes"] = advisor_notes
+            major_label = FSB_MAJORS[major]["label"]
 
         else:
             # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
-            from requirements.non_fsb_programs import get_non_fsb_requirements, ALL_NON_FSB_PROGRAMS
+            from requirements.non_fsb_programs import (
+                get_non_fsb_requirements,
+                ALL_NON_FSB_PROGRAMS,
+            )
 
             if major not in ALL_NON_FSB_PROGRAMS:
                 raise HTTPException(400, f"Unknown major: {major}")
 
             prog_reqs = get_non_fsb_requirements(major, catalog_year) or {}
-            prog_name = prog_reqs.get("name", major.replace("_"," ").title()) if isinstance(prog_reqs, dict) else major.replace("_"," ").title()
+            prog_name = (
+                prog_reqs.get("name", major.replace("_", " ").title())
+                if isinstance(prog_reqs, dict)
+                else major.replace("_", " ").title()
+            )
             major_label = prog_name
 
             # Build major requirement rows
-            mr_rows = _build_major_rows(prog_reqs, raw_courses, sm_mod,
-                                           concentration=concentration)
+            mr_rows = _build_major_rows(
+                prog_reqs,
+                raw_courses,
+                sm_mod,
+                concentration=concentration,
+            )
 
             # Build minor rows if provided
             minor_rows = None
@@ -553,89 +551,110 @@ except Exception as e:
                     minor_rows = _build_major_rows(minor_reqs, raw_courses, sm_mod)
 
             # Major codes set for GPA calculation
-            _skip_gpa = {'name','total_credits','delivery','notes','teaching_fields',
-                         'department','same_as','concentrations','tracks','accreditation',
-                         'total_major_credits','la_credits','elective_credits','min_level'}
+            _skip_gpa = {
+                "name", "total_credits", "delivery", "notes", "teaching_fields",
+                "department", "same_as", "concentrations", "tracks", "accreditation",
+                "total_major_credits", "la_credits", "elective_credits", "min_level"
+            }
             major_codes_set = set()
             for _k, _v in prog_reqs.items():
-                if _k in _skip_gpa: continue
+                if _k in _skip_gpa:
+                    continue
                 if isinstance(_v, list):
                     for _cid in _v:
-                        if isinstance(_cid, str) and 'xxx' not in _cid.lower():
+                        if isinstance(_cid, str) and "xxx" not in _cid.lower():
                             major_codes_set.add(_norm_code(_cid))
 
-            gpa_o, gpa_m, gpa_hrs, earned, ip_hrs, qp, proj = _compute_gpa(raw_courses, major_codes_set)
+            gpa_o, gpa_m, gpa_hrs, earned, ip_hrs, qp, proj = _compute_gpa(
+                raw_courses, major_codes_set
+            )
 
             # LA rows
-            la_rows = sm_mod.build_la_rows_for_non_fsb(raw_courses, catalog_year, major_key=major)
+            la_rows = sm_mod.build_la_rows_for_non_fsb(
+                raw_courses, catalog_year, major_key=major
+            )
 
             # Additional non-FSB majors
             additional_major_sections = []
             for extra_key in [major2, major3]:
-                if not extra_key: continue
+                if not extra_key:
+                    continue
+
                 # Could be FSB or non-FSB
                 if extra_key in FSB_MAJORS:
                     try:
                         extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
-                        if hasattr(extra_mod, 'MAJOR_KEY'):
-                            extra_mod.MAJOR_KEY    = extra_key
+                        if hasattr(extra_mod, "MAJOR_KEY"):
+                            extra_mod.MAJOR_KEY = extra_key
                             extra_mod.CATALOG_YEAR = catalog_year
-                        extra_res  = extra_mod.audit(raw_courses, minor_key=None)
+                        extra_res = extra_mod.audit(raw_courses, minor_key=None)
                         extra_rows = []
-                        for r in extra_res.get('bc', []) + extra_res.get('mr', []):
-                            r2 = dict(r); r2.setdefault('note', ''); extra_rows.append(r2)
+                        for r in extra_res.get("bc", []) + extra_res.get("mr", []):
+                            r2 = dict(r)
+                            r2.setdefault("note", "")
+                            extra_rows.append(r2)
                         if extra_rows:
-                            additional_major_sections.append((FSB_MAJORS[extra_key]["label"], extra_rows))
+                            additional_major_sections.append(
+                                (FSB_MAJORS[extra_key]["label"], extra_rows)
+                            )
                     except Exception:
                         pass
+
                 elif extra_key in ALL_NON_FSB_PROGRAMS:
                     try:
-                        extra_reqs  = get_non_fsb_requirements(extra_key, catalog_year) or {}
-                        extra_name  = extra_reqs.get("name", extra_key.replace("_"," ").title())
-                        extra_rows  = _build_major_rows(extra_reqs, raw_courses, sm_mod)
+                        extra_reqs = get_non_fsb_requirements(extra_key, catalog_year) or {}
+                        extra_name = extra_reqs.get(
+                            "name", extra_key.replace("_", " ").title()
+                        )
+                        extra_rows = _build_major_rows(extra_reqs, raw_courses, sm_mod)
                         if extra_rows:
                             additional_major_sections.append((extra_name, extra_rows))
                     except Exception:
                         pass
 
             res = {
-                "catalog_year":           catalog_year,
-                "current_term_label":     "2025-26",
-                "gpa_o":                  gpa_o,
-                "gpa_m":                  gpa_m,
-                "earned":                 earned,
-                "ip_hrs":                 ip_hrs,
-                "proj":                   proj,
-                "gpa_hrs":                gpa_hrs,
-                "qp":                     qp,
-                "la":                     la_rows,
-                "bc":                     [],
-                "mr":                     mr_rows,
-                "elecs":                  [],
-                "elecs_ip":               [],
-                "ehrs":                   0,
-                "ehrs_ip":                0,
-                "elec_required_hrs":      0,
-                "courses":                raw_courses,
-                "minor_rows":             minor_rows,
-                "minor_key":              minor1 or None,
-                "major_section_label":    f"{prog_name} — {catalog_year}",
-                "major_subsections":      [(f"{prog_name} Required Courses", mr_rows)],
-                "notes_row_text":         "",
-                "elec_opts":              [],
-                "advisor_notes":          advisor_notes,
+                "catalog_year": catalog_year,
+                "current_term_label": "2025-26",
+                "gpa_o": gpa_o,
+                "gpa_m": gpa_m,
+                "earned": earned,
+                "ip_hrs": ip_hrs,
+                "proj": proj,
+                "gpa_hrs": gpa_hrs,
+                "qp": qp,
+                "la": la_rows,
+                "bc": [],
+                "mr": mr_rows,
+                "elecs": [],
+                "elecs_ip": [],
+                "ehrs": 0,
+                "ehrs_ip": 0,
+                "elec_required_hrs": 0,
+                "courses": raw_courses,
+                "minor_rows": minor_rows,
+                "minor_key": minor1 or None,
+                "major_section_label": f"{prog_name} — {catalog_year}",
+                "major_subsections": [(f"{prog_name} Required Courses", mr_rows)],
+                "notes_row_text": "",
+                "elec_opts": [],
+                "advisor_notes": advisor_notes,
                 "additional_major_sections": additional_major_sections,
             }
 
+        for extra_minor_key in [minor2, minor3]:
+            if extra_minor_key:
+                res.setdefault("extra_minor_keys", []).append(extra_minor_key)
+
         # ── Build combined label for multi-major PDFs ─────────────────────────
         def _label(key):
-            if key in FSB_MAJORS: return FSB_MAJORS[key]["label"]
+            if key in FSB_MAJORS:
+                return FSB_MAJORS[key]["label"]
             try:
                 from requirements.non_fsb_programs import get_non_fsb_requirements
                 r = get_non_fsb_requirements(key, catalog_year) or {}
-                return r.get("name", key.replace("_"," ").title()) if isinstance(r,dict) else key
+                return r.get("name", key.replace("_", " ").title()) if isinstance(r, dict) else key
             except Exception:
-                return key.replace("_"," ").title()
+                return key.replace("_", " ").title()
 
         all_labels = [major_label] + [_label(k) for k in [major2, major3] if k]
         combined_label = " / ".join(all_labels)
@@ -643,8 +662,8 @@ except Exception as e:
         # ── Generate PDF ──────────────────────────────────────────────────────
         sm_mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
 
-        total    = record_pull("advisor", student_name, major_label, catalog_year)
-        filename = f"{safe_name}_{major_label.replace(' ','_')}_Audit.pdf"
+        total = record_pull("advisor", student_name, major_label, catalog_year)
+        filename = f"{safe_name}_{major_label.replace(' ', '_')}_Audit.pdf"
 
         recipients = [e.strip() for e in [advisor_email, student_email] if e.strip()]
         if recipients:
@@ -666,7 +685,6 @@ except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
     finally:
         os.unlink(tmp_csv)
-
 
 # ── LEGACY REDIRECT: keep /generate/non-fsb working during transition ─────────
 @app.post("/generate/non-fsb")
