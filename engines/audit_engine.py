@@ -267,13 +267,23 @@ class AuditEngine:
         f6 = self._check_single_course("F6 Biblical Literacy", "BIBL 2000", completed_codes)
         results.append(f6)
 
-        # F7 — Personal Wellness
-        f7_courses = [self._norm(c) for c in LA_OLD_FRAMEWORK["F7"]["courses"][year]]
+                # F6 — Biblical Literacy
+        f6 = self._check_single_course("F6 Biblical Literacy", "BIBL 2000", completed_codes)
+        results.append(f6)
 
+        # F7 — Personal Wellness
         f7_found = None
+
         for c in courses:
             c_code = self._norm(c.code)
-            if c_code in f7_courses and c.passing:
+
+            # ✅ ANY PEHS course counts
+            if c_code.startswith("PEHS") and c.passing:
+                f7_found = c
+                break
+
+            # keep other valid options
+            if c_code in [self._norm("DANC_3060"), self._norm("NURS_1210")] and c.passing:
                 f7_found = c
                 break
 
@@ -284,7 +294,7 @@ class AuditEngine:
             satisfying_courses=[f7_found.code] if f7_found else [],
             credits_earned=f7_found.credits if f7_found else 0.0,
             credits_required=2.0,
-            notes="" if f7_found else f"Options: {', '.join(f7_courses)}",
+            notes="" if f7_found else "Any PEHS course, DANC 3060, or NURS 1210",
         )
         results.append(f7)
         
