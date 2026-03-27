@@ -516,7 +516,8 @@ async def generate(
             res["catalog_year"] = catalog_year
             res["advisor_notes"] = advisor_notes
             major_label = FSB_MAJORS[major]["label"]
-
+            res["major_section_label"] = f"{major_label} Major — {catalog_year}"
+            res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
         else:
             # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
             from requirements.non_fsb_programs import (
@@ -601,19 +602,22 @@ async def generate(
                         pass
 
                 elif extra_key in ALL_NON_FSB_PROGRAMS:
-                    try:
+                
                         extra_reqs = get_non_fsb_requirements(extra_key, catalog_year) or {}
                         extra_name = extra_reqs.get(
                             "name", extra_key.replace("_", " ").title()
                         )
+                                    try:
                         extra_rows = _build_major_rows(extra_reqs, raw_courses, sm_mod)
                         if extra_rows:
                             additional_major_sections.append((extra_name, extra_rows))
                     except Exception:
                         pass
+
             print("major:", major)
             print("major_label before res:", major_label)
             print("catalog_year before res:", catalog_year)
+
             res = {
                 "catalog_year": catalog_year,
                 "current_term_label": "2025-26",
