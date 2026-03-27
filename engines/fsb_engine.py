@@ -30,14 +30,25 @@ CATALOG_YEAR = '2023-24'
 
 def _get_req(catalog_year):
     """Return the requirement dict for the current major + catalog year."""
+    print("MAJOR_KEY in _get_req:", MAJOR_KEY)
+    print("FSB_MAJORS type:", type(FSB_MAJORS))
+    print("FSB_MAJORS keys:", list(FSB_MAJORS.keys())[:20])
+
     major_data = FSB_MAJORS.get(MAJOR_KEY, {})
+    print("major_data keys:", list(major_data.keys()) if isinstance(major_data, dict) else major_data)
+
     req = major_data.get(catalog_year)
+    print("requested year:", catalog_year)
+    print("req for requested year:", req)
+
     if req is None:
-        # Fall back to nearest available year
         for yr in ['2024-25', '2023-24', '2022-23', '2025-26']:
             req = major_data.get(yr)
+            print("fallback year checked:", yr, "->", req.get("name") if isinstance(req, dict) else req)
             if req is not None:
                 break
+
+    print("final req name:", req.get("name") if isinstance(req, dict) else req)
     return req or {}
 
 
