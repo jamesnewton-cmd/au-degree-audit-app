@@ -618,6 +618,7 @@ async def generate(
             print("catalog_year before res:", catalog_year)
 
             res = {
+                res["eligible_to_walk"] = mod.eligible_to_walk(res)
                 "catalog_year": catalog_year,
                 "current_term_label": "2025-26",
                 "gpa_o": gpa_o,
