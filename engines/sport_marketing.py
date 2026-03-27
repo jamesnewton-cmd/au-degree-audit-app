@@ -1176,3 +1176,35 @@ if __name__ == '__main__':
     courses = parse_csv('/mnt/user-data/uploads/Nolan_Netter_Classes.csv')
     res     = audit(courses)
     build(res, 'Nolan Netter', 'Sport Marketing', '/mnt/user-data/outputs/Nolan_Netter_Sport_Marketing_Audit.pdf')
+# ── WALK ELIGIBILITY ─────────────────────────────────────────────
+
+def eligible_to_walk(res):
+    # --- LA ---
+    la_ok = True
+    for row in res.get("la", []):
+        status = (row.get("status") or "").lower()
+        if status not in {"satisfied", "current"}:
+            la_ok = False
+            break
+
+    # --- Major / Program ---
+    program_rows = []
+    program_rows.extend(res.get("bc", []))
+    program_rows.extend(res.get("mr", []))
+
+    for _, extra_rows in res.get("additional_major_sections", []):
+        program_rows.extend(extra_rows)
+
+    programs_ok = True
+    for row in program_rows:
+        status = (row.get("status") or "").lower()
+        if status not in {"satisfied", "current", "scheduled"}:
+            programs_ok = False
+            break
+
+    # --- Hours + GPA ---
+    hours_ok = float(res.get("proj", 0) or 0) >= 120
+    gpa_ok = float(res.get("gpa_o", 0) or 0) >= 2.0
+    major_gpa_ok = float(res.get("gpa_m", 0) or 0) >= 2.0
+
+    return la_ok and programs_ok and hours_ok and gpa_ok and major_gpa_ok
