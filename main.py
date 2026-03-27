@@ -509,8 +509,6 @@ async def generate(
             if hasattr(mod, "MAJOR_KEY"):
                 mod.MAJOR_KEY = major
                 mod.CATALOG_YEAR = catalog_year
-                print("set MAJOR_KEY:", mod.MAJOR_KEY)
-                print("set CATALOG_YEAR:", mod.CATALOG_YEAR)
 
             try:
                 res = mod.audit(raw_courses, minor_key=minor1 or None)
@@ -523,13 +521,16 @@ async def generate(
 
             print("major_label:", major_label)
 
-            # Additional FSB majors
+            # ── Additional FSB majors ────────────────────────
             additional_major_sections = []
+
             for extra_key in [major2, major3]:
                 if not extra_key or extra_key not in FSB_MAJORS:
                     continue
+
                 try:
                     extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
+
                     if hasattr(extra_mod, "MAJOR_KEY"):
                         extra_mod.MAJOR_KEY = extra_key
                         extra_mod.CATALOG_YEAR = catalog_year
@@ -540,6 +541,7 @@ async def generate(
                         extra_res = extra_mod.audit(raw_courses)
 
                     extra_rows = []
+
                     for r in extra_res.get("bc", []):
                         r2 = dict(r)
                         r2.setdefault("note", "")
@@ -554,6 +556,7 @@ async def generate(
                         additional_major_sections.append(
                             (FSB_MAJORS[extra_key]["label"], extra_rows)
                         )
+
                 except Exception:
                     pass
 
