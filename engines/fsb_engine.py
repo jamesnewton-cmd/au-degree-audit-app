@@ -35,6 +35,7 @@ def _get_req(catalog_year):
     print("FSB_MAJORS keys:", list(FSB_MAJORS.keys())[:20])
 
     major_data = FSB_MAJORS.get(MAJOR_KEY, {})
+    print("major_data type:", type(major_data))
     print("major_data keys:", list(major_data.keys()) if isinstance(major_data, dict) else major_data)
 
     req = major_data.get(catalog_year)
@@ -42,7 +43,7 @@ def _get_req(catalog_year):
     print("req for requested year:", req)
 
     if req is None:
-        for yr in ['2024-25', '2023-24', '2022-23', '2025-26']:
+        for yr in ['2025-26', '2024-25', '2023-24', '2022-23']:
             req = major_data.get(yr)
             print("fallback year checked:", yr, "->", req.get("name") if isinstance(req, dict) else req)
             if req is not None:
