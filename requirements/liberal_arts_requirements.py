@@ -144,7 +144,8 @@ LA_OLD_FRAMEWORK = {
         "label": "F4 Speaking and Listening",
         "credits": 3,
         "required_courses": ["COMM_1000"],
-        "notes": "Plus one SI-designated course.",
+        "requires_si": True,
+        "notes": "Plus one SI-designated course."
     },
 
     # ── F5 Quantitative Reasoning ────────────────────────────────────────────
