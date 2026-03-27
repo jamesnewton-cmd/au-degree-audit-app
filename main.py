@@ -498,16 +498,30 @@ async def generate(
         is_fsb = major in FSB_MAJORS
 
         if is_fsb:
-            # ── FSB PATH: use dedicated engine audit() ────────────────────────
-            engine_name = FSB_MAJORS[major]["engine"]
-            mod = load_engine(engine_name)
-            if hasattr(mod, 'MAJOR_KEY'):
-                mod.MAJOR_KEY    = major
-                mod.CATALOG_YEAR = catalog_year
-            res = mod.audit(raw_courses, minor_key=minor1 or None)
-            res['catalog_year']   = catalog_year
-            res['advisor_notes']  = advisor_notes
-            major_label = FSB_MAJORS[major]["label"]
+    # ── FSB PATH: use dedicated engine audit() ────────────────────────
+    engine_name = FSB_MAJORS[major]["engine"]
+    mod = load_engine(engine_name)
+
+    print("major:", major)
+    print("engine_name:", engine_name)
+    print("mod:", mod.__name__)
+
+    if hasattr(mod, 'MAJOR_KEY'):
+        mod.MAJOR_KEY = major
+        mod.CATALOG_YEAR = catalog_year
+        print("set MAJOR_KEY:", mod.MAJOR_KEY)
+        print("set CATALOG_YEAR:", mod.CATALOG_YEAR)
+
+    try:
+        res = mod.audit(raw_courses, minor_key=minor1 or None)
+    except TypeError:
+        res = mod.audit(raw_courses)
+
+    res['catalog_year'] = catalog_year
+    res['advisor_notes'] = advisor_notes
+    major_label = FSB_MAJORS[major]["label"]
+
+    print("major_label:", major_label)
 
             # Additional FSB majors
             additional_major_sections = []
