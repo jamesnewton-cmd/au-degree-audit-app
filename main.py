@@ -611,7 +611,9 @@ async def generate(
                             additional_major_sections.append((extra_name, extra_rows))
                     except Exception:
                         pass
-
+            print("major:", major)
+            print("major_label before res:", major_label)
+            print("catalog_year before res:", catalog_year)
             res = {
                 "catalog_year": catalog_year,
                 "current_term_label": "2025-26",
