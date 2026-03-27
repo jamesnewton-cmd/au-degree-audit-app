@@ -109,7 +109,15 @@ def padded(*extra):
     return TableStyle(base)
 
 # ── CSV ───────────────────────────────────────────────────────────────────────
-def norm(c): return c.strip().upper().replace('-','_')
+import re
+
+def norm(c):
+    if not c:
+        return ""
+    c = str(c).strip().upper().replace(" ", "_").replace("-", "_")
+    c = re.sub(r'_(\d{2})$', '', c)
+    return c
+
 
 def _resolve_transfer_code(course_code, equiv_course):
     """
@@ -120,60 +128,77 @@ def _resolve_transfer_code(course_code, equiv_course):
     code_upper = course_code.strip().upper()
     if not code_upper.startswith('ELCT'):
         return course_code
-    # Try Equivalent Course field first (most reliable)
+
     if equiv_course and equiv_course.strip():
         eq = equiv_course.strip().upper()
-        # Check it looks like a real AU course code (DEPT-1234 or DEPT 1234)
         import re as _re
         if _re.match(r'^[A-Z]{2,6}[-\x20]\d{3,4}', eq):
             return eq
-    # Try to extract from the ELCT code itself: ELCT-XXXX-NNNNN-DEPT-NNN
-    # Look for a dept+number pattern at the end
+
     import re as _re
     m = _re.search(r'-([A-Z]{2,6})-(\d{3,4}[A-Z]?)$', code_upper)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
+
     return course_code
 
 
 def parse_csv(path):
     rows = []
+
     with open(path, newline='', encoding='utf-8-sig') as f:
         for r in csv.DictReader(f):
-            raw_code = r.get('Course Code','').strip()
-            equiv     = r.get('Equivalent Course','').strip()
-            resolved  = _resolve_transfer_code(raw_code, equiv)
+            raw_code = r.get('Course Code', '').strip()
+            equiv = r.get('Equivalent Course', '').strip()
+            resolved = _resolve_transfer_code(raw_code, equiv)
+
+            status_raw = r.get('Status', '').strip().lower()
+            grade_raw = r.get('Letter Grade', '').strip()
+
+            if not raw_code:
+                continue
+            if not status_raw and not grade_raw:
+                continue
+            if status_raw == 'not started':
+                continue
+
             rows.append({
-                'code':     norm(resolved),
-                'raw':      resolved.upper(),
-                'name':     r.get('Course Name','').strip(),
-                'cr':       _int(r.get('Credits','0')),
-                'status':   r.get('Status','').strip().lower().replace('scheduled','current'),
-                'grade':    r.get('Letter Grade','').strip(),
-                'reg_date': r.get('Registration Date','').strip(),
+                'code': norm(resolved),
+                'raw': resolved.upper(),
+                'name': r.get('Course Name', '').strip(),
+                'cr': _int(r.get('Credits', '0')),
+                'status': status_raw,
+                'grade': grade_raw,
+                'reg_date': r.get('Registration Date', '').strip(),
             })
-    # PEHS-1200 note: Co-Curricular Activity courses (PEHS-1200) are student-athlete
-    # participation credits — 1 credit, earned once. NC grade = not satisfactory, excluded
-    # by done() logic. These courses are never tracked as degree requirements.
-    # Remove fully blank rows (no status AND no grade — phantom duplicates from export)
-    rows = [c for c in rows if c['status'] or c['grade']]
-    # Deduplicate: for each course code keep the best record
-    # Priority: grade posted > current > dropped > not started/blank
+
     seen = {}
+
     def priority(c):
         g = c['grade'].upper()
-        if c['status'] == 'grade posted' and g == 'T': return 0          # transfer always wins
-        if c['status'] == 'grade posted' and g not in ('','W','DRP','NC','F'): return 1  # passing grade
-        if c['status'] == 'current': return 2
-        if c['status'] == 'scheduled': return 3
-        if c['status'] == 'grade posted' and g == 'F': return 4           # F loses to transfer/passing
-        if c['status'] == 'grade posted' and g == 'NC': return 5
-        if c['status'] == 'dropped' or g in ('DRP','W'): return 6
+        s = c['status']
+
+        if s == 'grade posted' and g == 'T':
+            return 0
+        if s == 'grade posted' and g not in ('', 'W', 'DRP', 'NC', 'F'):
+            return 1
+        if s == 'current':
+            return 2
+        if s == 'scheduled':
+            return 3
+        if s == 'grade posted' and g == 'F':
+            return 4
+        if s == 'grade posted' and g == 'NC':
+            return 5
+        if s == 'dropped' or g in ('DRP', 'W'):
+            return 6
         return 7
+
     for c in rows:
         k = c['code']
         if k not in seen or priority(c) < priority(seen[k]):
             seen[k] = c
+
     return list(seen.values())
 
 # ── ADVISOR EXCEPTIONS ────────────────────────────────────────────────────────
