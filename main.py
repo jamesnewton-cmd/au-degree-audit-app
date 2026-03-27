@@ -618,8 +618,7 @@ async def generate(
             print("catalog_year before res:", catalog_year)
 
             res = {
-                res["eligible_to_walk"] = mod.eligible_to_walk(res)
-                "catalog_year": catalog_year,
+               "catalog_year": catalog_year,
                 "current_term_label": "2025-26",
                 "gpa_o": gpa_o,
                 "gpa_m": gpa_m,
@@ -646,6 +645,8 @@ async def generate(
                 "advisor_notes": advisor_notes,
                 "additional_major_sections": additional_major_sections,
             }
+            res["eligible_to_walk"] = mod.eligible_to_walk(res)
+            print("eligible_to_walk:", res["eligible_to_walk"])
 
         for extra_minor_key in [minor2, minor3]:
             if extra_minor_key:
