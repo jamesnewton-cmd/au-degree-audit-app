@@ -488,17 +488,15 @@ async def generate(
     tmp_pdf   = tempfile.mktemp(suffix=".pdf")
 
     try:
-        # ── Always load sport_marketing for shared utilities ──────────────────
         sm_mod = load_engine("sport_marketing")
         raw_courses = sm_mod.parse_csv(tmp_csv)
+
         if exceptions.strip():
             raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-        # ── Route: FSB vs non-FSB ─────────────────────────────────────────────
         is_fsb = major in FSB_MAJORS
 
         if is_fsb:
-            # ── FSB PATH: use dedicated engine audit() ────────────────────────
             engine_name = FSB_MAJORS[major]["engine"]
             mod = load_engine(engine_name)
 
@@ -519,54 +517,8 @@ async def generate(
             res["advisor_notes"] = advisor_notes
             major_label = FSB_MAJORS[major]["label"]
 
-            print("major_label:", major_label)
-
-            # ── Additional FSB majors ────────────────────────
-            additional_major_sections = []
-
-            for extra_key in [major2, major3]:
-                if not extra_key or extra_key not in FSB_MAJORS:
-                    continue
-
-                try:
-                    extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
-
-                    if hasattr(extra_mod, "MAJOR_KEY"):
-                        extra_mod.MAJOR_KEY = extra_key
-                        extra_mod.CATALOG_YEAR = catalog_year
-
-                    try:
-                        extra_res = extra_mod.audit(raw_courses, minor_key=None)
-                    except TypeError:
-                        extra_res = extra_mod.audit(raw_courses)
-
-                    extra_rows = []
-
-                    for r in extra_res.get("bc", []):
-                        r2 = dict(r)
-                        r2.setdefault("note", "")
-                        extra_rows.append(r2)
-
-                    for r in extra_res.get("mr", []):
-                        r2 = dict(r)
-                        r2.setdefault("note", "")
-                        extra_rows.append(r2)
-
-                    if extra_rows:
-                        additional_major_sections.append(
-                            (FSB_MAJORS[extra_key]["label"], extra_rows)
-                        )
-
-                except Exception:
-                    pass
-
-            res["additional_major_sections"] = additional_major_sections
-
         else:
-            # ── NON-FSB PATH ──────────────────────────────────────────────────
-            non_fsb_mod = load_engine("sport_marketing")
-            non_fsb_mod.CATALOG_YEAR = catalog_year
-            res = non_fsb_mod.audit(raw_courses)
+            res = sm_mod.audit(raw_courses)
             res["catalog_year"] = catalog_year
             res["advisor_notes"] = advisor_notes
             major_label = major
