@@ -487,15 +487,15 @@ async def generate(
     safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
     tmp_pdf   = tempfile.mktemp(suffix=".pdf")
 
-    try:
-        # ── Always load sport_marketing for shared utilities ──────────────────
-        sm_mod = load_engine("sport_marketing")
-        raw_courses = sm_mod.parse_csv(tmp_csv)
-        if exceptions.strip():
-            raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
+try:
+    # ── Always load sport_marketing for shared utilities ──────────────────
+    sm_mod = load_engine("sport_marketing")
+    raw_courses = sm_mod.parse_csv(tmp_csv)
+    if exceptions.strip():
+        raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-        # ── Route: FSB vs non-FSB ─────────────────────────────────────────────
-        is_fsb = major in FSB_MAJORS
+    # ── Route: FSB vs non-FSB ─────────────────────────────────────────────
+    is_fsb = major in FSB_MAJORS
 
     if is_fsb:
         # ── FSB PATH: use dedicated engine audit() ────────────────────────
