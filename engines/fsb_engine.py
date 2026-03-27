@@ -1,5 +1,4 @@
 """
-print("MAJOR_KEY:", MAJOR_KEY)
 Anderson University — Generic FSB Major Engine
 Handles: Marketing, Accounting, Finance, Business Analytics,
          Engineering Management, Global Business,
@@ -47,6 +46,8 @@ def _norm_code(code_str):
 
 
 def audit(courses, minor_key=None):
+    print("MAJOR_KEY:", MAJOR_KEY)
+         
     cm = cmap(courses)
 
     # ── Exception rules (same as sport_marketing) ─────────────────────────────
