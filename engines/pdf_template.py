@@ -270,7 +270,7 @@ def build(res, student_name, major_label, out, exceptions=''):
         [Paragraph('Writing Intensive (WI) ≥2 courses (≥1 upper-div)', P['elig_lbl']), yn(wi_ok)],
         [Paragraph('Speaking Intensive (SI) ≥1 beyond COMM-1000', P['elig_lbl']), yn(si_ok)],
         [Paragraph(grad_lbl, P['elig_lbl']), yn(elig or elig_pend)],
-        [Paragraph(walk_lbl, P['elig_lbl']), yn(elig or elig_pend)],
+        [Paragraph(walk_lbl, P['elig_lbl']), yn(res.get("eligible_to_walk", (elig or elig_pend)))],
     ]
 
     ew = [elig_total * 0.78, elig_total * 0.22]
