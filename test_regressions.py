@@ -83,6 +83,19 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertEqual(invalid.status_code, 400)
         self.assertIn("Unknown or unavailable program", invalid.text)
 
+    def test_sport_marketing_has_no_elective_section_requirement(self):
+        files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
+        data = {
+            "student_name": "Sport Marketing Regression Student",
+            "major": "sport_marketing",
+            "catalog_year": "2022-23",
+        }
+        response = self.client.post("/generate", data=data, files=files, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("content-type"), "application/pdf")
+        # The generated filename should not include any extra elective-specific error behavior.
+        self.assertIn("Sport_Marketing", response.headers.get("content-disposition", ""))
+
 
 class CsvStatusNormalizationTests(unittest.TestCase):
     def test_scheduled_is_normalized_to_current(self):
