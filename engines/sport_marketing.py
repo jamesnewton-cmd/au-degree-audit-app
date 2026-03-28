@@ -382,12 +382,19 @@ def apply_exceptions(courses, exceptions_text):
                 body = line[7:].strip()
                 code_raw, status_raw = [x.strip() for x in body.split("=", 1)]
                 code = norm(code_raw)
-                status = status_raw.strip().lower()
+                # Accept advisor-friendly aliases in addition to canonical tokens.
+                status = " ".join(
+                    status_raw.strip().lower().replace("_", " ").replace("-", " ").split()
+                )
                 STATUS_MAP = {
                     "current": "current",
+                    "currently enrolled": "current",
+                    "in progress": "current",
+                    "inprogress": "current",
                     "scheduled": "scheduled",
                     "satisfied": "grade posted",
                     "complete": "grade posted",
+                    "completed": "grade posted",
                 }
                 mapped = STATUS_MAP.get(status)
                 if mapped and code in cm:
