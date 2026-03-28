@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install check fmt hooks smoke
+.PHONY: install check fmt hooks smoke qa
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -19,3 +19,6 @@ hooks:
 
 smoke:
 	$(PYTHON) render_smoke_check.py --base-url "$(BASE_URL)" --password "$(AUDIT_PASSWORD)"
+
+qa:
+	$(PYTHON) qa_runbook.py --base-url "$(BASE_URL)" --password "$(AUDIT_PASSWORD)"
