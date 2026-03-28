@@ -83,6 +83,68 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertEqual(invalid.status_code, 400)
         self.assertIn("Unknown or unavailable program", invalid.text)
 
+    def test_sport_marketing_has_no_elective_section_requirement(self):
+        files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
+        data = {
+            "student_name": "Sport Marketing Regression Student",
+            "major": "sport_marketing",
+            "catalog_year": "2022-23",
+        }
+        response = self.client.post("/generate", data=data, files=files, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("content-type"), "application/pdf")
+        # The generated filename should not include any extra elective-specific error behavior.
+        self.assertIn("Sport_Marketing", response.headers.get("content-disposition", ""))
+
+
+class CsvStatusNormalizationTests(unittest.TestCase):
+    def test_scheduled_is_normalized_to_current(self):
+        from engines.sport_marketing import parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-scheduled-status-"))
+        try:
+            csv_path = tmp_dir / "scheduled_case.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "BSNS-2310,,Scheduled,,3,2025-01-10,Business Analytics\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["code"], "BSNS_2310")
+            self.assertEqual(rows[0]["status"], "current")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_sport_marketing_w1_and_f7_accept_equivalents(self):
+        from engines.sport_marketing import audit, parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-smkt-la-equivalents-"))
+        try:
+            csv_path = tmp_dir / "smkt_equivalent_case.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "RLGN-3010,,Grade Posted,A,3,2024-01-10,Faith in Context\n"
+                    "NURS-1210,,Grade Posted,B+,2,2023-01-10,Nutrition for Hlthy Liv\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            res = audit(rows)
+            la_by_area = {row["area"]: row for row in res["la"]}
+
+            self.assertIn("W1", la_by_area)
+            self.assertIn("F7", la_by_area)
+            self.assertEqual(la_by_area["W1"]["status"], "Satisfied")
+            self.assertEqual(la_by_area["F7"]["status"], "Satisfied")
+            self.assertEqual(la_by_area["W1"]["course"]["code"], "RLGN_3010")
+            self.assertEqual(la_by_area["F7"]["course"]["code"], "NURS_1210")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 if __name__ == "__main__":
     unittest.main()

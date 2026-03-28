@@ -236,6 +236,9 @@ def parse_csv(path):
             resolved = _resolve_transfer_code(raw_code, equiv)
 
             status_raw = r.get("Status", "").strip().lower()
+            # Registrar rule: "Scheduled" means in-progress/current.
+            if status_raw == "scheduled":
+                status_raw = "current"
             grade_raw = r.get("Letter Grade", "").strip()
 
             if not raw_code:
@@ -569,21 +572,8 @@ SMKT_REQ = [
     ("BSNS_PRAC", "BSNS-3850 Practicum / BSNS-4800 Internship", ["BSNS_3850", "BSNS_4800"], 3),
 ]
 
-# Sport Marketing electives — 6 hrs from approved list
-ELEC_OPTS = [
-    "BSNS_3550",
-    "BSNS_3400",
-    "BSNS_4400",
-    "BSNS_3120",
-    "BSNS_3240",
-    "BSNS_3510",
-    "BSNS_4050",
-    "BSNS_4120",
-    "BSNS_4240",
-    "BSNS_4250",
-    "BSNS_4310",
-    "BSNS_4310_23",
-]
+# Sport Marketing currently has no standalone elective-hour requirement.
+ELEC_OPTS = []
 
 # ── MINOR DEFINITIONS ─────────────────────────────────────────────────────────
 # Athletic Coaching Minor (KINESIOLOGY_EXTRA version — 15 cr)
@@ -671,14 +661,26 @@ LA_ROWS = [
         "F7",
         "PEHS-1000 Fitness/Wellness for Life",
         "F7 PEHS-1000 Personal Wellness",
-        ["PEHS_1000"],
+        ["PEHS_1000", "DANC_3060", "NURS_1210"],
         2,
     ),
     (
         "W1",
         None,
         "W1 BIBL-3410 Christian Ways of Knowing",
-        ["BIBL_3410", "RELI_3000", "BIBL_3000", "RLGN_3000"],
+        [
+            "BIBL_3000",
+            "RLGN_3000",
+            "BIBL_3410",
+            "HNRS_3325",
+            "PHIL_3250",
+            "RLGN_3250",
+            "RLGN_3010",
+            "RLGN_3020",
+            "RLGN_3100",
+            # Keep legacy variant for historical imports.
+            "RELI_3000",
+        ],
         3,
     ),
     (
@@ -1188,19 +1190,11 @@ def audit(courses, minor_key=None):
         s = status_of(c)
         mr.append({"id": rid, "label": label, "status": s, "course": c, "dcr": dcr})
 
-    # Electives
+    # Electives (none required for Sport Marketing)
     elecs = []
     elecs_ip = []
     ehrs = 0
     ehrs_ip = 0
-    for opt in ELEC_OPTS:
-        c = cm.get(norm(opt))
-        if c and done(c):
-            elecs.append(c)
-            ehrs += c["cr"]
-        elif c and (ip(c) or sched(c)):
-            elecs_ip.append(c)
-            ehrs_ip += c["cr"]
 
     # GPA
     major_codes = set()
@@ -1208,8 +1202,6 @@ def audit(courses, minor_key=None):
         major_codes.update([norm(o) for o in opts])
     for _, _, opts, _ in SMKT_REQ:
         major_codes.update([norm(o) for o in opts])
-    for o in ELEC_OPTS:
-        major_codes.add(norm(o))
 
     op, oh, mp, mh, qp = 0.0, 0, 0.0, 0, 0.0
     earned = 0
@@ -1290,27 +1282,8 @@ def build(res, student_name, major_label, out, exceptions=""):
     res.setdefault("catalog_year", "2023-24")
     res.setdefault("current_term_label", "2025-26")
     res.setdefault("major_section_label", f"Sport Marketing Major — {res['catalog_year']}")
-    res.setdefault("elec_required_hrs", 6)
-    res.setdefault(
-        "elec_section_label",
-        f"Sport Marketing Electives — 6 hrs required  (earned: {res.get('ehrs',0)} hrs)",
-    )
-    res.setdefault(
-        "elec_opts",
-        [
-            "BSNS-3550",
-            "BSNS-3400",
-            "BSNS-4400",
-            "BSNS-3120",
-            "BSNS-3240",
-            "BSNS-3510",
-            "BSNS-4050",
-            "BSNS-4120",
-            "BSNS-4240",
-            "BSNS-4250",
-            "BSNS-4310",
-        ],
-    )
+    res.setdefault("elec_required_hrs", 0)
+    res.setdefault("elec_opts", [])
     res.setdefault(
         "notes_row_text",
         "Note: BSNS-3210 (Buyer/Seller Relations) = SI  ·  BSNS-4110 (Marketing Research) = WI  ·  "
