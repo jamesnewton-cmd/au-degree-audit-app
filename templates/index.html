@@ -1656,7 +1656,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     loadStatus();
 
     document.getElementById('auditForm').reset();
-    document.querySelectorAll('.radio-option input').forEach(r => { r.checked = false; });
+    // Keep form defaults after reset (2022-23 should remain selected).
     ['major1Val', 'major2Val', 'major3Val', 'minor1Val', 'minor2Val', 'minor3Val'].forEach(id => { document.getElementById(id).value = ''; });
     ['conc1Select', 'conc2Select', 'conc3Select'].forEach(id => { document.getElementById(id).value = ''; });
     ['conc1Section', 'conc2Section', 'conc3Section'].forEach(id => { document.getElementById(id).style.display = 'none'; });

@@ -101,6 +101,17 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertEqual(invalid.status_code, 400)
         self.assertIn("Unknown or unavailable program", invalid.text)
 
+    def test_marketing_2022_uses_marketing_engine_notes_and_required_rows(self):
+        files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
+        data = {
+            "student_name": "Marketing Regression Student",
+            "major": "marketing",
+            "catalog_year": "2022-23",
+        }
+        response = self.client.post("/generate", data=data, files=files, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("content-type"), "application/pdf")
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {

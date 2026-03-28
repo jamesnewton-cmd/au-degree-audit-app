@@ -980,7 +980,6 @@ async def generate(
             res["advisor_notes"] = advisor_notes
             major_label = resolve_program_label(major, catalog_year)
             res["major_section_label"] = f"{major_label} Major — {catalog_year}"
-            res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
             res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
 
         else:
