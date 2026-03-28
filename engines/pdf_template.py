@@ -1365,7 +1365,10 @@ def build(res, student_name, major_label, out, exceptions=""):
     ap_section("Liberal Arts — Currently Enrolled", la_cur, GOLD_BAR)
     ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR)
     ap_section("Liberal Arts — Missing", la_miss, GOLD_BAR)
-    ap_section("Advanced Competency — WI", wi_items, GOLD_BAR)
+    # WI is already represented in Liberal Arts/major progress; hide standalone section
+    # to reduce redundancy unless there is a true WI-specific action required.
+    if wi_items:
+        ap_section("Advanced Competency — WI", wi_items, GOLD_BAR)
     ap_section("Major — Currently Enrolled", maj_cur, BLUE_BAR)
     ap_section("Major — Scheduled", maj_sched, BLUE_BAR)
     ap_section("Major — Missing", maj_miss, BLUE_BAR)
