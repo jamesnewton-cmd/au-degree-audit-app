@@ -78,8 +78,6 @@ security = HTTPBasic()
 
 from engines.audit_routes import router
 
-app.include_router(router)
-
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
 def verify(credentials: HTTPBasicCredentials = Depends(security)):
@@ -640,6 +638,7 @@ async def generate(
     major3: str = Form(""),
     advisor_email: str = Form(""),
     student_email: str = Form(""),
+    user: str = Depends(verify),
 ):
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
@@ -886,6 +885,7 @@ async def generate_non_fsb_legacy(
     major3: str = Form(""),
     advisor_email: str = Form(""),
     student_email: str = Form(""),
+    user: str = Depends(verify),
 ):
     """Legacy endpoint — redirects to unified /generate."""
     # Re-read the transcript since we already consumed it
@@ -921,7 +921,7 @@ def ping():
 
 
 @app.get("/status")
-def status():
+def status(user: str = Depends(verify)):
     from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
 
     log = load_log()
@@ -938,12 +938,12 @@ def status():
 
 
 @app.get("/catalog-years")
-def catalog_years():
+def catalog_years(user: str = Depends(verify)):
     return {"catalog_years": CATALOG_YEARS}
 
 
 @app.get("/majors/{year}")
-def majors_for_year(year: str):
+def majors_for_year(year: str, user: str = Depends(verify)):
     from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
 
     if year not in CATALOG_YEARS:
@@ -962,5 +962,45 @@ def majors_for_year(year: str):
 
 
 @app.get("/programs/all/{year}")
-def programs_all(year: str):
-    return majors_for_year(year)
+def programs_all(year: str, user: str = Depends(verify)):
+    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
+    from requirements.fsb_majors import FSB_MAJORS as FSB_MAJOR_CATALOG
+
+    if year not in CATALOG_YEARS:
+        raise HTTPException(400, "Invalid catalog year")
+
+    fsb_for_year = {}
+    for key in FSB_MAJORS:
+        try:
+            major_req = FSB_MAJOR_CATALOG[key][year]
+        except Exception:
+            continue
+        label = (
+            major_req.get("name", key.replace("_", " ").title())
+            if isinstance(major_req, dict)
+            else key.replace("_", " ").title()
+        )
+        fsb_for_year[label] = key
+    non_fsb = {}
+    for key in ALL_NON_FSB_PROGRAMS:
+        try:
+            req = get_non_fsb_requirements(key, year)
+            if req:
+                name = (
+                    req.get("name", key.replace("_", " ").title()) if isinstance(req, dict) else key
+                )
+                non_fsb[key] = name
+        except Exception:
+            pass
+
+    return {
+        "catalog_year": year,
+        "fsb_programs": {year: fsb_for_year},
+        "non_fsb_programs": non_fsb,
+        "total_programs": len(fsb_for_year) + len(non_fsb),
+    }
+
+
+# Keep API router endpoints protected and mounted after web routes so
+# overlapping paths in this file take precedence.
+app.include_router(router, dependencies=[Depends(verify)])
