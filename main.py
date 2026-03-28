@@ -34,8 +34,9 @@ AUTH_STATIC_TEST_CODE = os.environ.get("AUTH_STATIC_TEST_CODE", "").strip()
 
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
-SMTP_USER = os.environ.get("SMTP_USER", "")
-SMTP_PASS = os.environ.get("SMTP_PASS", "")
+# Backward compatibility: previous deployments used GMAIL_USER/GMAIL_PASS.
+SMTP_USER = os.environ.get("SMTP_USER") or os.environ.get("GMAIL_USER", "")
+SMTP_PASS = os.environ.get("SMTP_PASS") or os.environ.get("GMAIL_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)
 
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
