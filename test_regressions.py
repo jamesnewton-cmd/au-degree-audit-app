@@ -125,7 +125,7 @@ class CsvStatusNormalizationTests(unittest.TestCase):
             csv_path.write_text(
                 (
                     "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
-                    "BSNS-2310,,Scheduled,,3,2025-01-10,Business Analytics\n"
+                    "BSNS-2310,,Scheduled,,3,2099-01-10,Business Analytics\n"
                 ),
                 encoding="utf-8",
             )
@@ -133,6 +133,25 @@ class CsvStatusNormalizationTests(unittest.TestCase):
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["code"], "BSNS_2310")
             self.assertEqual(rows[0]["status"], "scheduled")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_scheduled_with_started_term_is_promoted_to_current(self):
+        from engines.sport_marketing import parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-scheduled-to-current-"))
+        try:
+            csv_path = tmp_dir / "scheduled_started_term.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "BSNS-4560,,Scheduled,,3,2025-01-10,Business of Game-Day Exper\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["status"], "current")
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
