@@ -500,10 +500,6 @@ async def generate(
             engine_name = FSB_MAJORS[major]["engine"]
             mod = load_engine(engine_name)
 
-            print("major:", major)
-            print("engine_name:", engine_name)
-            print("mod:", mod.__name__)
-
             if hasattr(mod, "MAJOR_KEY"):
                 mod.MAJOR_KEY = major
                 mod.CATALOG_YEAR = catalog_year
@@ -513,8 +509,6 @@ async def generate(
             except TypeError:
                 res = mod.audit(raw_courses)
 
-            print("FSB bc count right after audit:", len(res.get("bc", [])))
-
             res["catalog_year"] = catalog_year
             res["advisor_notes"] = advisor_notes
             major_label = FSB_MAJORS[major]["label"]
@@ -522,18 +516,11 @@ async def generate(
             res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
             res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
 
-            print("eligible_to_walk:", res["eligible_to_walk"])
-
         else:
             from requirements.non_fsb_programs import (
                 get_non_fsb_requirements,
                 ALL_NON_FSB_PROGRAMS,
             )
-
-            # keep your existing non-FSB code here
-
-    except Exception as e:
-        raise HTTPException(500, f"Audit generation failed: {e}")
 
             if major not in ALL_NON_FSB_PROGRAMS:
                 raise HTTPException(400, f"Unknown major: {major}")
@@ -598,7 +585,10 @@ async def generate(
                         if hasattr(extra_mod, "MAJOR_KEY"):
                             extra_mod.MAJOR_KEY = extra_key
                             extra_mod.CATALOG_YEAR = catalog_year
-                        extra_res = extra_mod.audit(raw_courses, minor_key=None)
+                        try:
+                            extra_res = extra_mod.audit(raw_courses, minor_key=None)
+                        except TypeError:
+                            extra_res = extra_mod.audit(raw_courses)
                         extra_rows = []
                         for r in extra_res.get("bc", []) + extra_res.get("mr", []):
                             r2 = dict(r)
@@ -622,10 +612,6 @@ async def generate(
                             additional_major_sections.append((extra_name, extra_rows))
                     except Exception:
                         pass
-
-            print("major:", major)
-            print("major_label before res:", major_label)
-            print("catalog_year before res:", catalog_year)
 
             res = {
                "catalog_year": catalog_year,
@@ -655,8 +641,7 @@ async def generate(
                 "advisor_notes": advisor_notes,
                 "additional_major_sections": additional_major_sections,
             }
-            res["eligible_to_walk"] = mod.eligible_to_walk(res)
-            print("eligible_to_walk:", res["eligible_to_walk"])
+            res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
 
         for extra_minor_key in [minor2, minor3]:
             if extra_minor_key:
@@ -701,7 +686,8 @@ async def generate(
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
     finally:
-        os.unlink(tmp_csv)
+        if os.path.exists(tmp_csv):
+            os.unlink(tmp_csv)
 
 # ── LEGACY REDIRECT: keep /generate/non-fsb working during transition ─────────
 @app.post("/generate/non-fsb")
