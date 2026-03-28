@@ -1192,11 +1192,9 @@ def eligible_to_walk(res):
 
         print("WALK LA ROW:", label, "| status:", status, "| action:", action)
 
-        # allow satisfied / in progress / scheduled
         if status in {"satisfied", "current", "in progress", "scheduled"}:
             continue
 
-        # allow not satisfied if there is a clear path forward
         if status in {"not satisfied", "missing", "no"}:
             if "enroll" in action or "advisor" in action or "pending" in action:
                 continue
