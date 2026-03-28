@@ -465,12 +465,12 @@ async def generate(
     concentration2:  str = Form(""),
     concentration3:  str = Form(""),
     minor1:          str = Form(""),
-    minor2:        str = Form(""),
-    minor3:        str = Form(""),
-    major2:        str = Form(""),
-    major3:        str = Form(""),
-    advisor_email: str = Form(""),
-    student_email: str = Form(""),
+    minor2:          str = Form(""),
+    minor3:          str = Form(""),
+    major2:          str = Form(""),
+    major3:          str = Form(""),
+    advisor_email:   str = Form(""),
+    student_email:   str = Form(""),
 ):
     if catalog_year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
@@ -496,39 +496,44 @@ async def generate(
 
         is_fsb = major in FSB_MAJORS
 
-    if is_fsb:
-        engine_name = FSB_MAJORS[major]["engine"]
-        mod = load_engine(engine_name)
+        if is_fsb:
+            engine_name = FSB_MAJORS[major]["engine"]
+            mod = load_engine(engine_name)
 
-        print("major:", major)
-        print("engine_name:", engine_name)
-        print("mod:", mod.__name__)
+            print("major:", major)
+            print("engine_name:", engine_name)
+            print("mod:", mod.__name__)
 
-    if hasattr(mod, "MAJOR_KEY"):
-        mod.MAJOR_KEY = major
-        mod.CATALOG_YEAR = catalog_year
+            if hasattr(mod, "MAJOR_KEY"):
+                mod.MAJOR_KEY = major
+                mod.CATALOG_YEAR = catalog_year
 
-    try:
-        res = mod.audit(raw_courses, minor_key=minor1 or None)
-    except TypeError:
-        res = mod.audit(raw_courses)
+            try:
+                res = mod.audit(raw_courses, minor_key=minor1 or None)
+            except TypeError:
+                res = mod.audit(raw_courses)
 
-    print("FSB bc count right after audit:", len(res.get("bc", [])))
+            print("FSB bc count right after audit:", len(res.get("bc", [])))
 
-    res["catalog_year"] = catalog_year
-    res["advisor_notes"] = advisor_notes
-    major_label = FSB_MAJORS[major]["label"]
-    res["major_section_label"] = f"{major_label} Major — {catalog_year}"
-    res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
-    res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
+            res["catalog_year"] = catalog_year
+            res["advisor_notes"] = advisor_notes
+            major_label = FSB_MAJORS[major]["label"]
+            res["major_section_label"] = f"{major_label} Major — {catalog_year}"
+            res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
+            res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
 
-    print("eligible_to_walk:", res["eligible_to_walk"])
+            print("eligible_to_walk:", res["eligible_to_walk"])
 
-else:
-    from requirements.non_fsb_programs import (
-        get_non_fsb_requirements,
-        ALL_NON_FSB_PROGRAMS,
-    )
+        else:
+            from requirements.non_fsb_programs import (
+                get_non_fsb_requirements,
+                ALL_NON_FSB_PROGRAMS,
+            )
+
+            # keep your existing non-FSB code here
+
+    except Exception as e:
+        raise HTTPException(500, f"Audit generation failed: {e}")
 
             if major not in ALL_NON_FSB_PROGRAMS:
                 raise HTTPException(400, f"Unknown major: {major}")
