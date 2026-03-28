@@ -661,14 +661,26 @@ LA_ROWS = [
         "F7",
         "PEHS-1000 Fitness/Wellness for Life",
         "F7 PEHS-1000 Personal Wellness",
-        ["PEHS_1000"],
+        ["PEHS_1000", "DANC_3060", "NURS_1210"],
         2,
     ),
     (
         "W1",
         None,
         "W1 BIBL-3410 Christian Ways of Knowing",
-        ["BIBL_3410", "RELI_3000", "BIBL_3000", "RLGN_3000"],
+        [
+            "BIBL_3000",
+            "RLGN_3000",
+            "BIBL_3410",
+            "HNRS_3325",
+            "PHIL_3250",
+            "RLGN_3250",
+            "RLGN_3010",
+            "RLGN_3020",
+            "RLGN_3100",
+            # Keep legacy variant for historical imports.
+            "RELI_3000",
+        ],
         3,
     ),
     (
