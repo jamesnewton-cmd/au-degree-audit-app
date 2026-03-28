@@ -386,6 +386,8 @@ def apply_exceptions(courses, exceptions_text):
                 status = " ".join(
                     status_raw.strip().lower().replace("_", " ").replace("-", " ").split()
                 )
+                # tolerate punctuation like "currently enrolled." from copied notes
+                status = "".join(ch for ch in status if ch.isalnum() or ch.isspace()).strip()
                 STATUS_MAP = {
                     "current": "current",
                     "currently enrolled": "current",
