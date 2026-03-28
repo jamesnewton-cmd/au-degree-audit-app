@@ -1,4 +1,3 @@
-import base64
 import shutil
 import tempfile
 import unittest
@@ -9,9 +8,21 @@ from fastapi.testclient import TestClient
 import main
 
 
-def _auth_headers(password: str = "ravens2025") -> dict[str, str]:
-    token = base64.b64encode(f":{password}".encode("utf-8")).decode("utf-8")
-    return {"Authorization": f"Basic {token}"}
+def _auth_headers(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+def _issue_auth_token(client: TestClient, email: str = "advisor@anderson.edu") -> str:
+    req = client.post("/auth/request-code", json={"email": email})
+    if req.status_code != 200:
+        raise AssertionError(f"Unable to request auth code: {req.status_code} {req.text}")
+    verify = client.post("/auth/verify-code", json={"email": email, "code": main.AUTH_STATIC_TEST_CODE})
+    if verify.status_code != 200:
+        raise AssertionError(f"Unable to verify auth code: {verify.status_code} {verify.text}")
+    token = verify.json().get("access_token")
+    if not token:
+        raise AssertionError("Missing access token in auth response.")
+    return token
 
 
 def _sample_csv_bytes() -> bytes:
@@ -25,14 +36,21 @@ class ProgramYearRegressionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._orig_log_file = main.LOG_FILE
+        cls._orig_auth_static = main.AUTH_STATIC_TEST_CODE
         cls._tmp_dir = tempfile.mkdtemp(prefix="audit-regression-")
         main.LOG_FILE = Path(cls._tmp_dir) / "audit_log.json"
+        main.AUTH_STATIC_TEST_CODE = "123456"
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
         cls.client = TestClient(main.app)
-        cls.headers = _auth_headers()
+        cls.headers = _auth_headers(_issue_auth_token(cls.client))
 
     @classmethod
     def tearDownClass(cls):
         main.LOG_FILE = cls._orig_log_file
+        main.AUTH_STATIC_TEST_CODE = cls._orig_auth_static
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
         shutil.rmtree(cls._tmp_dir, ignore_errors=True)
 
     def _post_generate(self, major: str, year: str):
@@ -211,19 +229,102 @@ class CsvStatusNormalizationTests(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    def test_exceptions_accept_mixed_case_commands_and_values(self):
+        from engines.sport_marketing import apply_exceptions, parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-exception-case-"))
+        try:
+            csv_path = tmp_dir / "exception_case_mixed.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "PSYC-2510,,Grade Posted,A,3,2024-01-10,Developmental Psychology\n"
+                    "BSNS-4560,,Scheduled,,3,2025-01-10,Business of Game-Day Exper\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            updated = apply_exceptions(
+                rows,
+                (
+                    "sUb: bsns-2710 = psyc-2510\n"
+                    "mAp: psyc-2510 = w5\n"
+                    "wAiVe: comm-1000\n"
+                    "stAtUs: bsns-4560 = CURRENTLY ENROLLED"
+                ),
+            )
+
+            sub_match = next((r for r in updated if r.get("code") == "BSNS_2710"), None)
+            self.assertIsNotNone(sub_match)
+            self.assertEqual(sub_match.get("status"), "grade posted")
+
+            map_match = next((r for r in updated if str(r.get("code", "")).startswith("__MAP__W5__")), None)
+            self.assertIsNotNone(map_match)
+
+            waive_match = next((r for r in updated if r.get("code") == "COMM_1000"), None)
+            self.assertIsNotNone(waive_match)
+            self.assertEqual(waive_match.get("grade"), "W/V")
+
+            status_match = next((r for r in updated if r.get("code") == "BSNS_4560"), None)
+            self.assertIsNotNone(status_match)
+            self.assertEqual(status_match.get("status"), "current")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+class AuthFlowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._orig_auth_static = main.AUTH_STATIC_TEST_CODE
+        main.AUTH_STATIC_TEST_CODE = "123456"
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
+        cls.client = TestClient(main.app)
+
+    @classmethod
+    def tearDownClass(cls):
+        main.AUTH_STATIC_TEST_CODE = cls._orig_auth_static
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
+
+    def test_request_code_rejects_non_anderson_domain(self):
+        response = self.client.post("/auth/request-code", json={"email": "user@gmail.com"})
+        self.assertEqual(response.status_code, 403)
+
+    def test_request_verify_and_me(self):
+        req = self.client.post("/auth/request-code", json={"email": "advisor@anderson.edu"})
+        self.assertEqual(req.status_code, 200)
+        verify = self.client.post(
+            "/auth/verify-code",
+            json={"email": "advisor@anderson.edu", "code": "123456"},
+        )
+        self.assertEqual(verify.status_code, 200)
+        token = verify.json().get("access_token")
+        self.assertTrue(token)
+        me = self.client.get("/auth/me", headers=_auth_headers(token))
+        self.assertEqual(me.status_code, 200)
+        self.assertEqual(me.json().get("email"), "advisor@anderson.edu")
+
 
 class FilenameFormattingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._orig_log_file = main.LOG_FILE
+        cls._orig_auth_static = main.AUTH_STATIC_TEST_CODE
         cls._tmp_dir = tempfile.mkdtemp(prefix="audit-filename-format-")
         main.LOG_FILE = Path(cls._tmp_dir) / "audit_log.json"
+        main.AUTH_STATIC_TEST_CODE = "123456"
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
         cls.client = TestClient(main.app)
-        cls.headers = _auth_headers()
+        cls.headers = _auth_headers(_issue_auth_token(cls.client))
 
     @classmethod
     def tearDownClass(cls):
         main.LOG_FILE = cls._orig_log_file
+        main.AUTH_STATIC_TEST_CODE = cls._orig_auth_static
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
         shutil.rmtree(cls._tmp_dir, ignore_errors=True)
 
     def test_download_filename_uses_first_last_initial(self):
