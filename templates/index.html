@@ -299,10 +299,13 @@
     padding: 0.9rem 1rem;
   }
   .context-copy {
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     color: var(--muted);
-    margin-bottom: 0.55rem;
-    line-height: 1.45;
+    margin-bottom: 0.45rem;
+    line-height: 1.4;
+  }
+  .context-copy.tight {
+    margin-bottom: 0.35rem;
   }
   .context-textarea {
     width: 100%;
@@ -317,22 +320,17 @@
     resize: vertical;
     line-height: 1.5;
   }
-  .help-grid {
-    margin-top: 0.65rem;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.45rem;
-  }
-  .help-item {
+  .context-rules-inline {
+    margin-top: 0.5rem;
     font-size: 0.74rem;
     color: #5d5248;
-    line-height: 1.5;
-    padding: 0.42rem 0.5rem;
+    line-height: 1.45;
+    padding: 0.44rem 0.58rem;
     border-radius: 7px;
     background: #fbf8f4;
     border: 1px solid #eee4d6;
   }
-  .help-item code {
+  .context-rules-inline code {
     font-size: 0.73rem;
     color: #473f37;
   }
@@ -878,13 +876,11 @@
         <div id="exceptionsSection">
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field context-card">
-          <div class="context-copy">Use one line per rule. These are advisor-only overrides for substitutions, area mapping, waivers, or status adjustments.</div>
+          <div class="context-copy tight">One line per rule. Advisor-only overrides for substitutions, area mapping, waivers, and enrollment status.</div>
           <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|currently enrolled|scheduled|satisfied" autocomplete="off"></textarea>
-          <div class="help-grid">
-            <div class="help-item"><strong>SUB</strong> — substitute one course for a requirement slot. Example: <code>SUB: EDUC-2100 = PSYC-2510</code></div>
-            <div class="help-item"><strong>MAP</strong> — count a course toward LA area. Example: <code>MAP: PSYC-2510 = W5</code></div>
-            <div class="help-item"><strong>WAIVE</strong> — mark requirement advisor-waived (0 credits). Example: <code>WAIVE: COMM-1000</code></div>
-            <div class="help-item"><strong>STATUS</strong> — override enrollment state. Example: <code>STATUS: BSNS-4560 = currently enrolled</code></div>
+          <div class="context-rules-inline">
+            <strong>SUB</strong>: required=taken &nbsp;•&nbsp; <strong>MAP</strong>: taken=area &nbsp;•&nbsp; <strong>WAIVE</strong>: course<br>
+            <strong>STATUS</strong>: course = current | currently enrolled | scheduled | satisfied
           </div>
         </div>
         </div><!-- end exceptionsSection -->
@@ -894,10 +890,10 @@
 
         <!-- REGISTRAR NOTE TO ADVISOR -->
         <div id="registrarNoteSection">
-        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional, screen-only)</span></div>
         <div class="field context-card">
-          <div class="context-copy">Shown on-screen after generation for advisor context only. This note is not written into the PDF.</div>
-          <textarea id="registrarNoteInput" rows="3" class="context-textarea" placeholder="Registrar context note to advisor (screen-only)…" autocomplete="off"></textarea>
+          <div class="context-copy tight">Temporary advisor reminder shown on-screen for this run only; it is not saved and not added to the PDF.</div>
+          <textarea id="registrarNoteInput" rows="2" class="context-textarea" placeholder="Optional temporary note to advisor (not saved / not in PDF)..." autocomplete="off"></textarea>
         </div>
         </div><!-- end registrarNoteSection -->
 
