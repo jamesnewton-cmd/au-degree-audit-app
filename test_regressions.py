@@ -291,6 +291,63 @@ class CsvStatusNormalizationTests(unittest.TestCase):
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
+class W8CrosslistCoverageTests(unittest.TestCase):
+    def test_fsb_w8_map_contains_crosslist_courses(self):
+        from engines.fsb_engine import FSB_W8_BY_MAJOR
+
+        self.assertEqual(
+            FSB_W8_BY_MAJOR["marketing"],
+            ["BSNS_1050", "BSNS_2810", "BSNS_3130", "BSNS_3210", "BSNS_4110", "BSNS_4550", "BSNS_4800"],
+        )
+        self.assertEqual(
+            FSB_W8_BY_MAJOR["business_integrative_leadership"],
+            ["LEAD_4990"],
+        )
+        self.assertEqual(
+            FSB_W8_BY_MAJOR["music_entertainment_business"],
+            ["MUBS_4800", "BSNS_4810"],
+        )
+
+    def test_non_fsb_w8_uses_aligned_program_keys(self):
+        from engines.sport_marketing import build_la_rows_for_non_fsb
+
+        # public_relations_complementary -> COMM 4800
+        courses = [
+            {
+                "code": "COMM_4800",
+                "raw": "COMM-4800",
+                "name": "Communication Internship",
+                "cr": 3,
+                "status": "grade posted",
+                "grade": "A",
+                "reg_date": "2024-01-10",
+            }
+        ]
+        la = build_la_rows_for_non_fsb(courses, "2022-23", major_key="public_relations_complementary")
+        w8 = next((row for row in la if row.get("area") == "W8"), None)
+        self.assertIsNotNone(w8)
+        self.assertEqual(w8.get("status"), "Satisfied")
+        self.assertEqual(w8.get("course", {}).get("code"), "COMM_4800")
+
+        # data_science_complementary -> CPSC 4970
+        courses = [
+            {
+                "code": "CPSC_4970",
+                "raw": "CPSC-4970",
+                "name": "Data Science Capstone",
+                "cr": 3,
+                "status": "grade posted",
+                "grade": "A",
+                "reg_date": "2024-01-10",
+            }
+        ]
+        la = build_la_rows_for_non_fsb(courses, "2022-23", major_key="data_science_complementary")
+        w8 = next((row for row in la if row.get("area") == "W8"), None)
+        self.assertIsNotNone(w8)
+        self.assertEqual(w8.get("status"), "Satisfied")
+        self.assertEqual(w8.get("course", {}).get("code"), "CPSC_4970")
+
+
 class AuthFlowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

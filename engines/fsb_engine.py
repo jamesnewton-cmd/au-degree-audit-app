@@ -58,6 +58,21 @@ def _norm_code(code_str):
     return code_str.strip().upper().replace(" ", "_").replace("-", "_")
 
 
+FSB_W8_BY_MAJOR = {
+    # Source: W8_-_Crosslist.csv (11/14/2023)
+    "sport_marketing": ["BSNS_1050", "BSNS_4110", "BSNS_4330", "BSNS_4560", "BSNS_4800"],
+    "marketing": ["BSNS_1050", "BSNS_2810", "BSNS_3130", "BSNS_3210", "BSNS_4110", "BSNS_4550", "BSNS_4800"],
+    "accounting": ["BSNS_1050", "ACCT_2020", "ACCT_3500", "ACCT_3860", "ACCT_4020", "BSNS_4800"],
+    "business_analytics": ["BSNS_1050"],
+    "finance": ["BSNS_1050", "BSNS_4150", "BSNS_4800"],
+    "global_business": ["BSNS_1050", "BSNS_3850", "BSNS_4800"],
+    "management": ["BSNS_1050", "BSNS_2550", "BSNS_4240", "BSNS_4310", "BSNS_4500", "BSNS_4800"],
+    "engineering_management": ["BSNS_1050"],
+    "music_entertainment_business": ["MUBS_4800", "BSNS_4810"],
+    "business_integrative_leadership": ["LEAD_4990"],
+}
+
+
 def audit(courses, minor_key=None):
     cm = cmap(courses)
 
@@ -99,7 +114,7 @@ def audit(courses, minor_key=None):
     f1_ok = f1 is not None and done(f1)
 
     # ── LA rows (use the FSB-specific LA_ROWS same as sport_marketing) ─────────
-    W8_COURSES = ["BSNS_1050", "BSNS_4110", "BSNS_4330", "BSNS_4560", "BSNS_4800"]
+    w8_courses = FSB_W8_BY_MAJOR.get(MAJOR_KEY, FSB_W8_BY_MAJOR["sport_marketing"])
     la = []
     for row in LA_ROWS:
         area, course_col, req_txt, opts, dcr = row
@@ -110,7 +125,7 @@ def audit(courses, minor_key=None):
             else:
                 c = None
                 s = "Not Satisfied"
-                for code in W8_COURSES:
+                for code in w8_courses:
                     candidate = cm.get(code)
                     if candidate and done(candidate):
                         c = candidate
@@ -379,7 +394,11 @@ def build(res, student_name, major_label, out, exceptions=""):
             notes_parts.append(f"{r['id'].replace('_','-')} = SI")
         if " (WI)" in note:
             notes_parts.append(f"{r['id'].replace('_','-')} = WI")
-    notes_parts.append("W8 auto-satisfied when F1 (LART-1050) complete")
+    w8_codes_for_major = FSB_W8_BY_MAJOR.get(MAJOR_KEY, FSB_W8_BY_MAJOR["sport_marketing"])
+    w8_label = ", ".join(code.replace("_", "-") for code in w8_codes_for_major)
+    notes_parts.append(
+        f"W8 satisfied by: {w8_label}  ·  W8 auto-satisfied when F1 (LART-1050) complete"
+    )
     res.setdefault("notes_row_text", "  ·  ".join(notes_parts))
 
     # Build major_subsections

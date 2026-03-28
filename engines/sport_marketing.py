@@ -1434,24 +1434,33 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         LA_RAVEN_CORE_2526 as LA_NEW_FRAMEWORK,
     )
 
-    # ── W8 COURSE LIST PER MAJOR (from W8 Experiential Ways of Knowing sheet) ──
+    # ── W8 COURSE LIST PER MAJOR (from W8 crosslist sheet) ─────────────────────
     W8_BY_MAJOR = {
-        # Source: W8_-_Experiential_Ways_of_Knowing.csv (updated 11/14/2023)
+        # Source: W8_-_Crosslist.csv (updated 11/14/2023)
         "psychology": ["PSYC_2850", "PSYC_3450", "PSYC_4100", "PSYC_4210", "PSYC_4520"],
         "cinema_media_arts": ["COMM_4800"],
-        "public_relations": ["COMM_4800"],
+        "public_relations_complementary": ["COMM_4800"],
+        "journalism_complementary": ["COMM_4800"],
         "multimedia_journalism_complementary": ["COMM_4800"],
         "visual_communication": ["ARTH_4800"],
         "literary_studies": ["ENGL_4910"],
         "writing": ["ENGL_4910"],
-        "english": ["ENGL_4910"],
+        "english_studies_minor": ["ENGL_4910"],
         "elementary_education": ["EDUC_4010"],
         "social_studies_teaching": ["EDUC_4010"],
         "language_arts_teaching": ["EDUC_4010"],
         "math_teaching_ba": ["EDUC_4010"],
         "spanish_education": ["EDUC_4010"],
         "christian_ministries": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
+        "christian_ministries_complementary": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
         "youth_ministries": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
+        "youth_leadership_development_complementary": [
+            "PSYC_2850",
+            "PSYC_3450",
+            "PSYC_4100",
+            "PSYC_4210",
+            "PSYC_4520",
+        ],
         "ministry_studies": ["CMIN_4810"],
         "christian_spiritual_formation_complementary": ["RLGN_4960"],
         "engineering_management": ["BSNS_1050"],
@@ -1559,6 +1568,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         "business_info_systems_complementary": ["CPSC_2800", "CPSC_3800", "CPSC_4800", "CPSC_4960"],
         "data_science_ba": ["CPSC_4970"],
         "data_science_bs": ["CPSC_4970"],
+        "data_science_complementary": ["CPSC_4970"],
         "cybersecurity_major": ["CPSC_4480", "CPSC_4820", "CPSC_4970"],
         "biochemistry_ba": ["CHEM_4920"],
         "biochemistry_bs": ["CHEM_4920"],
@@ -1566,6 +1576,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         "chemistry_bs": ["CHEM_4920"],
         "public_health_ba": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
         "public_health_bs": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
+        "public_health_minor": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
         # Engineering majors — W8 via ENGR senior design
         "electrical_engineering_bs": ["ENGR_4960"],
         "mechanical_engineering_bs": ["ENGR_4960"],
