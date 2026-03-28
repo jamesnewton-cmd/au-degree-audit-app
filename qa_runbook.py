@@ -15,7 +15,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent
 FIXTURE_DIR = ROOT / "qa" / "fixtures" / "transcripts"
 REPORT_DIR = ROOT / "qa" / "reports"
@@ -127,11 +126,7 @@ def run_case(base_url: str, password: str, case: dict) -> dict:
     if ok and status >= 400 and case.get("expect_detail_contains"):
         needle = case["expect_detail_contains"]
         ok = needle in body
-        reason = (
-            f"error detail contains '{needle}'"
-            if ok
-            else f"error detail missing '{needle}'"
-        )
+        reason = f"error detail contains '{needle}'" if ok else f"error detail missing '{needle}'"
 
     return {
         "id": case["id"],
