@@ -1182,23 +1182,27 @@ def eligible_to_walk(res):
     # --- LA ---
     la_ok = True
     for row in res.get("la", []):
+        label = row.get("label") or row.get("name") or ""
         status = (row.get("status") or "").lower()
+        action = (
+            row.get("recommended_action")
+            or row.get("note")
+            or ""
+        ).lower()
 
-        # allow satisfied, current, scheduled
-        if status in {"satisfied", "current", "scheduled"}:
+        print("WALK LA ROW:", label, "| status:", status, "| action:", action)
+
+        # allow satisfied / in progress / scheduled
+        if status in {"satisfied", "current", "in progress", "scheduled"}:
             continue
 
-        # allow not satisfied if there is a path forward
-        if status == "not satisfied":
-            action = (
-                row.get("recommended_action")
-                or row.get("note")
-                or ""
-            ).lower()
-            if "enroll" in action or "advisor" in action:
+        # allow not satisfied if there is a clear path forward
+        if status in {"not satisfied", "missing", "no"}:
+            if "enroll" in action or "advisor" in action or "pending" in action:
                 continue
 
         la_ok = False
+        print("WALK LA BLOCKED BY:", label)
         break
 
     # --- Major / Program ---
