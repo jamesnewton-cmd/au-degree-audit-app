@@ -1326,12 +1326,12 @@ def build(res, student_name, major_label, out, exceptions=""):
                     action = f"✓ Satisfied — {course_str}"
                 elif r["status"] == "Current":
                     action = (
-                        f"⟳ Currently enrolled — {course_str} "
+                        f"Currently enrolled — {course_str} "
                         "— complete with passing grade this semester"
                     )
                 elif r["status"] == "Scheduled":
                     action = (
-                        f"⟳ Scheduled — {course_str} — confirm enrollment and complete with passing grade"
+                        f"Scheduled — {course_str} — confirm enrollment and complete with passing grade"
                     )
                 else:
                     action = (
@@ -1348,9 +1348,7 @@ def build(res, student_name, major_label, out, exceptions=""):
             if r["status"] in ("Current", "Scheduled") and r.get("course"):
                 course_str = f"{r['course']['raw']} {r['course']['name']}"
                 wi_action_prefix = (
-                    "⟳ Currently enrolled"
-                    if r["status"] == "Current"
-                    else "⟳ Scheduled"
+                    "Currently enrolled" if r["status"] == "Current" else "Scheduled"
                 )
                 wi_action_suffix = (
                     "complete with passing grade this semester"
@@ -1387,10 +1385,18 @@ def build(res, student_name, major_label, out, exceptions=""):
                         lbl = f"{ec['raw']} {ec['name']}"
                         if s == "Current":
                             minor_cur.append(
-                                (lbl, "Currently enrolled — complete with passing grade")
+                                (
+                                    lbl,
+                                    "Currently enrolled — complete with passing grade this semester",
+                                )
                             )
                         else:
-                            minor_sched.append((lbl, "Scheduled — confirm enrollment"))
+                            minor_sched.append(
+                                (
+                                    lbl,
+                                    "Scheduled — confirm enrollment and complete with passing grade",
+                                )
+                            )
                     if elec_hrs_total == 0 and not r["elec_ip"]:
                         minor_miss.append(
                             (
@@ -1406,7 +1412,7 @@ def build(res, student_name, major_label, out, exceptions=""):
                     minor_cur.append(
                         (
                             f"{c['raw']} {c['name']}" if c else r["label"],
-                            "Currently enrolled — complete with passing grade",
+                            "Currently enrolled — complete with passing grade this semester",
                         )
                     )
                 elif r["status"] == "Scheduled":
@@ -1414,7 +1420,7 @@ def build(res, student_name, major_label, out, exceptions=""):
                     minor_sched.append(
                         (
                             f"{c['raw']} {c['name']}" if c else r["label"],
-                            "Scheduled — confirm enrollment",
+                            "Scheduled — confirm enrollment and complete with passing grade",
                         )
                     )
         mn = res.get("minor_name", "Minor")
