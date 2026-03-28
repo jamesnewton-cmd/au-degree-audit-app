@@ -24,25 +24,90 @@ MAX_PULLS = int(os.environ.get("MAX_PULLS", 1000))
 
 CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
 
-# ── FSB MAJORS (use dedicated audit engines) ──────────────────────────────────
-FSB_MAJORS = {
-    "management": {"label": "Management", "engine": "management"},
-    "sport_marketing": {"label": "Sport Marketing", "engine": "sport_marketing"},
-    "marketing": {"label": "Marketing", "engine": "fsb_engine"},
-    "accounting": {"label": "Accounting", "engine": "fsb_engine"},
-    "finance": {"label": "Finance", "engine": "fsb_engine"},
-    "business_analytics": {"label": "Business Analytics", "engine": "fsb_engine"},
-    "engineering_management": {"label": "Engineering Management", "engine": "fsb_engine"},
-    "global_business": {"label": "Global Business", "engine": "fsb_engine"},
-    "music_entertainment_business": {
-        "label": "Music & Entertainment Business",
-        "engine": "fsb_engine",
-    },
-    "business_integrative_leadership": {
-        "label": "Business & Integrative Leadership",
-        "engine": "fsb_engine",
-    },
+# ── PROGRAM ENGINE MAP (FSB majors only) ──────────────────────────────────────
+# Non-FSB programs are defined in requirements/non_fsb_programs.py and are
+# loaded dynamically by year. Keeping engine mapping separate avoids duplicated
+# label/year logic in this file.
+FSB_ENGINE_MAP = {
+    "management": "management",
+    "sport_marketing": "sport_marketing",
+    "marketing": "fsb_engine",
+    "accounting": "fsb_engine",
+    "finance": "fsb_engine",
+    "business_analytics": "fsb_engine",
+    "engineering_management": "fsb_engine",
+    "global_business": "fsb_engine",
+    "music_entertainment_business": "fsb_engine",
+    "business_integrative_leadership": "fsb_engine",
 }
+
+
+def _pretty_program_key(program_key: str) -> str:
+    return program_key.replace("_", " ").title()
+
+
+def get_fsb_program_labels_for_year(catalog_year: str) -> dict[str, str]:
+    """Return {program_key: display_label} for FSB majors offered in a year."""
+    from requirements.fsb_majors import FSB_MAJORS as FSB_MAJOR_CATALOG
+
+    labels = {}
+    for key in FSB_ENGINE_MAP:
+        req = FSB_MAJOR_CATALOG.get(key, {}).get(catalog_year)
+        if isinstance(req, dict):
+            labels[key] = req.get("name", _pretty_program_key(key))
+    return labels
+
+
+def is_fsb_program_key(program_key: str, catalog_year: str) -> bool:
+    """True when a key maps to an FSB major in the given catalog year."""
+    return program_key in get_fsb_program_labels_for_year(catalog_year)
+
+
+def program_bucket(program_key: str, catalog_year: str) -> str | None:
+    """
+    Resolve a program key to a year-valid bucket:
+    - "FSB"
+    - "NON_FSB"
+    - None (unknown or unavailable in year)
+    """
+    if is_fsb_program_key(program_key, catalog_year):
+        return "FSB"
+
+    from requirements.non_fsb_programs import program_exists_in_year
+
+    return "NON_FSB" if program_exists_in_year(program_key, catalog_year) else None
+
+
+def resolve_program_label(program_key: str, catalog_year: str) -> str:
+    """Resolve a stable display label for a valid program key/year."""
+    if program_key in FSB_ENGINE_MAP:
+        fsb_labels = get_fsb_program_labels_for_year(catalog_year)
+        return fsb_labels.get(program_key, _pretty_program_key(program_key))
+
+    from requirements.non_fsb_programs import get_non_fsb_requirements
+
+    req = get_non_fsb_requirements(program_key, catalog_year) or {}
+    if isinstance(req, dict):
+        return req.get("name", _pretty_program_key(program_key))
+    return _pretty_program_key(program_key)
+
+
+def list_all_programs_for_year(catalog_year: str) -> list[dict]:
+    """Return unified, year-valid program list with key/label/type."""
+    programs = []
+    fsb_labels = get_fsb_program_labels_for_year(catalog_year)
+    for key, label in fsb_labels.items():
+        programs.append({"key": key, "label": label, "type": "FSB"})
+
+    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
+
+    for key in ALL_NON_FSB_PROGRAMS:
+        if program_bucket(key, catalog_year) == "NON_FSB":
+            programs.append(
+                {"key": key, "label": resolve_program_label(key, catalog_year), "type": "non-FSB"}
+            )
+    return programs
+
 
 # ── EMAIL ─────────────────────────────────────────────────────────────────────
 GMAIL_USER = os.environ.get("GMAIL_USER", "")
@@ -662,10 +727,13 @@ async def generate(
         if exceptions.strip():
             raw_courses = sm_mod.apply_exceptions(raw_courses, exceptions)
 
-        is_fsb = major in FSB_MAJORS
+        bucket = program_bucket(major, catalog_year)
+        if bucket is None:
+            raise HTTPException(400, f"Unknown or unavailable program for {catalog_year}: {major}")
+        is_fsb = bucket == "FSB"
 
         if is_fsb:
-            engine_name = FSB_MAJORS[major]["engine"]
+            engine_name = FSB_ENGINE_MAP[major]
             mod = load_engine(engine_name)
 
             if hasattr(mod, "MAJOR_KEY"):
@@ -679,7 +747,7 @@ async def generate(
 
             res["catalog_year"] = catalog_year
             res["advisor_notes"] = advisor_notes
-            major_label = FSB_MAJORS[major]["label"]
+            major_label = resolve_program_label(major, catalog_year)
             res["major_section_label"] = f"{major_label} Major — {catalog_year}"
             res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
             res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
@@ -756,9 +824,10 @@ async def generate(
                     continue
 
                 # Could be FSB or non-FSB
-                if extra_key in FSB_MAJORS:
+                extra_bucket = program_bucket(extra_key, catalog_year)
+                if extra_bucket == "FSB":
                     try:
-                        extra_mod = load_engine(FSB_MAJORS[extra_key]["engine"])
+                        extra_mod = load_engine(FSB_ENGINE_MAP[extra_key])
                         if hasattr(extra_mod, "MAJOR_KEY"):
                             extra_mod.MAJOR_KEY = extra_key
                             extra_mod.CATALOG_YEAR = catalog_year
@@ -773,12 +842,12 @@ async def generate(
                             extra_rows.append(r2)
                         if extra_rows:
                             additional_major_sections.append(
-                                (FSB_MAJORS[extra_key]["label"], extra_rows)
+                                (resolve_program_label(extra_key, catalog_year), extra_rows)
                             )
                     except Exception:
                         pass
 
-                elif extra_key in ALL_NON_FSB_PROGRAMS:
+                elif extra_bucket == "NON_FSB":
                     try:
                         extra_reqs = get_non_fsb_requirements(extra_key, catalog_year) or {}
                         extra_name = extra_reqs.get("name", extra_key.replace("_", " ").title())
@@ -824,15 +893,7 @@ async def generate(
 
         # ── Build combined label for multi-major PDFs ─────────────────────────
         def _label(key):
-            if key in FSB_MAJORS:
-                return FSB_MAJORS[key]["label"]
-            try:
-                from requirements.non_fsb_programs import get_non_fsb_requirements
-
-                r = get_non_fsb_requirements(key, catalog_year) or {}
-                return r.get("name", key.replace("_", " ").title()) if isinstance(r, dict) else key
-            except Exception:
-                return key.replace("_", " ").title()
+            return resolve_program_label(key, catalog_year)
 
         all_labels = [major_label] + [_label(k) for k in [major2, major3] if k]
         combined_label = " / ".join(all_labels)
@@ -859,6 +920,8 @@ async def generate(
 
     except HTTPException:
         raise
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     except Exception as e:
         raise HTTPException(500, f"Audit generation failed: {str(e)}")
     finally:
@@ -922,12 +985,16 @@ def ping():
 
 @app.get("/status")
 def status(user: str = Depends(verify)):
-    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
-
     log = load_log()
-    all_majors = [v["label"] for v in FSB_MAJORS.values()] + [
-        v.get("name", k) if isinstance(v, dict) else k for k, v in ALL_NON_FSB_PROGRAMS.items()
-    ]
+    all_majors = []
+    for year in CATALOG_YEARS:
+        all_majors.extend(get_fsb_program_labels_for_year(year).values())
+        from requirements.non_fsb_programs import list_programs_by_year
+
+        for key in list_programs_by_year(year):
+            all_majors.append(resolve_program_label(key, year))
+    # Keep status payload compact and deterministic.
+    all_majors = sorted(set(all_majors))
     return {
         "total_pulls": log["total"],
         "remaining_pulls": max(0, MAX_PULLS - log["total"]),
@@ -944,54 +1011,37 @@ def catalog_years(user: str = Depends(verify)):
 
 @app.get("/majors/{year}")
 def majors_for_year(year: str, user: str = Depends(verify)):
-    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
+    from requirements.non_fsb_programs import list_programs_by_year
 
     if year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
-    fsb = [{"key": k, "label": v["label"], "type": "FSB"} for k, v in FSB_MAJORS.items()]
+
+    fsb_labels = get_fsb_program_labels_for_year(year)
+    fsb = [{"key": k, "label": label, "type": "FSB"} for k, label in fsb_labels.items()]
+
     non_fsb = []
-    for k in ALL_NON_FSB_PROGRAMS:
-        try:
-            r = get_non_fsb_requirements(k, year)
-            if r:
-                name = r.get("name", k.replace("_", " ").title()) if isinstance(r, dict) else k
-                non_fsb.append({"key": k, "label": name, "type": "non-FSB"})
-        except Exception:
-            pass
+    for k in list_programs_by_year(year):
+        # Keep FSB/non-FSB partitions disjoint in UI payloads.
+        if is_fsb_program_key(k, year):
+            continue
+        non_fsb.append({"key": k, "label": resolve_program_label(k, year), "type": "non-FSB"})
     return {"year": year, "majors": fsb + non_fsb}
 
 
 @app.get("/programs/all/{year}")
 def programs_all(year: str, user: str = Depends(verify)):
-    from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
-    from requirements.fsb_majors import FSB_MAJORS as FSB_MAJOR_CATALOG
+    from requirements.non_fsb_programs import list_programs_by_year
 
     if year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
-    fsb_for_year = {}
-    for key in FSB_MAJORS:
-        try:
-            major_req = FSB_MAJOR_CATALOG[key][year]
-        except Exception:
-            continue
-        label = (
-            major_req.get("name", key.replace("_", " ").title())
-            if isinstance(major_req, dict)
-            else key.replace("_", " ").title()
-        )
-        fsb_for_year[label] = key
+    fsb_for_year = {label: key for key, label in get_fsb_program_labels_for_year(year).items()}
     non_fsb = {}
-    for key in ALL_NON_FSB_PROGRAMS:
-        try:
-            req = get_non_fsb_requirements(key, year)
-            if req:
-                name = (
-                    req.get("name", key.replace("_", " ").title()) if isinstance(req, dict) else key
-                )
-                non_fsb[key] = name
-        except Exception:
-            pass
+    for key in list_programs_by_year(year):
+        # Keep FSB/non-FSB partitions disjoint in UI payloads.
+        if is_fsb_program_key(key, year):
+            continue
+        non_fsb[key] = resolve_program_label(key, year)
 
     return {
         "catalog_year": year,
