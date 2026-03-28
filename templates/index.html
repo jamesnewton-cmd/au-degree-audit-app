@@ -872,12 +872,12 @@
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field context-card">
           <div class="context-copy">Use one line per rule. These are advisor-only overrides for substitutions, area mapping, waivers, or status adjustments.</div>
-          <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|scheduled|satisfied" autocomplete="off"></textarea>
+          <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|currently enrolled|scheduled|satisfied" autocomplete="off"></textarea>
           <div class="help-grid">
             <div class="help-item"><strong>SUB</strong> — substitute one course for a requirement slot. Example: <code>SUB: EDUC-2100 = PSYC-2510</code></div>
             <div class="help-item"><strong>MAP</strong> — count a course toward LA area. Example: <code>MAP: PSYC-2510 = W5</code></div>
             <div class="help-item"><strong>WAIVE</strong> — mark requirement advisor-waived (0 credits). Example: <code>WAIVE: COMM-1000</code></div>
-            <div class="help-item"><strong>STATUS</strong> — override enrollment state. Example: <code>STATUS: BSNS-4560 = current</code></div>
+            <div class="help-item"><strong>STATUS</strong> — override enrollment state. Example: <code>STATUS: BSNS-4560 = currently enrolled</code></div>
           </div>
         </div>
         </div><!-- end exceptionsSection -->

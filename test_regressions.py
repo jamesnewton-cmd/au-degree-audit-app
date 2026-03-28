@@ -145,6 +145,27 @@ class CsvStatusNormalizationTests(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    def test_status_exception_accepts_currently_enrolled_alias(self):
+        from engines.sport_marketing import apply_exceptions, parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-status-alias-"))
+        try:
+            csv_path = tmp_dir / "status_alias_case.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "BSNS-4560,,Scheduled,,3,2025-01-10,Business of Game-Day Exper\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            updated = apply_exceptions(rows, "STATUS: BSNS-4560 = currently enrolled")
+            match = next((r for r in updated if r["code"] == "BSNS_4560"), None)
+            self.assertIsNotNone(match)
+            self.assertEqual(match["status"], "current")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
     def test_map_exception_can_target_minor_requirement_row(self):
         from engines.sport_marketing import apply_exceptions, audit, parse_csv
 
