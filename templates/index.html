@@ -848,7 +848,7 @@
             <div class="field">
               <label>Catalog Year</label>
               <div class="radio-group">
-                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2022-23"><span>2022–23</span></label>
+                <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2022-23" checked><span>2022–23</span></label>
                 <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2023-24"><span>2023–24</span></label>
                 <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2024-25"><span>2024–25</span></label>
                 <label class="radio-option"><input type="radio" name="batch_catalog_year" value="2025-26"><span>2025–26</span></label>
@@ -887,15 +887,6 @@
 
         <!-- ADVISOR NOTES removed per request — will be added back later -->
         <input type="hidden" name="advisor_notes" id="advisorNotesInput" value="">
-
-        <!-- REGISTRAR NOTE TO ADVISOR -->
-        <div id="registrarNoteSection">
-        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional, screen-only)</span></div>
-        <div class="field context-card">
-          <div class="context-copy tight">Temporary advisor reminder shown on-screen for this run only; it is not saved and not added to the PDF.</div>
-          <textarea id="registrarNoteInput" rows="2" class="context-textarea" placeholder="Optional temporary note to advisor (not saved / not in PDF)..." autocomplete="off"></textarea>
-        </div>
-        </div><!-- end registrarNoteSection -->
 
         <!-- EMAIL DELIVERY -->
         <div id="emailSection">
@@ -1624,8 +1615,6 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
   form.set('concentration2', document.getElementById('conc2Select').value || '');
   form.set('concentration3', document.getElementById('conc3Select').value || '');
 
-  const registrarNote = document.getElementById('registrarNoteInput').value.trim();
-
   try {
     const res = await fetch('/generate', { method: 'POST', body: form, headers: withAuthHeaders() });
     if (res.status === 401) {
@@ -1662,19 +1651,6 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     const emailCount = [advisorEmail, studentEmail].filter(Boolean).length;
     const emailMsg = emailCount > 0 ? ` · PDF emailed to ${emailCount} recipient${emailCount > 1 ? 's' : ''}.` : '';
 
-    if (registrarNote) {
-      const noteDiv = document.getElementById('registrarNoteDisplay') || (() => {
-        const d = document.createElement('div');
-        d.id = 'registrarNoteDisplay';
-        d.style.cssText = 'margin:1rem 0;padding:0.85rem 1.1rem;background:#FFF3CD;border:1.5px solid #E6A817;border-radius:8px;font-size:0.88rem;line-height:1.5;color:#5a3e00;';
-        document.getElementById('auditForm').insertAdjacentElement('beforebegin', d);
-        return d;
-      })();
-      noteDiv.innerHTML = `<strong>📋 Registrar Note to Advisor:</strong><br>${registrarNote.replace(/\n/g, '<br>')}`;
-      noteDiv.style.display = 'block';
-      setTimeout(() => { noteDiv.style.display = 'none'; }, 30000);
-    }
-
     toast(`✓ Audit generated!${emailMsg}${remaining ? ` ${remaining} pulls remaining.` : ''}`);
     rememberStudentName(firstName, lastName);
     loadStatus();
@@ -1690,6 +1666,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     renderRecentNameHints();
     renderRecentProgramHints('major');
     renderRecentProgramHints('minor');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
     toast('Network error. Please try again.', true);
   } finally {
