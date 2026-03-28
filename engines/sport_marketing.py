@@ -1220,5 +1220,9 @@ def eligible_to_walk(res):
     hours_ok = float(res.get("proj", 0) or 0) >= 120
     gpa_ok = float(res.get("gpa_o", 0) or 0) >= 2.0
     major_gpa_ok = float(res.get("gpa_m", 0) or 0) >= 2.0
-
+    print("WALK DEBUG la_ok:", la_ok)
+    print("WALK DEBUG programs_ok:", programs_ok)
+    print("WALK DEBUG hours_ok:", hours_ok)
+    print("WALK DEBUG gpa_ok:", gpa_ok)
+    print("WALK DEBUG major_gpa_ok:", major_gpa_ok)
     return la_ok and programs_ok and hours_ok and gpa_ok and major_gpa_ok
