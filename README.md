@@ -110,6 +110,36 @@ Upgrade to Starter ($7/mo) for always-on if AU prefers instant response.
 
 ---
 
+## Render Deploy Smoke Checks (Go / No-Go)
+
+After each Render deploy, run this from repo root:
+
+```bash
+python3 render_smoke_check.py "https://<your-service>.onrender.com" "<AUDIT_PASSWORD>"
+```
+
+What it verifies:
+- Protected endpoints reject unauthenticated requests (`401`)
+- Authenticated `/status` and `/programs/all/{year}` return valid payloads
+- Catalog-year FSB naming sanity (e.g., `Sports Management` in 2025-26)
+- One valid `/generate` request returns a PDF (`200`)
+- One invalid major/year request returns `400`
+
+If all checks pass, result is:
+- `OVERALL RESULT: PASS`
+
+Use this merge rule:
+- **PASS** => PR can be marked ready and merged
+- **FAIL** => do not merge; fix issues and redeploy
+
+Shortcut via Makefile:
+
+```bash
+make render-smoke RENDER_URL="https://<your-service>.onrender.com" AUDIT_PASSWORD="<AUDIT_PASSWORD>"
+```
+
+---
+
 ## Adding a New Major
 
 1. Copy `engines/management.py` as a starting point

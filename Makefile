@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install check fmt hooks
+.PHONY: install check fmt hooks smoke
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -16,3 +16,6 @@ fmt:
 hooks:
 	$(PYTHON) -m pip install pre-commit
 	$(PYTHON) -m pre_commit install
+
+smoke:
+	$(PYTHON) render_smoke_check.py --base-url "$(BASE_URL)" --password "$(AUDIT_PASSWORD)"
