@@ -8,6 +8,7 @@ install:
 check:
 	$(PYTHON) -m py_compile main.py
 	$(PYTHON) -m py_compile engines/*.py requirements/*.py
+	$(PYTHON) test_regressions.py
 
 fmt:
 	$(PYTHON) -m black .

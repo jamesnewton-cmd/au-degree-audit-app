@@ -44,6 +44,20 @@ python3 -m uvicorn main:app --reload
 http://localhost:8000
 ```
 
+### Regression checks (recommended before push/deploy)
+
+```bash
+# Run compile checks + targeted regression suite
+make check
+```
+
+This now verifies:
+- Python module syntax/compilation
+- Program/year availability validation (FSB + non-FSB)
+- Overlap handling consistency (`engineering_management`)
+- Auth-protected utility route expectations
+- `/programs/all/{year}` response shape used by the frontend
+
 Default password for local dev: `ravens2025`
 **Change this before deploying.**
 
