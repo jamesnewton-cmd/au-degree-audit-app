@@ -93,8 +93,8 @@ class ProgramYearRegressionTests(unittest.TestCase):
         response = self.client.post("/generate", data=data, files=files, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("content-type"), "application/pdf")
-        # The generated filename should not include any extra elective-specific error behavior.
-        self.assertIn("Sport_Marketing", response.headers.get("content-disposition", ""))
+        content_disposition = response.headers.get("content-disposition", "")
+        self.assertIn("Sport_S_Audit.pdf", content_disposition)
 
 
 class CsvStatusNormalizationTests(unittest.TestCase):
@@ -144,6 +144,57 @@ class CsvStatusNormalizationTests(unittest.TestCase):
             self.assertEqual(la_by_area["F7"]["course"]["code"], "NURS_1210")
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_map_exception_can_target_minor_requirement_row(self):
+        from engines.sport_marketing import apply_exceptions, audit, parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-map-minor-row-"))
+        try:
+            csv_path = tmp_dir / "minor_map_case.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "PSYC-2510,,Grade Posted,A,3,2024-01-10,Developmental Psychology\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            rows = apply_exceptions(rows, "MAP: PSYC-2510 = BSNS_2710")
+            res = audit(rows, minor_key="management_minor")
+            minor_rows = res.get("minor_rows") or []
+            mgmt_req = next((r for r in minor_rows if r.get("id") == "BSNS_2710"), None)
+            self.assertIsNotNone(mgmt_req)
+            self.assertEqual(mgmt_req.get("status"), "Satisfied")
+            self.assertEqual(mgmt_req.get("course", {}).get("code"), "PSYC_2510")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+class FilenameFormattingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._orig_log_file = main.LOG_FILE
+        cls._tmp_dir = tempfile.mkdtemp(prefix="audit-filename-format-")
+        main.LOG_FILE = Path(cls._tmp_dir) / "audit_log.json"
+        cls.client = TestClient(main.app)
+        cls.headers = _auth_headers()
+
+    @classmethod
+    def tearDownClass(cls):
+        main.LOG_FILE = cls._orig_log_file
+        shutil.rmtree(cls._tmp_dir, ignore_errors=True)
+
+    def test_download_filename_uses_first_last_initial(self):
+        files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
+        data = {
+            "student_name": "Tyler Houck",
+            "major": "management",
+            "catalog_year": "2022-23",
+        }
+        response = self.client.post("/generate", data=data, files=files, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        disposition = response.headers.get("content-disposition", "")
+        self.assertIn('filename="Tyler_H_Audit.pdf"', disposition)
 
 
 if __name__ == "__main__":

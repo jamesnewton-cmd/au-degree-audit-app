@@ -241,6 +241,22 @@ def _safe_credits(val, fallback=3):
     return fallback
 
 
+def _download_name_from_student(student_name: str) -> str:
+    """
+    Build download filename stem as FirstName_LastInitial.
+    Falls back gracefully when parts are missing.
+    """
+    cleaned = "".join(c if c.isalnum() or c in " -_" else " " for c in (student_name or "")).strip()
+    parts = [p for p in cleaned.replace("_", " ").split() if p]
+    if not parts:
+        return "Student_A"
+    first = parts[0]
+    last_initial = parts[-1][0] if len(parts) > 1 and parts[-1] else "A"
+    safe_first = "".join(c for c in first if c.isalnum()) or "Student"
+    safe_last_initial = "".join(c for c in last_initial if c.isalnum()) or "A"
+    return f"{safe_first}_{safe_last_initial.upper()}"
+
+
 def _status_of_c(c):
     if c is None:
         return "Not Satisfied"
@@ -717,7 +733,7 @@ async def generate(
         tmp_in.write(csv_bytes)
         tmp_csv = tmp_in.name
 
-    safe_name = "".join(c if c.isalnum() or c in "_ " else "_" for c in student_name).strip()
+    download_stem = _download_name_from_student(student_name)
     tmp_pdf = tempfile.mktemp(suffix=".pdf")
 
     try:
@@ -902,7 +918,7 @@ async def generate(
         sm_mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
 
         total = record_pull("advisor", student_name, major_label, catalog_year)
-        filename = f"{safe_name}_{major_label.replace(' ', '_')}_Audit.pdf"
+        filename = f"{download_stem}_Audit.pdf"
 
         recipients = [e.strip() for e in [advisor_email, student_email] if e.strip()]
         if recipients:
