@@ -21,51 +21,50 @@ from requirements.liberal_arts_requirements import (
     LA_RAVEN_CORE_2526,
 )
 
-
 VALID_CATALOG_YEARS = ["2022-23", "2023-24", "2024-25", "2025-26"]
 
 # Map display names → internal keys for the UI/API
 MAJOR_DISPLAY_NAMES = {
     "2022-23": {
-        "Sport Marketing":               "sport_marketing",
-        "Marketing":                     "marketing",
-        "Management":                    "management",
-        "Accounting":                    "accounting",
-        "Finance":                       "finance",
-        "Engineering Management":        "engineering_management",
-        "Global Business":               "global_business",
-        "Music & Entertainment Business":"music_entertainment_business",
+        "Sport Marketing": "sport_marketing",
+        "Marketing": "marketing",
+        "Management": "management",
+        "Accounting": "accounting",
+        "Finance": "finance",
+        "Engineering Management": "engineering_management",
+        "Global Business": "global_business",
+        "Music & Entertainment Business": "music_entertainment_business",
         "Business & Integrative Leadership": "business_integrative_leadership",
     },
     "2023-24": {
-        "Sport Marketing":               "sport_marketing",
-        "Marketing":                     "marketing",
-        "Management":                    "management",
-        "Accounting":                    "accounting",
-        "Finance":                       "finance",
-        "Business Analytics":            "business_analytics",
-        "Engineering Management":        "engineering_management",
-        "Global Business":               "global_business",
+        "Sport Marketing": "sport_marketing",
+        "Marketing": "marketing",
+        "Management": "management",
+        "Accounting": "accounting",
+        "Finance": "finance",
+        "Business Analytics": "business_analytics",
+        "Engineering Management": "engineering_management",
+        "Global Business": "global_business",
         "Business & Integrative Leadership": "business_integrative_leadership",
     },
     "2024-25": {
-        "Sport Marketing":               "sport_marketing",
-        "Marketing":                     "marketing",
-        "Management":                    "management",
-        "Accounting":                    "accounting",
-        "Finance":                       "finance",
-        "Business Analytics":            "business_analytics",
-        "Engineering Management":        "engineering_management",
+        "Sport Marketing": "sport_marketing",
+        "Marketing": "marketing",
+        "Management": "management",
+        "Accounting": "accounting",
+        "Finance": "finance",
+        "Business Analytics": "business_analytics",
+        "Engineering Management": "engineering_management",
         "Business & Integrative Leadership": "business_integrative_leadership",
     },
     "2025-26": {
-        "Sports Management":             "sport_marketing",  # renamed
-        "Marketing":                     "marketing",
-        "Management":                    "management",
-        "Accounting":                    "accounting",
-        "Finance":                       "finance",
-        "Business Analytics":            "business_analytics",
-        "Engineering Management":        "engineering_management",
+        "Sports Management": "sport_marketing",  # renamed
+        "Marketing": "marketing",
+        "Management": "management",
+        "Accounting": "accounting",
+        "Finance": "finance",
+        "Business Analytics": "business_analytics",
+        "Engineering Management": "engineering_management",
         "Business & Integrative Leadership": "business_integrative_leadership",
     },
 }
@@ -74,21 +73,29 @@ MAJOR_DISPLAY_NAMES = {
 @dataclass
 class CourseRecord:
     """A single completed course from a student transcript."""
+
     code: str
     name: str = ""
     credits: float = 0.0
     grade: str = ""
     term: str = ""
-    is_exception: bool = False   # Waiver/exception flag
+    is_exception: bool = False  # Waiver/exception flag
     is_transfer: bool = False
 
     @property
     def numeric_grade(self) -> float:
         grade_map = {
-            "A": 4.0, "A-": 3.7,
-            "B+": 3.3, "B": 3.0, "B-": 2.7,
-            "C+": 2.3, "C": 2.0, "C-": 1.7,
-            "D+": 1.3, "D": 1.0, "D-": 0.7,
+            "A": 4.0,
+            "A-": 3.7,
+            "B+": 3.3,
+            "B": 3.0,
+            "B-": 2.7,
+            "C+": 2.3,
+            "C": 2.0,
+            "C-": 1.7,
+            "D+": 1.3,
+            "D": 1.0,
+            "D-": 0.7,
             "F": 0.0,
         }
         return grade_map.get(self.grade.upper(), 0.0)
@@ -101,8 +108,9 @@ class CourseRecord:
 @dataclass
 class RequirementResult:
     """Result of checking a single requirement."""
+
     label: str
-    status: str          # "Satisfied" | "In Progress" | "Not Satisfied"
+    status: str  # "Satisfied" | "In Progress" | "Not Satisfied"
     satisfying_course: Optional[str] = None
     satisfying_courses: list = field(default_factory=list)
     credits_earned: float = 0.0
@@ -113,6 +121,7 @@ class RequirementResult:
 @dataclass
 class AuditResult:
     """Full audit result for one student."""
+
     student_name: str = ""
     student_id: str = ""
     catalog_year: str = ""
@@ -128,14 +137,16 @@ class AuditResult:
     minor_requirements: list = field(default_factory=list)
 
     # Student Action Plan (6 categories)
-    action_plan: dict = field(default_factory=lambda: {
-        "liberal_arts_outstanding":  [],
-        "core_outstanding":          [],
-        "major_outstanding":         [],
-        "minor_outstanding":         [],
-        "gpa_concerns":              [],
-        "other":                     [],
-    })
+    action_plan: dict = field(
+        default_factory=lambda: {
+            "liberal_arts_outstanding": [],
+            "core_outstanding": [],
+            "major_outstanding": [],
+            "minor_outstanding": [],
+            "gpa_concerns": [],
+            "other": [],
+        }
+    )
 
     is_complete: bool = False
     summary: str = ""
@@ -189,13 +200,12 @@ class AuditEngine:
             student_name=student_name,
             student_id=student_id,
             catalog_year=self.catalog_year,
-            major=self.major_reqs.get("name", self.major_key) if self.major_reqs else self.major_key,
+            major=(
+                self.major_reqs.get("name", self.major_key) if self.major_reqs else self.major_key
+            ),
         )
 
-        completed_codes = {
-            self._norm(c.code)
-            for c in completed_courses if c.passing
-        }
+        completed_codes = {self._norm(c.code) for c in completed_courses if c.passing}
 
         # Compute GPAs
         result.overall_gpa = self._compute_gpa(completed_courses)
@@ -213,7 +223,12 @@ class AuditEngine:
         result.action_plan = self._build_action_plan(result)
 
         # Overall completion
-        all_reqs = result.liberal_arts + result.business_core + result.major_requirements + result.minor_requirements
+        all_reqs = (
+            result.liberal_arts
+            + result.business_core
+            + result.major_requirements
+            + result.minor_requirements
+        )
         result.is_complete = all(r.status == "Satisfied" for r in all_reqs)
         result.summary = self._build_summary(result, all_reqs)
 
@@ -247,7 +262,9 @@ class AuditEngine:
 
         # F2 — Civil Discourse
         f2_courses = LA_OLD_FRAMEWORK["F2"]["courses"][year]
-        f2 = self._check_any_course("F2 Civil Discourse & Critical Reasoning", f2_courses, completed_codes)
+        f2 = self._check_any_course(
+            "F2 Civil Discourse & Critical Reasoning", f2_courses, completed_codes
+        )
         results.append(f2)
 
         # F3 — Written Communication (ENGL + 2 WI)
@@ -267,7 +284,7 @@ class AuditEngine:
         f6 = self._check_single_course("F6 Biblical Literacy", "BIBL 2000", completed_codes)
         results.append(f6)
 
-                # F6 — Biblical Literacy
+        # F6 — Biblical Literacy
         f6 = self._check_single_course("F6 Biblical Literacy", "BIBL 2000", completed_codes)
         results.append(f6)
 
@@ -297,7 +314,7 @@ class AuditEngine:
             notes="" if f7_found else "Any PEHS course, DANC 3060, or NURS 1210",
         )
         results.append(f7)
-        
+
         # W1 — Christian Ways of Knowing
         w1_courses = LA_OLD_FRAMEWORK["W1"]["courses"][year]
         w1 = self._check_any_course("W1 Christian Ways of Knowing", w1_courses, completed_codes)
@@ -305,7 +322,9 @@ class AuditEngine:
 
         # W2 — Scientific Ways of Knowing
         w2_courses = LA_OLD_FRAMEWORK["W2"]["courses"][year]
-        w2 = self._check_any_course("W2 Scientific Ways of Knowing (Lab)", w2_courses, completed_codes)
+        w2 = self._check_any_course(
+            "W2 Scientific Ways of Knowing (Lab)", w2_courses, completed_codes
+        )
         results.append(w2)
 
         # W3 — Civic Ways of Knowing
@@ -319,7 +338,9 @@ class AuditEngine:
 
         # W5 — Social & Behavioral
         w5_courses = LA_OLD_FRAMEWORK["W5"]["courses"][year]
-        w5 = self._check_any_course("W5 Social & Behavioral Ways of Knowing", w5_courses, completed_codes)
+        w5 = self._check_any_course(
+            "W5 Social & Behavioral Ways of Knowing", w5_courses, completed_codes
+        )
         results.append(w5)
 
         # W6 — Modern Languages
@@ -329,7 +350,9 @@ class AuditEngine:
 
         # W7 — Global/Intercultural
         w7_courses = LA_OLD_FRAMEWORK["W7"]["courses"][year]
-        w7 = self._check_any_course("W7 Global/Intercultural Ways of Knowing", w7_courses, completed_codes)
+        w7 = self._check_any_course(
+            "W7 Global/Intercultural Ways of Knowing", w7_courses, completed_codes
+        )
         results.append(w7)
 
         # W8 — Experiential (auto-satisfied if F1 done)
@@ -342,7 +365,9 @@ class AuditEngine:
             )
         else:
             w8_courses = LA_OLD_FRAMEWORK["W8"]["courses"][year]
-            w8 = self._check_any_course("W8 Experiential Ways of Knowing", w8_courses, completed_codes)
+            w8 = self._check_any_course(
+                "W8 Experiential Ways of Knowing", w8_courses, completed_codes
+            )
             if w8.status != "Satisfied":
                 w8.notes = "Can also be satisfied when F1 (LART 1050) is completed"
         results.append(w8)
@@ -361,11 +386,13 @@ class AuditEngine:
                 r = self._check_any_course(section["label"], section["courses"], completed_codes)
                 results.append(r)
         else:
-            results.append(RequirementResult(
-                label="Raven Core (RC1–RC6)",
-                status="Satisfied",
-                notes="ICC exemption applied — Indiana College Core completed",
-            ))
+            results.append(
+                RequirementResult(
+                    label="Raven Core (RC1–RC6)",
+                    status="Satisfied",
+                    notes="ICC exemption applied — Indiana College Core completed",
+                )
+            )
 
         # AU1–AU6
         for au_key in ["AU1", "AU2", "AU3", "AU4", "AU5", "AU6"]:
@@ -378,12 +405,15 @@ class AuditEngine:
     def _check_f3(self, completed_codes, courses, year) -> RequirementResult:
         """F3: ENGL 1100/1110 + ENGL 1120 + 2 WI courses."""
         engl_base = (
-            self._norm("ENGL 1100") in completed_codes or
-            self._norm("ENGL 1110") in completed_codes
+            self._norm("ENGL 1100") in completed_codes or self._norm("ENGL 1110") in completed_codes
         )
         engl_1120 = self._norm("ENGL 1120") in completed_codes
         wi_courses = LA_OLD_FRAMEWORK["F3"]["wi_courses"][year]
-        wi_found = [c for c in wi_courses if self._norm(c) in completed_codes and self._norm(c) != self._norm("ENGL 1120")]
+        wi_found = [
+            c
+            for c in wi_courses
+            if self._norm(c) in completed_codes and self._norm(c) != self._norm("ENGL 1120")
+        ]
         wi_satisfied = len(wi_found) >= 2
 
         all_good = engl_base and engl_1120 and wi_satisfied
@@ -402,6 +432,7 @@ class AuditEngine:
             satisfying_courses=wi_found,
             notes="; ".join(missing_parts) if missing_parts else "",
         )
+
     def _check_f4(self, completed_codes, year) -> RequirementResult:
         """F4: COMM 1000 + 1 SI course."""
         comm1000 = self._norm("COMM 1000") in completed_codes
@@ -463,39 +494,45 @@ class AuditEngine:
             for course in standalone:
                 code = course["code"]
                 status = "Satisfied" if code in completed_codes else "Not Satisfied"
-                results.append(RequirementResult(
-                    label=f"{code} — {course.get('name', '')}",
-                    status=status,
-                    satisfying_course=code if status == "Satisfied" else None,
-                    credits_required=course.get("credits", 3),
-                    credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
-                ))
+                results.append(
+                    RequirementResult(
+                        label=f"{code} — {course.get('name', '')}",
+                        status=status,
+                        satisfying_course=code if status == "Satisfied" else None,
+                        credits_required=course.get("credits", 3),
+                        credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
+                    )
+                )
             return results
 
         for course in core.get("required", []):
             code = course["code"]
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
-            results.append(RequirementResult(
-                label=f"{code} — {course.get('name', '')}",
-                status=status,
-                satisfying_course=code if status == "Satisfied" else None,
-                credits_required=course["credits"],
-                credits_earned=course["credits"] if status == "Satisfied" else 0,
-                notes=f"Also satisfies: {also}" if also else "",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"{code} — {course.get('name', '')}",
+                    status=status,
+                    satisfying_course=code if status == "Satisfied" else None,
+                    credits_required=course["credits"],
+                    credits_earned=course["credits"] if status == "Satisfied" else 0,
+                    notes=f"Also satisfies: {also}" if also else "",
+                )
+            )
 
         # Math requirement (22-23 through 24-25 only)
         math_req = core.get("math_requirement")
         if math_req:
             math_options = [c["code"] for c in math_req["choose_one"]]
             math_found = [c for c in math_options if c in completed_codes]
-            results.append(RequirementResult(
-                label=f"Math Requirement (one of: {', '.join(math_options)})",
-                status="Satisfied" if math_found else "Not Satisfied",
-                satisfying_course=math_found[0] if math_found else None,
-                notes=math_req["note"],
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Math Requirement (one of: {', '.join(math_options)})",
+                    status="Satisfied" if math_found else "Not Satisfied",
+                    satisfying_course=math_found[0] if math_found else None,
+                    notes=math_req["note"],
+                )
+            )
 
         return results
 
@@ -505,11 +542,13 @@ class AuditEngine:
 
     def _check_major(self, courses, completed_codes) -> list[RequirementResult]:
         if not self.major_reqs:
-            return [RequirementResult(
-                label="Major",
-                status="Not Satisfied",
-                notes=f"Major '{self.major_key}' not available for {self.catalog_year}",
-            )]
+            return [
+                RequirementResult(
+                    label="Major",
+                    status="Not Satisfied",
+                    notes=f"Major '{self.major_key}' not available for {self.catalog_year}",
+                )
+            ]
 
         results = []
 
@@ -518,40 +557,46 @@ class AuditEngine:
             code = course["code"]
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
-            results.append(RequirementResult(
-                label=f"{code} — {course.get('name', '')}",
-                status=status,
-                satisfying_course=code if status == "Satisfied" else None,
-                credits_required=course.get("credits", 3),
-                credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
-                notes=f"Also satisfies: {also}" if also else "",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"{code} — {course.get('name', '')}",
+                    status=status,
+                    satisfying_course=code if status == "Satisfied" else None,
+                    credits_required=course.get("credits", 3),
+                    credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
+                    notes=f"Also satisfies: {also}" if also else "",
+                )
+            )
 
         # Major courses (Sport Marketing style)
         for course in self.major_reqs.get("major_courses", []):
             code = course["code"]
             status = "Satisfied" if code in completed_codes else "Not Satisfied"
             also = ", ".join(course.get("also_satisfies", []))
-            results.append(RequirementResult(
-                label=f"{code} — {course.get('name', '')}",
-                status=status,
-                satisfying_course=code if status == "Satisfied" else None,
-                credits_required=course.get("credits", 3),
-                credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
-                notes=f"Also satisfies: {also}" if also else "",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"{code} — {course.get('name', '')}",
+                    status=status,
+                    satisfying_course=code if status == "Satisfied" else None,
+                    credits_required=course.get("credits", 3),
+                    credits_earned=course.get("credits", 3) if status == "Satisfied" else 0,
+                    notes=f"Also satisfies: {also}" if also else "",
+                )
+            )
 
         # Choose-one block
         choose_one = self.major_reqs.get("choose_one")
         if choose_one:
             options = choose_one.get("options", [])
             found = [o for o in options if o["code"] in completed_codes]
-            results.append(RequirementResult(
-                label=f"Choose One: {choose_one.get('note', '')}",
-                status="Satisfied" if found else "Not Satisfied",
-                satisfying_course=found[0]["code"] if found else None,
-                notes=f"Options: {', '.join(o['code'] for o in options)}",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Choose One: {choose_one.get('note', '')}",
+                    status="Satisfied" if found else "Not Satisfied",
+                    satisfying_course=found[0]["code"] if found else None,
+                    notes=f"Options: {', '.join(o['code'] for o in options)}",
+                )
+            )
 
         # Elective block
         elective = self.major_reqs.get("elective")
@@ -560,14 +605,16 @@ class AuditEngine:
             needed_credits = elective.get("credits", 3)
             found = [c for c in choose_from if c in completed_codes]
             earned = sum(3 for _ in found)  # Assume 3 cr each
-            results.append(RequirementResult(
-                label=f"Elective ({needed_credits} cr from approved list)",
-                status="Satisfied" if earned >= needed_credits else "Not Satisfied",
-                satisfying_courses=found,
-                credits_required=needed_credits,
-                credits_earned=earned,
-                notes=f"Options: {', '.join(choose_from)}",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Elective ({needed_credits} cr from approved list)",
+                    status="Satisfied" if earned >= needed_credits else "Not Satisfied",
+                    satisfying_courses=found,
+                    credits_required=needed_credits,
+                    credits_earned=earned,
+                    notes=f"Options: {', '.join(choose_from)}",
+                )
+            )
 
         # Electives block (Management style — 6 cr choose from list)
         electives = self.major_reqs.get("electives")
@@ -576,14 +623,16 @@ class AuditEngine:
             needed_credits = electives.get("credits", 6)
             found = [c for c in choose_from if c in completed_codes]
             earned = sum(3 for _ in found)
-            results.append(RequirementResult(
-                label=f"Major Electives ({needed_credits} cr)",
-                status="Satisfied" if earned >= needed_credits else "Not Satisfied",
-                satisfying_courses=found,
-                credits_required=needed_credits,
-                credits_earned=earned,
-                notes=f"Options: {', '.join(choose_from)}",
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Major Electives ({needed_credits} cr)",
+                    status="Satisfied" if earned >= needed_credits else "Not Satisfied",
+                    satisfying_courses=found,
+                    credits_required=needed_credits,
+                    credits_earned=earned,
+                    notes=f"Options: {', '.join(choose_from)}",
+                )
+            )
 
         # Concentration handling (Marketing 22-23)
         concentrations = self.major_reqs.get("concentrations")
@@ -592,11 +641,13 @@ class AuditEngine:
             first_val = next(iter(concentrations.values()), None)
             if isinstance(first_val, str):
                 # It's a {note: str, options: list} style — just note it
-                results.append(RequirementResult(
-                    label=f"Concentration: {concentrations.get('note', 'see advisor')}",
-                    status="Not Satisfied",
-                    notes=f"Options: {', '.join(concentrations.get('options', []))}",
-                ))
+                results.append(
+                    RequirementResult(
+                        label=f"Concentration: {concentrations.get('note', 'see advisor')}",
+                        status="Not Satisfied",
+                        notes=f"Options: {', '.join(concentrations.get('options', []))}",
+                    )
+                )
             else:
                 # Check if any concentration is fully satisfied
                 concentration_found = False
@@ -607,19 +658,23 @@ class AuditEngine:
                     found = [c for c in conc_codes if c in completed_codes]
                     if len(found) == len(conc_codes) and len(conc_codes) > 0:
                         concentration_found = True
-                        results.append(RequirementResult(
-                            label=f"Concentration: {conc_name}",
-                            status="Satisfied",
-                            satisfying_courses=found,
-                            notes="Concentration requirement met",
-                        ))
+                        results.append(
+                            RequirementResult(
+                                label=f"Concentration: {conc_name}",
+                                status="Satisfied",
+                                satisfying_courses=found,
+                                notes="Concentration requirement met",
+                            )
+                        )
                         break
                 if not concentration_found:
-                    results.append(RequirementResult(
-                        label="Concentration (choose one)",
-                        status="Not Satisfied",
-                        notes=f"Available: {', '.join(k for k in concentrations.keys() if k not in ('note','options'))}",
-                    ))
+                    results.append(
+                        RequirementResult(
+                            label="Concentration (choose one)",
+                            status="Not Satisfied",
+                            notes=f"Available: {', '.join(k for k in concentrations.keys() if k not in ('note','options'))}",
+                        )
+                    )
 
         return results
 
@@ -634,11 +689,13 @@ class AuditEngine:
         results = []
         required = self.minor_reqs.get("required", [])
         for code in required:
-            results.append(RequirementResult(
-                label=f"Minor: {code}",
-                status="Satisfied" if code in completed_codes else "Not Satisfied",
-                satisfying_course=code if code in completed_codes else None,
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Minor: {code}",
+                    status="Satisfied" if code in completed_codes else "Not Satisfied",
+                    satisfying_course=code if code in completed_codes else None,
+                )
+            )
 
         # Elective/choose_from blocks
         for key in ["choose_6_from", "choose_9_from", "elective"]:
@@ -655,13 +712,15 @@ class AuditEngine:
                 continue
             found = [c for c in choose_from if c in completed_codes]
             earned = sum(3 for _ in found)
-            results.append(RequirementResult(
-                label=f"Minor Elective ({needed} cr)",
-                status="Satisfied" if earned >= needed else "Not Satisfied",
-                satisfying_courses=found,
-                credits_required=needed,
-                credits_earned=earned,
-            ))
+            results.append(
+                RequirementResult(
+                    label=f"Minor Elective ({needed} cr)",
+                    status="Satisfied" if earned >= needed else "Not Satisfied",
+                    satisfying_courses=found,
+                    credits_required=needed,
+                    credits_earned=earned,
+                )
+            )
 
         return results
 
@@ -689,7 +748,9 @@ class AuditEngine:
         for c in self.core_reqs["required"]:
             major_codes.add(c["code"])
 
-        major_courses = [c for c in courses if c.code in major_codes and c.grade.upper() not in ("W", "WF")]
+        major_courses = [
+            c for c in courses if c.code in major_codes and c.grade.upper() not in ("W", "WF")
+        ]
         if not major_courses:
             return 0.0
         total_points = sum(c.numeric_grade * c.credits for c in major_courses)
@@ -702,12 +763,12 @@ class AuditEngine:
 
     def _build_action_plan(self, result: AuditResult) -> dict:
         plan = {
-            "liberal_arts_outstanding":  [],
-            "core_outstanding":          [],
-            "major_outstanding":         [],
-            "minor_outstanding":         [],
-            "gpa_concerns":              [],
-            "other":                     [],
+            "liberal_arts_outstanding": [],
+            "core_outstanding": [],
+            "major_outstanding": [],
+            "minor_outstanding": [],
+            "gpa_concerns": [],
+            "other": [],
         }
         for r in result.liberal_arts:
             if r.status != "Satisfied":
@@ -724,7 +785,9 @@ class AuditEngine:
         if result.major_gpa < 2.0:
             plan["gpa_concerns"].append(f"Major GPA {result.major_gpa:.2f} — minimum 2.0 required")
         if result.overall_gpa < 2.0:
-            plan["gpa_concerns"].append(f"Overall GPA {result.overall_gpa:.2f} — minimum 2.0 required for graduation")
+            plan["gpa_concerns"].append(
+                f"Overall GPA {result.overall_gpa:.2f} — minimum 2.0 required for graduation"
+            )
         return plan
 
     # ─────────────────────────────────────────────
@@ -743,7 +806,7 @@ class AuditEngine:
             f"See Student Action Plan for details."
         )
 
-       # ─────────────────────────────────────────────
+    # ─────────────────────────────────────────────
     # HELPERS
     # ─────────────────────────────────────────────
 
@@ -771,12 +834,11 @@ class AuditEngine:
             notes=f"Options: {', '.join(options)}" if not found else "",
         )
 
-      
-
 
 # ─────────────────────────────────────────────
 # CONVENIENCE: CSV/DICT PARSER
 # ─────────────────────────────────────────────
+
 
 def parse_courses_from_dict(course_list: list[dict]) -> list[CourseRecord]:
     """
@@ -785,15 +847,17 @@ def parse_courses_from_dict(course_list: list[dict]) -> list[CourseRecord]:
     """
     records = []
     for item in course_list:
-        records.append(CourseRecord(
-            code=item.get("code", "").strip().upper(),
-            name=item.get("name", ""),
-            credits=float(item.get("credits", 0)),
-            grade=item.get("grade", ""),
-            term=item.get("term", ""),
-            is_exception=bool(item.get("is_exception", False)),
-            is_transfer=bool(item.get("is_transfer", False)),
-        ))
+        records.append(
+            CourseRecord(
+                code=item.get("code", "").strip().upper(),
+                name=item.get("name", ""),
+                credits=float(item.get("credits", 0)),
+                grade=item.get("grade", ""),
+                term=item.get("term", ""),
+                is_exception=bool(item.get("is_exception", False)),
+                is_transfer=bool(item.get("is_transfer", False)),
+            )
+        )
     return records
 
 

@@ -35,10 +35,10 @@ audit_app/
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 
 # Run locally
-uvicorn main:app --reload
+python3 -m uvicorn main:app --reload
 
 # Open in browser
 http://localhost:8000
@@ -46,6 +46,35 @@ http://localhost:8000
 
 Default password for local dev: `ravens2025`
 **Change this before deploying.**
+
+---
+
+## Stop Indentation Errors Before They Reach GitHub/Render
+
+This project includes auto-format and syntax guardrails:
+
+- `pyproject.toml` configures Black
+- `.pre-commit-config.yaml` runs Python AST checks + formatting hooks
+- `Makefile` provides one-command checks
+
+### One-time setup
+
+```bash
+python3 -m pip install black pre-commit
+python3 -m pre_commit install
+```
+
+### Everyday workflow (recommended)
+
+```bash
+# format code consistently (fixes indentation style issues)
+make fmt
+
+# fail fast if Python syntax/indentation is broken
+make check
+```
+
+If `make check` fails, fix the reported file before committing/pushing.
 
 ---
 

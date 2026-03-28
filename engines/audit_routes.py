@@ -32,6 +32,7 @@ router = APIRouter()
 # REQUEST / RESPONSE MODELS
 # ─────────────────────────────────────────────
 
+
 class CourseInput(BaseModel):
     code: str
     name: str = ""
@@ -45,8 +46,8 @@ class CourseInput(BaseModel):
 class AuditRequest(BaseModel):
     student_name: str = ""
     student_id: str = ""
-    catalog_year: str           # e.g. "2022-23"
-    major: str                  # Display name e.g. "Management" or key e.g. "management"
+    catalog_year: str  # e.g. "2022-23"
+    major: str  # Display name e.g. "Management" or key e.g. "management"
     minor: Optional[str] = None
     icc_exempt: bool = False
     courses: list[CourseInput]
@@ -83,6 +84,7 @@ class AuditResultOut(BaseModel):
 # HELPERS
 # ─────────────────────────────────────────────
 
+
 def resolve_major_key(major_display: str, catalog_year: str) -> str:
     """Convert a display name or key to the internal major key."""
     # Try direct key first
@@ -90,12 +92,13 @@ def resolve_major_key(major_display: str, catalog_year: str) -> str:
         return MAJOR_DISPLAY_NAMES[catalog_year][major_display]
     # Try treating it as an already-resolved key
     from requirements.fsb_majors import FSB_MAJORS
+
     if major_display in FSB_MAJORS:
         return major_display
     raise HTTPException(
         status_code=400,
         detail=f"Major '{major_display}' not found for catalog year {catalog_year}. "
-               f"Available: {list(MAJOR_DISPLAY_NAMES.get(catalog_year, {}).keys())}"
+        f"Available: {list(MAJOR_DISPLAY_NAMES.get(catalog_year, {}).keys())}",
     )
 
 
@@ -115,6 +118,7 @@ def resolve_minor_key(minor_display: str | None) -> str | None:
 
 def audit_result_to_dict(r: AuditResult) -> dict:
     """Serialize AuditResult to JSON-safe dict."""
+
     def req_to_dict(req):
         return {
             "label": req.label,
@@ -125,6 +129,7 @@ def audit_result_to_dict(r: AuditResult) -> dict:
             "credits_required": req.credits_required,
             "notes": req.notes,
         }
+
     return {
         "student_name": r.student_name,
         "student_id": r.student_id,
@@ -146,6 +151,7 @@ def audit_result_to_dict(r: AuditResult) -> dict:
 # ─────────────────────────────────────────────
 # ROUTES
 # ─────────────────────────────────────────────
+
 
 @router.get("/catalog-years")
 def get_catalog_years():
@@ -215,7 +221,7 @@ class BatchAuditRequest(BaseModel):
     major: str
     minor: Optional[str] = None
     icc_exempt: bool = False
-    students: list[dict]   # Each dict: {student_name, student_id, courses: [...]}
+    students: list[dict]  # Each dict: {student_name, student_id, courses: [...]}
 
 
 @router.post("/audit/batch")
@@ -274,7 +280,7 @@ class NonFSBAuditRequest(BaseModel):
     student_name: str = ""
     student_id: str = ""
     catalog_year: str
-    program_key: str          # e.g. "biology_ba", "theatre", "nursing_bsn"
+    program_key: str  # e.g. "biology_ba", "theatre", "nursing_bsn"
     courses: list[CourseInput]
 
 
@@ -301,7 +307,7 @@ async def run_non_fsb_audit_endpoint(request: NonFSBAuditRequest):
     if not program_exists_in_year(request.program_key, request.catalog_year):
         raise HTTPException(
             status_code=404,
-            detail=f"Program '{request.program_key}' not available in {request.catalog_year}"
+            detail=f"Program '{request.program_key}' not available in {request.catalog_year}",
         )
 
     transcript = [

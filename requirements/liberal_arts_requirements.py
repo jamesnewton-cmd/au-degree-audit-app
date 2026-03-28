@@ -49,87 +49,87 @@ AND = satisfies both; OR = satisfies only one (engine enforces single-use for OR
 
 LA_OLD_FRAMEWORK = {
     "years": ["2022-23", "2023-24", "2024-25"],
-
     # ── F1 Understanding College ────────────────────────────────────────────
     "F1": {
         "label": "F1 Understanding College",
         "credits": 1,
         "courses": {
-            "2022-23": ["LART_1050", "HNRS_2110"],   # Honors students exempt via HNRS-2110
+            "2022-23": ["LART_1050", "HNRS_2110"],  # Honors students exempt via HNRS-2110
             "2023-24": ["LART_1050", "HNRS_2110"],
             "2024-25": ["LART_1050", "HNRS_2110"],
         },
         "special_rule": "F1_SATISFIES_W8_FSB_ONLY",
         "honors_note": "Honors students exempt from LART-1050; HNRS-2110 satisfies F1",
     },
-
     # ── F2 Civil Discourse & Critical Reasoning ─────────────────────────────
     "F2": {
         "label": "F2 Civil Discourse & Critical Reasoning",
         "credits": {"2022-23": 2, "2023-24": 3, "2024-25": 3},
         "courses": {
             "2022-23": [
-                "BIOL_3510", "PUBH_3510",
+                "BIOL_3510",
+                "PUBH_3510",
                 "BSNS_3420",
                 "CMIN_2270",
-                "ENGL_3190",   # also WI
-                "ENGL_3580",   # also WI
+                "ENGL_3190",  # also WI
+                "ENGL_3580",  # also WI
                 "ENGR_2060",
-                "HIST_2300",   # also SI
-                "HNRS_2125",   # also SI
+                "HIST_2300",  # also SI
+                "HNRS_2125",  # also SI
                 "LART_1100",
                 "MUED_1000",
                 "PHIL_2000",
                 "PHIL_2120",
                 "POSC_2020",
-                "PSYC_3200",   # also SI
+                "PSYC_3200",  # also SI
                 "RLGN_3120",
-                "SOCI_2450",   # OR W7
+                "SOCI_2450",  # OR W7
                 "SPED_2400",
             ],
             "2023-24": [
-                "BIOL_3510", "PUBH_3510",
+                "BIOL_3510",
+                "PUBH_3510",
                 "BSNS_3420",
                 "CMIN_2270",
                 "COMM_3200",
-                "ENGL_3190",   # also WI
-                "ENGL_3580",   # also WI
+                "ENGL_3190",  # also WI
+                "ENGL_3580",  # also WI
                 "ENGR_2060",
-                "HIST_2300",   # also SI
-                "HNRS_2125",   # also SI
+                "HIST_2300",  # also SI
+                "HNRS_2125",  # also SI
                 "LART_1100",
                 "MUED_1000",
                 "PHIL_2000",
                 "PHIL_2120",
                 "POSC_2020",
-                "PSYC_3200",   # also SI
+                "PSYC_3200",  # also SI
                 "RLGN_3120",
-                "SOCI_2450",   # OR W7
+                "SOCI_2450",  # OR W7
                 "SPED_2400",
             ],
             "2024-25": [
-                "BIOL_3510", "PUBH_3510",
+                "BIOL_3510",
+                "PUBH_3510",
                 "BSNS_3420",
                 "CMIN_2270",
                 "COMM_3200",
-                "ENGL_3190",   # also WI
-                "ENGL_3580",   # also WI
+                "ENGL_3190",  # also WI
+                "ENGL_3580",  # also WI
                 "ENGR_2060",
-                "HIST_2300",   # also SI
-                "HNRS_2125",   # also SI
+                "HIST_2300",  # also SI
+                "HNRS_2125",  # also SI
                 "LART_1100",
                 "MUED_1000",
                 "PHIL_2000",
                 "PHIL_2120",
                 "POSC_2020",
-                "PSYC_3200",   # also SI
+                "PSYC_3200",  # also SI
                 "RLGN_3120",
-                "SOCI_2450",   # OR W7
+                "SOCI_2450",  # OR W7
                 "SPED_2400",
             ],
         },
     },
-
     # ── F3 Written Communication ────────────────────────────────────────────
     # HNRS 2110 can satisfy F3 OR W3 (not both) — engine enforces single-use
     "F3": {
@@ -138,45 +138,59 @@ LA_OLD_FRAMEWORK = {
         "required_courses": ["ENGL_1100", "ENGL_1110", "ENGL_1120", "HNRS_2110"],
         "notes": "ENGL 1100/1110 interchangeable by placement. HNRS 2110 satisfies F3 OR W3.",
     },
-
     # ── F4 Speaking and Listening ────────────────────────────────────────────
     "F4": {
         "label": "F4 Speaking and Listening",
         "credits": 3,
         "required_courses": ["COMM_1000"],
         "requires_si": True,
-        "notes": "Plus one SI-designated course."
+        "notes": "Plus one SI-designated course.",
     },
-
     # ── F5 Quantitative Reasoning ────────────────────────────────────────────
     "F5": {
         "label": "F5 Quantitative Reasoning",
         "credits": 3,
         "courses": {
             "2022-23": [
-                "CPSC_1100", "CPSC_1200", "CPSC_1400",
+                "CPSC_1100",
+                "CPSC_1200",
+                "CPSC_1400",
                 "LEAD_3100",
-                "MATH_1100", "MATH_1250", "MATH_1300", "MATH_1400",
-                "MATH_2010", "MATH_2120",
+                "MATH_1100",
+                "MATH_1250",
+                "MATH_1300",
+                "MATH_1400",
+                "MATH_2010",
+                "MATH_2120",
                 "PSYC_2440",
             ],
             "2023-24": [
-                "CPSC_1100", "CPSC_1200", "CPSC_2020",
+                "CPSC_1100",
+                "CPSC_1200",
+                "CPSC_2020",
                 "LEAD_3100",
-                "MATH_1100", "MATH_1220", "MATH_1250", "MATH_1300", "MATH_1400",
-                "MATH_2010", "MATH_2120",
+                "MATH_1100",
+                "MATH_1220",
+                "MATH_1250",
+                "MATH_1300",
+                "MATH_1400",
+                "MATH_2010",
+                "MATH_2120",
                 "PSYC_2440",
             ],
             "2024-25": [
                 "CPSC_2020",
                 "LEAD_3100",
-                "MATH_1100", "MATH_1220", "MATH_1250", "MATH_1300",
-                "MATH_2010", "MATH_2120",
+                "MATH_1100",
+                "MATH_1220",
+                "MATH_1250",
+                "MATH_1300",
+                "MATH_2010",
+                "MATH_2120",
                 "PSYC_2440",
             ],
         },
     },
-
     # ── F6 Biblical Literacy ─────────────────────────────────────────────────
     "F6": {
         "label": "F6 Biblical Literacy",
@@ -187,7 +201,6 @@ LA_OLD_FRAMEWORK = {
             "2024-25": ["BIBL_2000"],
         },
     },
-
     # ── F7 Personal Wellness ─────────────────────────────────────────────────
     "F7": {
         "label": "F7 Personal Wellness",
@@ -198,79 +211,104 @@ LA_OLD_FRAMEWORK = {
             "2024-25": ["PEHS_1000", "DANC_3060", "NURS_1210"],
         },
     },
-
     # ── W1 Christian Ways of Knowing ─────────────────────────────────────────
     "W1": {
         "label": "W1 Christian Ways of Knowing",
         "credits": 3,
         "courses": {
             "2022-23": [
-                "BIBL_3000", "RLGN_3000",   # cross-listed, also WI
+                "BIBL_3000",
+                "RLGN_3000",  # cross-listed, also WI
                 "BIBL_3410",
-                "HNRS_3325",                 # Honors only
-                "PHIL_3250", "RLGN_3250",
+                "HNRS_3325",  # Honors only
+                "PHIL_3250",
+                "RLGN_3250",
                 "RLGN_3010",
                 "RLGN_3020",
                 "RLGN_3100",
             ],
             "2023-24": [
-                "BIBL_3000", "RLGN_3000",
+                "BIBL_3000",
+                "RLGN_3000",
                 "BIBL_3410",
                 "HNRS_3325",
-                "PHIL_3250", "RLGN_3250",
+                "PHIL_3250",
+                "RLGN_3250",
                 "RLGN_3010",
                 "RLGN_3020",
                 "RLGN_3100",
             ],
             "2024-25": [
-                "BIBL_3000", "RLGN_3000",
+                "BIBL_3000",
+                "RLGN_3000",
                 "BIBL_3410",
                 "HNRS_3325",
-                "PHIL_3250", "RLGN_3250",
+                "PHIL_3250",
+                "RLGN_3250",
                 "RLGN_3010",
                 "RLGN_3020",
                 "RLGN_3100",
             ],
         },
     },
-
     # ── W2 Scientific Ways of Knowing ────────────────────────────────────────
     "W2": {
         "label": "W2 Scientific Ways of Knowing",
         "credits": 4,
         "courses": {
             "2022-23": [
-                "BIOL_1000", "BIOL_2070", "BIOL_2080", "BIOL_2210",
-                "CHEM_1000", "CHEM_2110",
+                "BIOL_1000",
+                "BIOL_2070",
+                "BIOL_2080",
+                "BIOL_2210",
+                "CHEM_1000",
+                "CHEM_2110",
                 "EXSC_2140",
                 "HNRS_2210",
-                "PHYS_1000", "PHYS_1020", "PHYS_1140", "PHYS_1240",
-                "PHYS_2140", "PHYS_2240",
+                "PHYS_1000",
+                "PHYS_1020",
+                "PHYS_1140",
+                "PHYS_1240",
+                "PHYS_2140",
+                "PHYS_2240",
                 "PSYC_3210",
             ],
             "2023-24": [
-                "BIOL_1000", "BIOL_2070", "BIOL_2080", "BIOL_2210",
-                "CHEM_1000", "CHEM_2110",
+                "BIOL_1000",
+                "BIOL_2070",
+                "BIOL_2080",
+                "BIOL_2210",
+                "CHEM_1000",
+                "CHEM_2110",
                 "CPSC_2040",
                 "EXSC_2140",
                 "HNRS_2210",
-                "PHYS_1000", "PHYS_1020", "PHYS_1240",
-                "PHYS_2140", "PHYS_2240",
+                "PHYS_1000",
+                "PHYS_1020",
+                "PHYS_1240",
+                "PHYS_2140",
+                "PHYS_2240",
                 "PSYC_3210",
             ],
             "2024-25": [
-                "BIOL_1000", "BIOL_2070", "BIOL_2080", "BIOL_2210",
-                "CHEM_1000", "CHEM_2110",
+                "BIOL_1000",
+                "BIOL_2070",
+                "BIOL_2080",
+                "BIOL_2210",
+                "CHEM_1000",
+                "CHEM_2110",
                 "CPSC_2040",
                 "EXSC_2140",
                 "HNRS_2210",
-                "PHYS_1000", "PHYS_1020", "PHYS_1240",
-                "PHYS_2140", "PHYS_2240",
+                "PHYS_1000",
+                "PHYS_1020",
+                "PHYS_1240",
+                "PHYS_2140",
+                "PHYS_2240",
                 "PSYC_3210",
             ],
         },
     },
-
     # ── W3 Civic Ways of Knowing ──────────────────────────────────────────────
     # HNRS 2110 satisfies F3 OR W3 (not both) — engine enforces single-use
     # HNRS 2300 added 24-25 only
@@ -280,29 +318,34 @@ LA_OLD_FRAMEWORK = {
         "courses": {
             "2022-23": [
                 "HIST_2000",
-                "HIST_2030", "HIST_2040",
-                "HIST_2110", "HIST_2120",
-                "HNRS_2110",   # OR F3
+                "HIST_2030",
+                "HIST_2040",
+                "HIST_2110",
+                "HIST_2120",
+                "HNRS_2110",  # OR F3
                 "POSC_2100",
             ],
             "2023-24": [
                 "HIST_2000",
-                "HIST_2030", "HIST_2040",
-                "HIST_2110", "HIST_2120",
-                "HNRS_2110",   # OR F3
+                "HIST_2030",
+                "HIST_2040",
+                "HIST_2110",
+                "HIST_2120",
+                "HNRS_2110",  # OR F3
                 "POSC_2100",
             ],
             "2024-25": [
                 "HIST_2000",
-                "HIST_2030", "HIST_2040",
-                "HIST_2110", "HIST_2120",
-                "HNRS_2110",   # OR F3
-                "HNRS_2300",   # Honors only, added 24-25
+                "HIST_2030",
+                "HIST_2040",
+                "HIST_2110",
+                "HIST_2120",
+                "HNRS_2110",  # OR F3
+                "HNRS_2300",  # Honors only, added 24-25
                 "POSC_2100",
             ],
         },
     },
-
     # ── W4 Aesthetic Ways of Knowing ─────────────────────────────────────────
     # AE = Integrative (3 hr, satisfies alone)
     # AP + AX = two smaller courses together (Appreciation + Experiential)
@@ -315,91 +358,188 @@ LA_OLD_FRAMEWORK = {
         "courses": {
             "2022-23": {
                 "integrative": [
-                    "ARTS_1210", "ARTS_1230", "ARTS_1250",
+                    "ARTS_1210",
+                    "ARTS_1230",
+                    "ARTS_1250",
                     "ARTH_2000",
-                    "COMM_2550",   # AE + SI, 22-23 only
+                    "COMM_2550",  # AE + SI, 22-23 only
                     "ENGL_3590",
-                    "HNRS_3000",   # Honors only
+                    "HNRS_3000",  # Honors only
                     "MUSC_2210",
                 ],
                 "AP": [
-                    "DANC_3510", "ENGL_2500", "MUED_2110",
-                    "MUSC_2110", "MUSC_2220", "THEA_2350",
+                    "DANC_3510",
+                    "ENGL_2500",
+                    "MUED_2110",
+                    "MUSC_2110",
+                    "MUSC_2220",
+                    "THEA_2350",
                 ],
                 "AX": [
-                    "DANC_1120", "DANC_2120", "DANC_3120",
-                    "DANC_1220", "DANC_2220", "DANC_3220", "DANC_4220",
-                    "DANC_1320", "DANC_2320", "DANC_3320", "DANC_4320",
-                    "DANC_1420", "DANC_2420", "DANC_3420", "DANC_4420",
+                    "DANC_1120",
+                    "DANC_2120",
+                    "DANC_3120",
+                    "DANC_1220",
+                    "DANC_2220",
+                    "DANC_3220",
+                    "DANC_4220",
+                    "DANC_1320",
+                    "DANC_2320",
+                    "DANC_3320",
+                    "DANC_4320",
+                    "DANC_1420",
+                    "DANC_2420",
+                    "DANC_3420",
+                    "DANC_4420",
                     "ENGL_2510",
-                    "MUPF_1010", "MUPF_1030",
-                    "MUPF_1070", "MUPF_1080", "MUPF_1090", "MUPF_1100",
-                    "MUPF_1110", "MUPF_1220", "MUPF_1410", "MUPF_1420",
-                    "MUPF_1700", "MUPF_1800", "MUPF_1900",
-                    "MUPF_2000", "MUPF_2100", "MUPF_2200", "MUPF_2300",
-                    "MUPF_2400", "MUPF_2500", "MUPF_2600", "MUPF_2700",
-                    "MUPF_2800", "MUPF_2900", "MUPF_3000", "MUPF_3100",
-                    "MUPF_3200", "MUPF_3300", "MUPF_3400", "MUPF_3500",
-                    "MUPF_3600", "MUPF_3700", "MUPF_3800", "MUPF_3900",
-                    "MUPF_4100", "MUPF_4200", "MUPF_4300", "MUPF_4400",
-                    "MUPF_4500", "MUPF_4600", "MUPF_4700", "MUPF_4800",
+                    "MUPF_1010",
+                    "MUPF_1030",
+                    "MUPF_1070",
+                    "MUPF_1080",
+                    "MUPF_1090",
+                    "MUPF_1100",
+                    "MUPF_1110",
+                    "MUPF_1220",
+                    "MUPF_1410",
+                    "MUPF_1420",
+                    "MUPF_1700",
+                    "MUPF_1800",
+                    "MUPF_1900",
+                    "MUPF_2000",
+                    "MUPF_2100",
+                    "MUPF_2200",
+                    "MUPF_2300",
+                    "MUPF_2400",
+                    "MUPF_2500",
+                    "MUPF_2600",
+                    "MUPF_2700",
+                    "MUPF_2800",
+                    "MUPF_2900",
+                    "MUPF_3000",
+                    "MUPF_3100",
+                    "MUPF_3200",
+                    "MUPF_3300",
+                    "MUPF_3400",
+                    "MUPF_3500",
+                    "MUPF_3600",
+                    "MUPF_3700",
+                    "MUPF_3800",
+                    "MUPF_3900",
+                    "MUPF_4100",
+                    "MUPF_4200",
+                    "MUPF_4300",
+                    "MUPF_4400",
+                    "MUPF_4500",
+                    "MUPF_4600",
+                    "MUPF_4700",
+                    "MUPF_4800",
                     "MUPF_4890",
                 ],
             },
             "2023-24": {
                 "integrative": [
-                    "ARTH_3040",   # also SI
-                    "ARTS_1210", "ARTS_1230", "ARTS_1250",
-                    "COMM_2550",   # also SI
+                    "ARTH_3040",  # also SI
+                    "ARTS_1210",
+                    "ARTS_1230",
+                    "ARTS_1250",
+                    "COMM_2550",  # also SI
                     "ENGL_3590",
-                    "HNRS_3000",   # Honors only
+                    "HNRS_3000",  # Honors only
                     "MUSC_2210",
                 ],
                 "AP": [
-                    "DANC_3510", "ENGL_2500", "MUED_2110",
-                    "MUSC_2110", "MUSC_2220", "THEA_2350",
+                    "DANC_3510",
+                    "ENGL_2500",
+                    "MUED_2110",
+                    "MUSC_2110",
+                    "MUSC_2220",
+                    "THEA_2350",
                 ],
                 "AX": [
-                    "DANC_1120", "DANC_2120", "DANC_3120",
-                    "DANC_1220", "DANC_2220", "DANC_3220", "DANC_4220",
-                    "DANC_1320", "DANC_2320", "DANC_3320", "DANC_4320",
-                    "DANC_1420", "DANC_2420", "DANC_3420", "DANC_4420",
+                    "DANC_1120",
+                    "DANC_2120",
+                    "DANC_3120",
+                    "DANC_1220",
+                    "DANC_2220",
+                    "DANC_3220",
+                    "DANC_4220",
+                    "DANC_1320",
+                    "DANC_2320",
+                    "DANC_3320",
+                    "DANC_4320",
+                    "DANC_1420",
+                    "DANC_2420",
+                    "DANC_3420",
+                    "DANC_4420",
                     "ENGL_2510",
-                    "MUPF_1010", "MUPF_1030",
-                    "MUPF_1070", "MUPF_1080", "MUPF_1090", "MUPF_1100",
-                    "MUPF_1110", "MUPF_1220", "MUPF_1410", "MUPF_1420",
-                    "MUPF_1700", "MUPF_4890",
+                    "MUPF_1010",
+                    "MUPF_1030",
+                    "MUPF_1070",
+                    "MUPF_1080",
+                    "MUPF_1090",
+                    "MUPF_1100",
+                    "MUPF_1110",
+                    "MUPF_1220",
+                    "MUPF_1410",
+                    "MUPF_1420",
+                    "MUPF_1700",
+                    "MUPF_4890",
                 ],
             },
             "2024-25": {
                 "integrative": [
-                    "ARTH_3040",   # also SI
-                    "ARTS_1210", "ARTS_1230", "ARTS_1250",
-                    "COMM_2550",   # also SI
-                    "ENGL_3590", "ENGL_3592",
-                    "HNRS_3000",   # Honors only
+                    "ARTH_3040",  # also SI
+                    "ARTS_1210",
+                    "ARTS_1230",
+                    "ARTS_1250",
+                    "COMM_2550",  # also SI
+                    "ENGL_3590",
+                    "ENGL_3592",
+                    "HNRS_3000",  # Honors only
                     "MUSC_2210",
                 ],
                 "AP": [
-                    "ARTS_1210",   # listed at 2 hrs in 24-25 AP section
-                    "DANC_3510", "ENGL_2500", "MUED_2110",
-                    "MUSC_2110", "MUSC_2220", "THEA_2350",
+                    "ARTS_1210",  # listed at 2 hrs in 24-25 AP section
+                    "DANC_3510",
+                    "ENGL_2500",
+                    "MUED_2110",
+                    "MUSC_2110",
+                    "MUSC_2220",
+                    "THEA_2350",
                 ],
                 "AX": [
-                    "DANC_1120", "DANC_2120", "DANC_3120",
-                    "DANC_1220", "DANC_2220", "DANC_3220", "DANC_4220",
-                    "DANC_1320", "DANC_2320", "DANC_3320", "DANC_4320",
-                    "DANC_1420", "DANC_2420", "DANC_3420", "DANC_4420",
+                    "DANC_1120",
+                    "DANC_2120",
+                    "DANC_3120",
+                    "DANC_1220",
+                    "DANC_2220",
+                    "DANC_3220",
+                    "DANC_4220",
+                    "DANC_1320",
+                    "DANC_2320",
+                    "DANC_3320",
+                    "DANC_4320",
+                    "DANC_1420",
+                    "DANC_2420",
+                    "DANC_3420",
+                    "DANC_4420",
                     "ENGL_2510",
-                    "MUPF_1010", "MUPF_1030",
-                    "MUPF_1070", "MUPF_1080", "MUPF_1090", "MUPF_1100",
-                    "MUPF_1110", "MUPF_1220", "MUPF_1410", "MUPF_1420",
-                    "MUPF_1700", "MUPF_4890",
+                    "MUPF_1010",
+                    "MUPF_1030",
+                    "MUPF_1070",
+                    "MUPF_1080",
+                    "MUPF_1090",
+                    "MUPF_1100",
+                    "MUPF_1110",
+                    "MUPF_1220",
+                    "MUPF_1410",
+                    "MUPF_1420",
+                    "MUPF_1700",
+                    "MUPF_4890",
                 ],
             },
         },
     },
-
     # ── W5 Social and Behavioral Ways of Knowing ──────────────────────────────
     "W5": {
         "label": "W5 Social & Behavioral Ways of Knowing",
@@ -407,37 +547,51 @@ LA_OLD_FRAMEWORK = {
         "courses": {
             "2022-23": [
                 "BSNS_3420",
-                "ECON_2010", "ECON_2020",
-                "EDUC_2110", "PSYC_2110",
-                "HNRS_3311",   # Honors only
+                "ECON_2010",
+                "ECON_2020",
+                "EDUC_2110",
+                "PSYC_2110",
+                "HNRS_3311",  # Honors only
                 "LEAD_2300",
-                "POSC_2020", "POSC_2100",
+                "POSC_2020",
+                "POSC_2100",
                 "PSYC_2000",
-                "SOCI_2010", "SOCI_2020", "SOCI_2100",
+                "SOCI_2010",
+                "SOCI_2020",
+                "SOCI_2100",
             ],
             "2023-24": [
                 "BSNS_3420",
-                "ECON_2010", "ECON_2020",
-                "EDUC_2110", "PSYC_2110",
+                "ECON_2010",
+                "ECON_2020",
+                "EDUC_2110",
+                "PSYC_2110",
                 "HNRS_3311",
                 "LEAD_2300",
-                "POSC_2020", "POSC_2100",
+                "POSC_2020",
+                "POSC_2100",
                 "PSYC_2000",
-                "SOCI_2010", "SOCI_2020", "SOCI_2100",
+                "SOCI_2010",
+                "SOCI_2020",
+                "SOCI_2100",
             ],
             "2024-25": [
                 "BSNS_3420",
-                "ECON_2010", "ECON_2020",
-                "EDUC_2110", "PSYC_2110",
+                "ECON_2010",
+                "ECON_2020",
+                "EDUC_2110",
+                "PSYC_2110",
                 "HNRS_3311",
                 "LEAD_2300",
-                "POSC_2020", "POSC_2100",
+                "POSC_2020",
+                "POSC_2100",
                 "PSYC_2000",
-                "SOCI_2010", "SOCI_2020", "SOCI_2100",
+                "SOCI_2010",
+                "SOCI_2020",
+                "SOCI_2100",
             ],
         },
     },
-
     # ── W6 Modern Languages ───────────────────────────────────────────────────
     # MLAN 2000 satisfies W6 OR W7 (not both)
     # SPAN 3010 satisfies W6 AND WI
@@ -446,33 +600,55 @@ LA_OLD_FRAMEWORK = {
         "credits": 4,
         "courses": {
             "2022-23": [
-                "FREN_1010", "FREN_1020",
-                "GERM_1010", "GERM_1020",
-                "MLAN_2000",   # OR W7
-                "SPAN_1010", "SPAN_1020",
-                "SPAN_3010",   # also WI
+                "FREN_1010",
+                "FREN_1020",
+                "GERM_1010",
+                "GERM_1020",
+                "MLAN_2000",  # OR W7
+                "SPAN_1010",
+                "SPAN_1020",
+                "SPAN_3010",  # also WI
             ],
             "2023-24": [
-                "BIBL_2110", "BIBL_2120",   # Beginning Hebrew I/II
-                "BIBL_2210", "BIBL_2220",   # Beginning Greek I/II
-                "FREN_1010", "FREN_1020", "FREN_2010", "FREN_2020",
-                "GERM_1010", "GERM_1020", "GERM_2010",
-                "MLAN_2000",   # OR W7
-                "SPAN_1010", "SPAN_1020", "SPAN_2010", "SPAN_2020",
-                "SPAN_3010",   # also WI
+                "BIBL_2110",
+                "BIBL_2120",  # Beginning Hebrew I/II
+                "BIBL_2210",
+                "BIBL_2220",  # Beginning Greek I/II
+                "FREN_1010",
+                "FREN_1020",
+                "FREN_2010",
+                "FREN_2020",
+                "GERM_1010",
+                "GERM_1020",
+                "GERM_2010",
+                "MLAN_2000",  # OR W7
+                "SPAN_1010",
+                "SPAN_1020",
+                "SPAN_2010",
+                "SPAN_2020",
+                "SPAN_3010",  # also WI
             ],
             "2024-25": [
-                "BIBL_2110", "BIBL_2120",
-                "BIBL_2210", "BIBL_2220",
-                "FREN_1010", "FREN_1020", "FREN_2010", "FREN_2020",
-                "GERM_1010", "GERM_1020", "GERM_2010",
-                "MLAN_2000",   # OR W7
-                "SPAN_1010", "SPAN_1020", "SPAN_2010", "SPAN_2020",
-                "SPAN_3010",   # also WI
+                "BIBL_2110",
+                "BIBL_2120",
+                "BIBL_2210",
+                "BIBL_2220",
+                "FREN_1010",
+                "FREN_1020",
+                "FREN_2010",
+                "FREN_2020",
+                "GERM_1010",
+                "GERM_1020",
+                "GERM_2010",
+                "MLAN_2000",  # OR W7
+                "SPAN_1010",
+                "SPAN_1020",
+                "SPAN_2010",
+                "SPAN_2020",
+                "SPAN_3010",  # also WI
             ],
         },
     },
-
     # ── W7 Global/Intercultural Ways of Knowing ───────────────────────────────
     # MLAN 2000 satisfies W6 OR W7 (not both)
     # SOCI 2450 satisfies F2 OR W7
@@ -481,31 +657,39 @@ LA_OLD_FRAMEWORK = {
         "credits": 3,
         "courses": {
             "2022-23": [
-                "BSNS_3120",   # also WI
+                "BSNS_3120",  # also WI
                 "COMM_3050",
                 "DANC_3000",
                 "EDUC_3550",
                 "ENGR_2080",
-                "ENGR_2090",   # also WI
-                "ENGL_2220",   # also SI
-                "HIST_3100", "HIST_3190",
-                "HIST_3240", "HIST_3250", "HIST_3260",   # 3260 also WI
+                "ENGR_2090",  # also WI
+                "ENGL_2220",  # also SI
+                "HIST_3100",
+                "HIST_3190",
+                "HIST_3240",
+                "HIST_3250",
+                "HIST_3260",  # 3260 also WI
                 "HIST_3280",
-                "HIST_3300",   # also WI
-                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
-                "HIST_3360", "HIST_3370",
-                "HIST_3425",   # also WI
+                "HIST_3300",  # also WI
+                "HIST_3320",
+                "RLGN_3320",  # World Religions (HIST/RLGN cross-listed)
+                "HIST_3360",
+                "HIST_3370",
+                "HIST_3425",  # also WI
                 "HNRS_3221",
                 "LEAD_4550",
-                "MLAN_2000",   # OR W6
+                "MLAN_2000",  # OR W6
                 "MLAN_3400",
                 "MUSC_2330",
-                "POSC_3320",   # also WI
-                "POSC_3450",   # also WI
-                "SOCI_2450",   # OR F2
+                "POSC_3320",  # also WI
+                "POSC_3450",  # also WI
+                "SOCI_2450",  # OR F2
                 "SOCI_3470",
-                "SPAN_2101", "SPAN_2102", "SPAN_2103", "SPAN_2104",
-                "SPAN_3020",   # also SI
+                "SPAN_2101",
+                "SPAN_2102",
+                "SPAN_2103",
+                "SPAN_2104",
+                "SPAN_3020",  # also SI
             ],
             "2023-24": [
                 "BIBL_3310",
@@ -516,12 +700,17 @@ LA_OLD_FRAMEWORK = {
                 "ENGR_2080",
                 "ENGR_2090",
                 "ENGL_2220",
-                "HIST_3100", "HIST_3190",
-                "HIST_3240", "HIST_3250", "HIST_3260",
+                "HIST_3100",
+                "HIST_3190",
+                "HIST_3240",
+                "HIST_3250",
+                "HIST_3260",
                 "HIST_3280",
                 "HIST_3300",
-                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
-                "HIST_3360", "HIST_3370",
+                "HIST_3320",
+                "RLGN_3320",  # World Religions (HIST/RLGN cross-listed)
+                "HIST_3360",
+                "HIST_3370",
                 "HIST_3425",
                 "HNRS_3221",
                 "LEAD_4550",
@@ -532,7 +721,10 @@ LA_OLD_FRAMEWORK = {
                 "POSC_3450",
                 "SOCI_2450",
                 "SOCI_3470",
-                "SPAN_2101", "SPAN_2102", "SPAN_2103", "SPAN_2104",
+                "SPAN_2101",
+                "SPAN_2102",
+                "SPAN_2103",
+                "SPAN_2104",
                 "SPAN_3020",
             ],
             "2024-25": [
@@ -544,12 +736,17 @@ LA_OLD_FRAMEWORK = {
                 "ENGR_2080",
                 "ENGR_2090",
                 "ENGL_2220",
-                "HIST_3100", "HIST_3190",
-                "HIST_3240", "HIST_3250", "HIST_3260",
+                "HIST_3100",
+                "HIST_3190",
+                "HIST_3240",
+                "HIST_3250",
+                "HIST_3260",
                 "HIST_3280",
                 "HIST_3300",
-                "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
-                "HIST_3360", "HIST_3370",
+                "HIST_3320",
+                "RLGN_3320",  # World Religions (HIST/RLGN cross-listed)
+                "HIST_3360",
+                "HIST_3370",
                 "HIST_3425",
                 "HNRS_3221",
                 "LEAD_4550",
@@ -560,12 +757,14 @@ LA_OLD_FRAMEWORK = {
                 "POSC_3450",
                 "SOCI_2450",
                 "SOCI_3470",
-                "SPAN_2101", "SPAN_2102", "SPAN_2103", "SPAN_2104",
+                "SPAN_2101",
+                "SPAN_2102",
+                "SPAN_2103",
+                "SPAN_2104",
                 "SPAN_3020",
             ],
         },
     },
-
     # ── W8 Experiential Ways of Knowing ───────────────────────────────────────
     # FSB ONLY: auto-satisfied when F1 (LART 1050) is completed
     # Non-FSB: use W8_BY_MAJOR dict in sport_marketing.py (from W8 spreadsheet)
@@ -579,7 +778,6 @@ LA_OLD_FRAMEWORK = {
             "2024-25": ["BSNS_1050", "BSNS_4110", "BSNS_4330", "BSNS_4560", "BSNS_4800"],
         },
     },
-
     # ── WI Writing Intensive ──────────────────────────────────────────────────
     # Two WI courses required beyond ENGL 1120; at least one upper-division (3000+)
     # Complete list from AU Advanced Writing Competency document (Rev 08/2022)
@@ -866,7 +1064,6 @@ LA_OLD_FRAMEWORK = {
             ],
         },
     },
-
     # ── SI Speaking Intensive ─────────────────────────────────────────────────
     # One SI course required; must be upper-division (beyond COMM 1000)
     # Complete list from AU Advanced Competency document (Rev 08/2022)
@@ -1046,7 +1243,6 @@ LA_OLD_FRAMEWORK = {
 LA_RAVEN_CORE_2526 = {
     "year": "2025-26",
     "note": "ICC-exempt students skip RC1-RC6 entirely.",
-
     # Raven Core — 30 hrs, at least one course per category
     "RC1": {
         "label": "RC1 Written Communication",
@@ -1067,9 +1263,13 @@ LA_RAVEN_CORE_2526 = {
         "credits": 3,
         "courses": {
             "2025-26": [
-                "CPSC_2020", "LEAD_3100",
-                "MATH_1100", "MATH_1250", "MATH_1300",
-                "MATH_2010", "MATH_2120",
+                "CPSC_2020",
+                "LEAD_3100",
+                "MATH_1100",
+                "MATH_1250",
+                "MATH_1300",
+                "MATH_2010",
+                "MATH_2120",
                 "PSYC_2440",
             ],
         },
@@ -1079,11 +1279,16 @@ LA_RAVEN_CORE_2526 = {
         "credits": 4,
         "courses": {
             "2025-26": [
-                "BIOL_1000", "BIOL_2210", "BIOL_2230",
-                "CHEM_1000", "CHEM_2110",
+                "BIOL_1000",
+                "BIOL_2210",
+                "BIOL_2230",
+                "CHEM_1000",
+                "CHEM_2110",
                 "EXSC_2140",
                 "HNRS_2210",
-                "PHYS_1020", "PHYS_2140", "PHYS_2240",
+                "PHYS_1020",
+                "PHYS_2140",
+                "PHYS_2240",
             ],
         },
     },
@@ -1093,12 +1298,16 @@ LA_RAVEN_CORE_2526 = {
         "courses": {
             "2025-26": [
                 "BSNS_3420",
-                "ECON_2010", "ECON_2020",
-                "EDUC_2110", "PSYC_2110",
+                "ECON_2010",
+                "ECON_2020",
+                "EDUC_2110",
+                "PSYC_2110",
                 "LEAD_2300",
-                "POSC_2020", "POSC_2100",
+                "POSC_2020",
+                "POSC_2100",
                 "PSYC_2000",
-                "SOCI_2010", "SOCI_2020",
+                "SOCI_2010",
+                "SOCI_2020",
             ],
         },
     },
@@ -1107,15 +1316,22 @@ LA_RAVEN_CORE_2526 = {
         "credits": 3,
         "courses": {
             "2025-26": [
-                "ENGL_2500", "ENGL_3590",
-                "HIST_2030", "HIST_2040", "HIST_2110", "HIST_2120",
-                "HNRS_2300", "HNRS_3100",
-                "MUSC_2110", "MUSC_3120", "MUSC_3130",
-                "SPAN_1010", "SPAN_1020",
+                "ENGL_2500",
+                "ENGL_3590",
+                "HIST_2030",
+                "HIST_2040",
+                "HIST_2110",
+                "HIST_2120",
+                "HNRS_2300",
+                "HNRS_3100",
+                "MUSC_2110",
+                "MUSC_3120",
+                "MUSC_3130",
+                "SPAN_1010",
+                "SPAN_1020",
             ],
         },
     },
-
     # AU Experience — complete one course in each category
     "AU1": {
         "label": "AU1 Understanding College",
@@ -1139,8 +1355,11 @@ LA_RAVEN_CORE_2526 = {
         "credits": 2,
         "courses": {
             "2025-26": [
-                "EXSC_2440", "NURS_1210", "PEHS_1000",
-                "PSYC_3500", "SOCI_3500",
+                "EXSC_2440",
+                "NURS_1210",
+                "PEHS_1000",
+                "PSYC_3500",
+                "SOCI_3500",
                 "RLGN_1100",
             ],
         },
@@ -1158,7 +1377,9 @@ LA_RAVEN_CORE_2526 = {
                 "PACT_2100",
                 "PHIL_2120",
                 "PSYC_3200",
-                "RLGN_3120", "RLGN_3250", "PHIL_3250",
+                "RLGN_3120",
+                "RLGN_3250",
+                "PHIL_3250",
                 "SOCI_2450",
                 "SPED_2400",
             ],
@@ -1175,18 +1396,33 @@ LA_RAVEN_CORE_2526 = {
                 "DANC_3000",
                 "EDUC_3550",
                 "ENGL_2220",
-                "ENGR_2080", "ENGR_2090",
-                "HIST_3100", "HIST_3190",
-                "HIST_3240", "HIST_3250", "HIST_3260",
-                "HIST_3280", "HIST_3300", "HIST_3320", "RLGN_3320",   # World Religions (HIST/RLGN cross-listed)
-                "HIST_3360", "HIST_3370", "HIST_3425",
+                "ENGR_2080",
+                "ENGR_2090",
+                "HIST_3100",
+                "HIST_3190",
+                "HIST_3240",
+                "HIST_3250",
+                "HIST_3260",
+                "HIST_3280",
+                "HIST_3300",
+                "HIST_3320",
+                "RLGN_3320",  # World Religions (HIST/RLGN cross-listed)
+                "HIST_3360",
+                "HIST_3370",
+                "HIST_3425",
                 "HNRS_3221",
                 "LEAD_4550",
-                "MLAN_2000", "MLAN_3400",
+                "MLAN_2000",
+                "MLAN_3400",
                 "MUSC_2330",
-                "POSC_3320", "POSC_3450",
-                "SOCI_2450", "SOCI_3470",
-                "SPAN_2101", "SPAN_2102", "SPAN_2103", "SPAN_2104",
+                "POSC_3320",
+                "POSC_3450",
+                "SOCI_2450",
+                "SOCI_3470",
+                "SPAN_2101",
+                "SPAN_2102",
+                "SPAN_2103",
+                "SPAN_2104",
                 "SPAN_3020",
             ],
         },
@@ -1202,29 +1438,29 @@ LA_RAVEN_CORE_2526 = {
 LA_CROSS_LISTINGS = {
     # course: (areas_it_satisfies, rule)
     # rule = 'AND' means satisfies both; 'OR' means satisfies only one
-    "ARTH_3040":      (["W4", "SI"],   "AND"),
-    "BIBL_3000":      (["W1", "WI"],   "AND"),
-    "RLGN_3000":      (["W1", "WI"],   "AND"),
-    "BSNS_3120":      (["W7", "WI"],   "AND"),
-    "COMM_2550":      (["W4", "SI"],   "AND"),   # 22-23 only
-    "ENGL_2220":      (["W7", "SI"],   "AND"),
-    "ENGL_2500":      (["W4", "WI"],   "AND"),
-    "ENGL_3190":      (["F2", "WI"],   "AND"),
-    "ENGL_3580":      (["F2", "WI"],   "AND"),
-    "ENGR_2090":      (["W7", "WI"],   "AND"),
-    "HIST_2300":      (["F2", "SI"],   "AND"),
-    "HIST_3260":      (["W7", "WI"],   "AND"),
-    "HIST_3300":      (["W7", "WI"],   "AND"),
-    "HIST_3425":      (["W7", "WI"],   "AND"),
-    "HNRS_2110":      (["F3", "W3"],   "OR"),
-    "HNRS_2125":      (["F2", "SI"],   "AND"),
-    "MLAN_2000":      (["W6", "W7"],   "OR"),
-    "POSC_3320":      (["W7", "WI"],   "AND"),
-    "POSC_3450":      (["W7", "WI"],   "AND"),
-    "PSYC_3200":      (["F2", "SI"],   "AND"),
-    "SOCI_2450":      (["F2", "W7"],   "OR"),
-    "SPAN_3010":      (["W6", "WI"],   "AND"),
-    "SPAN_3020":      (["W7", "SI"],   "AND"),
+    "ARTH_3040": (["W4", "SI"], "AND"),
+    "BIBL_3000": (["W1", "WI"], "AND"),
+    "RLGN_3000": (["W1", "WI"], "AND"),
+    "BSNS_3120": (["W7", "WI"], "AND"),
+    "COMM_2550": (["W4", "SI"], "AND"),  # 22-23 only
+    "ENGL_2220": (["W7", "SI"], "AND"),
+    "ENGL_2500": (["W4", "WI"], "AND"),
+    "ENGL_3190": (["F2", "WI"], "AND"),
+    "ENGL_3580": (["F2", "WI"], "AND"),
+    "ENGR_2090": (["W7", "WI"], "AND"),
+    "HIST_2300": (["F2", "SI"], "AND"),
+    "HIST_3260": (["W7", "WI"], "AND"),
+    "HIST_3300": (["W7", "WI"], "AND"),
+    "HIST_3425": (["W7", "WI"], "AND"),
+    "HNRS_2110": (["F3", "W3"], "OR"),
+    "HNRS_2125": (["F2", "SI"], "AND"),
+    "MLAN_2000": (["W6", "W7"], "OR"),
+    "POSC_3320": (["W7", "WI"], "AND"),
+    "POSC_3450": (["W7", "WI"], "AND"),
+    "PSYC_3200": (["F2", "SI"], "AND"),
+    "SOCI_2450": (["F2", "W7"], "OR"),
+    "SPAN_3010": (["W6", "WI"], "AND"),
+    "SPAN_3020": (["W7", "SI"], "AND"),
 }
 
 # W8 major-specific course list is in engines/sport_marketing.py (W8_BY_MAJOR dict)
@@ -1233,6 +1469,7 @@ LA_CROSS_LISTINGS = {
 # ─────────────────────────────────────────────
 # HELPER FUNCTIONS (required by audit_engine.py)
 # ─────────────────────────────────────────────
+
 
 def get_la_framework(catalog_year: str) -> str:
     """Return which LA framework a catalog year uses."""

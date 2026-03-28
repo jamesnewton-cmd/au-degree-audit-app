@@ -4,13 +4,14 @@ for use by run_tests.py. Run this whenever main_unified.py changes.
 
 Usage: python3 extract_helpers.py
 """
+
 import ast, sys
 
-with open('main_unified.py') as f:
+with open("main_unified.py") as f:
     src = f.read()
 
 START = "# ── SHARED HELPERS ─────────────────────────────────────────────────────────"
-END   = "# ── SINGLE UNIFIED GENERATE ENDPOINT ─────────────────────────────────────────"
+END = "# ── SINGLE UNIFIED GENERATE ENDPOINT ─────────────────────────────────────────"
 
 si = src.find(START)
 ei = src.find(END)
@@ -38,7 +39,7 @@ except SyntaxError as e:
     print(f"ERROR: extracted code has syntax error: {e}")
     sys.exit(1)
 
-with open('audit_helpers.py', 'w') as f:
+with open("audit_helpers.py", "w") as f:
     f.write(output)
 
 print("✓ audit_helpers.py regenerated from main_unified.py")
