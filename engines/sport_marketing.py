@@ -226,6 +226,41 @@ def _resolve_transfer_code(course_code, equiv_course):
     return course_code
 
 
+def _parse_term_date(raw_value):
+    """Best-effort parse for SIS date fields used with Scheduled rows."""
+    value = (raw_value or "").strip()
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
+        try:
+            return datetime.datetime.strptime(value, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _canonical_status(status_raw, reg_date_raw):
+    """
+    Normalize status strings from transcript exports.
+
+    Registrar intent:
+    - Current = class is in progress this term
+    - Scheduled = future class not yet started
+
+    Some exports label in-term classes as "Scheduled". When the term date has
+    already started, treat it as Current so PDFs don't mislabel active classes.
+    """
+    status = (status_raw or "").strip().lower()
+    status = " ".join(status.replace("_", " ").replace("-", " ").split())
+    if status in ("currently enrolled", "in progress", "inprogress"):
+        return "current"
+    if status == "scheduled":
+        term_date = _parse_term_date(reg_date_raw)
+        if term_date and term_date <= datetime.date.today():
+            return "current"
+    return status
+
+
 def parse_csv(path):
     rows = []
 
@@ -235,7 +270,7 @@ def parse_csv(path):
             equiv = r.get("Equivalent Course", "").strip()
             resolved = _resolve_transfer_code(raw_code, equiv)
 
-            status_raw = r.get("Status", "").strip().lower()
+            status_raw = _canonical_status(r.get("Status", ""), r.get("Registration Date", ""))
             # Keep Scheduled distinct from Current:
             # - current   => taking this semester
             # - scheduled => future-semester registration
