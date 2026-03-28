@@ -4,6 +4,11 @@ Exact match to Isaac Bair template.
 """
 
 import csv, datetime
+from requirements.w8_crosslist import (
+    get_fsb_w8_courses,
+    get_non_fsb_w8_courses,
+    get_non_fsb_w8_no_course_required,
+)
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -1141,8 +1146,8 @@ def audit(courses, minor_key=None):
     f1 = find(["LART_1050"])
     f1_ok = f1 is not None and done(f1)
 
-    # W8 satisfying courses for Sport Marketing major (per Registrar 11/14/2023)
-    W8_COURSES = ["BSNS_1050", "BSNS_4110", "BSNS_4330", "BSNS_4560", "BSNS_4800"]
+    # W8 satisfying courses for Sport Marketing major from crosslist data.
+    w8_courses = get_fsb_w8_courses("sport_marketing")
 
     # LA rows
     la = []
@@ -1155,7 +1160,7 @@ def audit(courses, minor_key=None):
             else:
                 c = None
                 s = "Not Satisfied"
-                for code in W8_COURSES:
+                for code in w8_courses:
                     candidate = cm.get(code)
                     if candidate and done(candidate):
                         c = candidate
@@ -1370,7 +1375,8 @@ def build(res, student_name, major_label, out, exceptions=""):
     res.setdefault(
         "notes_row_text",
         "Note: BSNS-3210 (Buyer/Seller Relations) = SI  ·  BSNS-4110 (Marketing Research) = WI  ·  "
-        "BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: BSNS-1050, 4110, 4330, 4560, 4800  ·  "
+        f"BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: "
+        f"{', '.join(code.replace('_', '-') for code in get_fsb_w8_courses('sport_marketing'))}  ·  "
         "W8 auto-satisfied when F1 (LART-1050) complete",
     )
     res.setdefault("advisor_notes", "")
@@ -1434,167 +1440,6 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         LA_RAVEN_CORE_2526 as LA_NEW_FRAMEWORK,
     )
 
-    # ── W8 COURSE LIST PER MAJOR (from W8 crosslist sheet) ─────────────────────
-    W8_BY_MAJOR = {
-        # Source: W8_-_Crosslist.csv (updated 11/14/2023)
-        "psychology": ["PSYC_2850", "PSYC_3450", "PSYC_4100", "PSYC_4210", "PSYC_4520"],
-        "cinema_media_arts": ["COMM_4800"],
-        "public_relations_complementary": ["COMM_4800"],
-        "journalism_complementary": ["COMM_4800"],
-        "multimedia_journalism_complementary": ["COMM_4800"],
-        "visual_communication": ["ARTH_4800"],
-        "literary_studies": ["ENGL_4910"],
-        "writing": ["ENGL_4910"],
-        "english_studies_minor": ["ENGL_4910"],
-        "elementary_education": ["EDUC_4010"],
-        "social_studies_teaching": ["EDUC_4010"],
-        "language_arts_teaching": ["EDUC_4010"],
-        "math_teaching_ba": ["EDUC_4010"],
-        "spanish_education": ["EDUC_4010"],
-        "christian_ministries": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
-        "christian_ministries_complementary": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
-        "youth_ministries": ["CMIN_3340", "CMIN_4810", "CMIN_4850"],
-        "youth_leadership_development_complementary": [
-            "PSYC_2850",
-            "PSYC_3450",
-            "PSYC_4100",
-            "PSYC_4210",
-            "PSYC_4520",
-        ],
-        "ministry_studies": ["CMIN_4810"],
-        "christian_spiritual_formation_complementary": ["RLGN_4960"],
-        "engineering_management": ["BSNS_1050"],
-        "math_ba": ["MATH_4000"],
-        "math_bs": ["MATH_4000"],
-        "math_teaching_ba": ["EDUC_4010"],
-        "exercise_science": ["EXSC_4160", "EXSC_4800"],
-        "sport_recreational_leadership": ["SPRL_4850"],
-        "nursing_bsn": ["NURS_4560", "NURS_4950", "NURS_4960", "NURS_4970"],
-        "nursing_accelerated": ["NURS_4560", "NURS_4950", "NURS_4960", "NURS_4970"],
-        "nursing_rn_bsn": ["NURS_4560", "NURS_4950", "NURS_4960", "NURS_4970"],
-        "history": [
-            "HIST_2300",
-            "HIST_3260",
-            "HIST_4700",
-            "HIST_4800",
-            "HIST_4915",
-            "HIST_4930",
-            "POSC_2810",
-            "POSC_4800",
-            "POSC_4810",
-            "POSC_4820",
-            "POSC_4860",
-            "POSC_4915",
-            "POSC_2840",
-            "EDUC_4010",
-        ],
-        "public_history": ["HIST_4800"],
-        "political_science": [
-            "POSC_2810",
-            "POSC_4800",
-            "POSC_4810",
-            "POSC_4820",
-            "POSC_4860",
-            "POSC_4915",
-            "POSC_2840",
-        ],
-        "polsci_philosophy_economics": [
-            "POSC_2810",
-            "POSC_4800",
-            "POSC_4810",
-            "POSC_4820",
-            "POSC_4860",
-            "POSC_4915",
-            "POSC_2840",
-        ],
-        "international_relations": [
-            "HIST_2300",
-            "HIST_3260",
-            "HIST_4700",
-            "HIST_4800",
-            "HIST_4915",
-            "HIST_4930",
-            "POSC_2810",
-            "POSC_4800",
-            "POSC_4810",
-            "POSC_4820",
-            "POSC_4860",
-            "POSC_4915",
-            "POSC_2840",
-            "EDUC_4010",
-        ],
-        "national_security": [
-            "POSC_4800",
-            "POSC_4810",
-            "POSC_4820",
-            "POSC_4860",
-            "POSC_4915",
-            "POSC_4930",
-            "POSC_2840",
-        ],
-        "criminal_justice_major": ["CRIM_4810"],
-        "criminal_justice_major_online": ["CRIM_4810"],
-        "social_work": ["SOWK_4850"],
-        "family_science_major": ["SOWK_4850"],
-        "spanish": ["FLAN_3500"],
-        "voice_performance_bmus": [
-            "MUPF_4540",
-            "MUPF_4550",
-            "MUPF_4560",
-            "MUPF_4570",
-            "MUPF_4580",
-            "MUPF_4590",
-        ],
-        "instrumental_performance_bmus": [
-            "MUPF_4540",
-            "MUPF_4550",
-            "MUPF_4560",
-            "MUPF_4570",
-            "MUPF_4580",
-            "MUPF_4590",
-        ],
-        "musical_theatre_bmus": ["MUTR_4500", "MUPF_4540"],
-        "musical_theatre_ba": ["MUPF_1170", "MUPF_4910"],
-        "worship_arts_ba": ["MUSC_3800"],
-        "music_ba": ["MUBS_4800", "BSNS_4810"],
-        "music_education_bmus": ["MUSC_4950", "MUSC_4955"],
-        "songwriting": ["MUBS_4500"],
-        "dance_major": ["DANC_4800", "DANC_4910"],
-        "dance_complementary": ["DANC_4800", "DANC_4910"],
-        "theatre_ba": ["THEA_4800"],
-        "cs_ba": ["CPSC_2800", "CPSC_3800", "CPSC_4800", "CPSC_4960"],
-        "cs_bs": ["CPSC_2800", "CPSC_3800", "CPSC_4800", "CPSC_4960"],
-        "cs_complementary": ["CPSC_2800", "CPSC_3800", "CPSC_4800", "CPSC_4960"],
-        "business_info_systems_complementary": ["CPSC_2800", "CPSC_3800", "CPSC_4800", "CPSC_4960"],
-        "data_science_ba": ["CPSC_4970"],
-        "data_science_bs": ["CPSC_4970"],
-        "data_science_complementary": ["CPSC_4970"],
-        "cybersecurity_major": ["CPSC_4480", "CPSC_4820", "CPSC_4970"],
-        "biochemistry_ba": ["CHEM_4920"],
-        "biochemistry_bs": ["CHEM_4920"],
-        "chemistry_ba": ["CHEM_4920"],
-        "chemistry_bs": ["CHEM_4920"],
-        "public_health_ba": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
-        "public_health_bs": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
-        "public_health_minor": ["PUBH_4950", "NURS_4950", "PUBH_4810", "SOCI_4810"],
-        # Engineering majors — W8 via ENGR senior design
-        "electrical_engineering_bs": ["ENGR_4960"],
-        "mechanical_engineering_bs": ["ENGR_4960"],
-        "mechatronics_engineering_bs": ["ENGR_4960"],
-        "civil_engineering_bs": ["ENGR_4960"],
-        "engineering_physics_bs": ["ENGR_4960"],
-        "computer_engineering_bs": [
-            "CPSC_2800",
-            "CPSC_3800",
-            "CPSC_4800",
-            "CPSC_4960",
-            "ENGR_4960",
-        ],
-        # No W8 course required
-        "biology_ba": [],
-        "biology_bs": [],
-        "sociology_minor": [],
-    }
     # Default W8 for unlisted majors — broad experiential list
     W8_DEFAULT = [
         "LART_4500",
@@ -1609,7 +1454,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         "SPRL_4850",
     ]
 
-    w8_courses = W8_BY_MAJOR.get(major_key, W8_DEFAULT)
+    w8_courses = get_non_fsb_w8_courses(major_key, default=W8_DEFAULT)
 
     cm = cmap(courses)
 
@@ -1848,13 +1693,9 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         )
 
         # W8 — non-FSB: NO F1 auto-satisfy. Use major-specific course list from W8 sheet.
-        if w8_courses or map_by_area.get("W8"):
-            w8_c = find_any((w8_courses or []) + map_by_area.get("W8", []))
-            la.append(
-                make_row("W8", None, "W8 Experiential Ways of Knowing", 2, w8_c, status_of(w8_c))
-            )
-        else:
-            # Major has no W8 course (Biology, Sociology) — exempt, show as Satisfied
+        major_has_no_w8_course = get_non_fsb_w8_no_course_required(major_key)
+        if major_has_no_w8_course and not map_by_area.get("W8"):
+            # Major has no W8 course (e.g., Biology, Sociology) — exempt, show as Satisfied
             la.append(
                 make_row(
                     "W8",
@@ -1864,6 +1705,11 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                     None,
                     "Satisfied",
                 )
+            )
+        else:
+            w8_c = find_any((w8_courses or []) + map_by_area.get("W8", []))
+            la.append(
+                make_row("W8", None, "W8 Experiential Ways of Knowing", 2, w8_c, status_of(w8_c))
             )
 
         # WI — use full list from LA framework

@@ -4,6 +4,7 @@ Exact match to Isaac Bair template.
 """
 
 import csv, datetime
+from requirements.w8_crosslist import get_fsb_w8_courses
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -584,8 +585,8 @@ def audit(courses):
     f1 = find(["LART_1050"])
     f1_ok = f1 is not None and done(f1)
 
-    # W8 satisfying courses for Management major (per Registrar 11/14/2023)
-    W8_COURSES = ["BSNS_1050", "BSNS_2550", "BSNS_4240", "BSNS_4310", "BSNS_4500", "BSNS_4800"]
+    # W8 satisfying courses for Management major from crosslist data
+    w8_courses = get_fsb_w8_courses("management")
 
     # LA rows
     la = []
@@ -600,7 +601,7 @@ def audit(courses):
                 # Check if any W8 course is completed/in-progress/scheduled
                 c = None
                 s = "Not Satisfied"
-                for code in W8_COURSES:
+                for code in w8_courses:
                     candidate = cm.get(code)
                     if candidate and done(candidate):
                         c = candidate
@@ -1195,7 +1196,8 @@ def build(res, student_name, major_label, out):
             [
                 Paragraph(
                     "Note: BSNS-4480 (Leadership) = SI  ·  BSNS-3120 (Global Business) = WI #1 (Liberal Arts Program)  ·  "
-                    "BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: BSNS-1050, 2550, 4240, 4310, 4500, 4800  ·  W8 auto-satisfied when F1 (LART-1050) complete",
+                    f"BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: {', '.join(code.replace('_', '-') for code in get_fsb_w8_courses('management'))}  ·  "
+                    "W8 auto-satisfied when F1 (LART-1050) complete",
                     P["note"],
                 )
             ]

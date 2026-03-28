@@ -292,6 +292,24 @@ class CsvStatusNormalizationTests(unittest.TestCase):
 
 
 class W8CrosslistCoverageTests(unittest.TestCase):
+    def test_crosslist_loader_parses_expected_rows(self):
+        from requirements.w8_crosslist import (
+            get_fsb_w8_courses_by_major,
+            get_non_fsb_w8_courses_by_major,
+        )
+
+        fsb = get_fsb_w8_courses_by_major()
+        non_fsb = get_non_fsb_w8_courses_by_major()
+
+        self.assertEqual(
+            fsb.get("marketing"),
+            ["BSNS_1050", "BSNS_2810", "BSNS_3130", "BSNS_3210", "BSNS_4110", "BSNS_4550", "BSNS_4800"],
+        )
+        self.assertEqual(
+            non_fsb.get("public_relations_complementary"),
+            ["COMM_4800"],
+        )
+
     def test_fsb_w8_map_contains_crosslist_courses(self):
         from engines.fsb_engine import FSB_W8_BY_MAJOR
 

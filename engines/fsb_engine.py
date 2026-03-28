@@ -35,6 +35,7 @@ from engines.sport_marketing import (
 from engines.pdf_template import build as template_build
 from requirements.fsb_majors import FSB_MAJORS
 from requirements.fsb_minors import FSB_MINORS
+from requirements.w8_crosslist import get_fsb_w8_courses_by_major
 
 # ── Set by main.py before each call ──────────────────────────────────────────
 MAJOR_KEY = None  # e.g. 'marketing'
@@ -58,19 +59,7 @@ def _norm_code(code_str):
     return code_str.strip().upper().replace(" ", "_").replace("-", "_")
 
 
-FSB_W8_BY_MAJOR = {
-    # Source: W8_-_Crosslist.csv (11/14/2023)
-    "sport_marketing": ["BSNS_1050", "BSNS_4110", "BSNS_4330", "BSNS_4560", "BSNS_4800"],
-    "marketing": ["BSNS_1050", "BSNS_2810", "BSNS_3130", "BSNS_3210", "BSNS_4110", "BSNS_4550", "BSNS_4800"],
-    "accounting": ["BSNS_1050", "ACCT_2020", "ACCT_3500", "ACCT_3860", "ACCT_4020", "BSNS_4800"],
-    "business_analytics": ["BSNS_1050"],
-    "finance": ["BSNS_1050", "BSNS_4150", "BSNS_4800"],
-    "global_business": ["BSNS_1050", "BSNS_3850", "BSNS_4800"],
-    "management": ["BSNS_1050", "BSNS_2550", "BSNS_4240", "BSNS_4310", "BSNS_4500", "BSNS_4800"],
-    "engineering_management": ["BSNS_1050"],
-    "music_entertainment_business": ["MUBS_4800", "BSNS_4810"],
-    "business_integrative_leadership": ["LEAD_4990"],
-}
+FSB_W8_BY_MAJOR = get_fsb_w8_courses_by_major()
 
 
 def audit(courses, minor_key=None):
