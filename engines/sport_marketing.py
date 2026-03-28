@@ -236,6 +236,9 @@ def parse_csv(path):
             resolved = _resolve_transfer_code(raw_code, equiv)
 
             status_raw = r.get("Status", "").strip().lower()
+            # Registrar rule: "Scheduled" means in-progress/current.
+            if status_raw == "scheduled":
+                status_raw = "current"
             grade_raw = r.get("Letter Grade", "").strip()
 
             if not raw_code:

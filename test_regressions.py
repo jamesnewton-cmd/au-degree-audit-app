@@ -84,5 +84,27 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertIn("Unknown or unavailable program", invalid.text)
 
 
+class CsvStatusNormalizationTests(unittest.TestCase):
+    def test_scheduled_is_normalized_to_current(self):
+        from engines.sport_marketing import parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-scheduled-status-"))
+        try:
+            csv_path = tmp_dir / "scheduled_case.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "BSNS-2310,,Scheduled,,3,2025-01-10,Business Analytics\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["code"], "BSNS_2310")
+            self.assertEqual(rows[0]["status"], "current")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()
