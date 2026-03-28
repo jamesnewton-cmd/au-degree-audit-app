@@ -140,14 +140,14 @@
     letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--muted); margin-bottom: 0.4rem;
   }
-  input[type="text"], select {
+  input[type="text"], input[type="email"], select {
     width: 100%; padding: 0.7rem 1rem;
     border: 1.5px solid var(--border); border-radius: 7px;
     font-family: 'DM Sans', sans-serif; font-size: 0.94rem;
     color: var(--text); background: var(--cream);
     transition: border-color 0.2s; appearance: none;
   }
-  input[type="text"]:focus, select:focus {
+  input[type="text"]:focus, input[type="email"]:focus, select:focus {
     outline: none; border-color: var(--orange); background: #fff;
   }
   textarea:focus {
@@ -225,6 +225,205 @@
   }
   .ac-selected button:hover { color: #fff; }
   .ac-hint { font-size: 0.74rem; color: var(--muted); margin-top: 0.3rem; }
+  .repeatable-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -0.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .btn-add-item {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--maroon);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-add-item:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: #fff8f2;
+  }
+  .btn-add-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .hidden-field { display: none; }
+
+  .name-suggest {
+    margin-top: -0.2rem;
+    margin-bottom: 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    padding: 0.6rem 0.7rem;
+  }
+  .name-suggest-title {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.45rem;
+  }
+  .name-suggest-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .name-suggest-item {
+    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.3rem 0.62rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+  .name-suggest-item:hover {
+    border-color: var(--orange);
+    color: var(--maroon);
+    background: #fff8f2;
+  }
+
+  .context-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    padding: 0.9rem 1rem;
+  }
+  .context-copy {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-bottom: 0.55rem;
+    line-height: 1.45;
+  }
+  .context-textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .help-grid {
+    margin-top: 0.65rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+  .help-item {
+    font-size: 0.74rem;
+    color: #5d5248;
+    line-height: 1.5;
+    padding: 0.42rem 0.5rem;
+    border-radius: 7px;
+    background: #fbf8f4;
+    border: 1px solid #eee4d6;
+  }
+  .help-item code {
+    font-size: 0.73rem;
+    color: #473f37;
+  }
+
+  .recent-name-row {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-top: 0.55rem;
+  }
+  .recent-name-btn {
+    border: 1px solid var(--border);
+    background: var(--cream2);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .recent-name-btn:hover {
+    border-color: var(--orange);
+    background: #fff;
+  }
+
+  .add-more-row {
+    margin-top: -0.3rem;
+    margin-bottom: 1rem;
+  }
+  .add-more-btn {
+    border: 1px dashed var(--border);
+    background: var(--cream2);
+    color: var(--maroon);
+    border-radius: 7px;
+    padding: 0.48rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .add-more-btn:hover {
+    border-color: var(--orange);
+    background: #fff;
+  }
+
+  .notes-card {
+    border: 1.5px solid var(--border);
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .notes-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+  .notes-card-sub {
+    font-size: 0.77rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+  .notes-textarea {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .notes-helper-grid {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.65rem;
+  }
+  .notes-helper-item {
+    border-left: 2px solid var(--cream2);
+    padding-left: 0.6rem;
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .notes-helper-item strong {
+    color: var(--text);
+  }
+  .notes-helper-item code {
+    color: #7a664f;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 0.73rem;
+  }
 
   /* MODE TOGGLE */
   .mode-toggle {
@@ -494,6 +693,10 @@
             <input type="text" name="last_name" id="lastName" placeholder="Last" required autocomplete="off">
           </div>
         </div>
+        <div class="name-suggest" id="recentNameHints" style="display:none;">
+          <div class="name-suggest-title">Recent Students</div>
+          <div class="name-suggest-list" id="recentNameList"></div>
+        </div>
 
         <div class="field">
           <label>Catalog Year</label>
@@ -535,7 +738,10 @@
             <option value="">— No concentration selected —</option>
           </select>
         </div>
-        <div class="field">
+        <div class="repeatable-actions">
+          <button type="button" class="btn-add-item" id="addMajorBtn">+ Add another major</button>
+        </div>
+        <div class="field hidden-field" id="major2Field">
           <label>Second Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
             <span class="ac-icon">🔍</span>
@@ -545,13 +751,13 @@
           <div id="major2Tag"></div>
           <input type="hidden" name="major2" id="major2Val">
         </div>
-        <div class="field" id="conc2Section" style="display:none;">
+        <div class="field hidden-field" id="conc2Section" style="display:none;">
           <label>Concentration — Second Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if required)</span></label>
           <select name="concentration2" id="conc2Select" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);">
             <option value="">— No concentration selected —</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field hidden-field" id="major3Field">
           <label>Third Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
             <span class="ac-icon">🔍</span>
@@ -561,7 +767,7 @@
           <div id="major3Tag"></div>
           <input type="hidden" name="major3" id="major3Val">
         </div>
-        <div class="field" id="conc3Section" style="display:none;">
+        <div class="field hidden-field" id="conc3Section" style="display:none;">
           <label>Concentration — Third Major <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if required)</span></label>
           <select name="concentration3" id="conc3Select" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);">
             <option value="">— No concentration selected —</option>
@@ -580,7 +786,10 @@
           <div id="minor1Tag"></div>
           <input type="hidden" name="minor1" id="minor1Val">
         </div>
-        <div class="field">
+        <div class="repeatable-actions">
+          <button type="button" class="btn-add-item" id="addMinorBtn">+ Add another minor</button>
+        </div>
+        <div class="field hidden-field" id="minor2Field">
           <label>Second Minor <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
             <span class="ac-icon">🔍</span>
@@ -590,7 +799,7 @@
           <div id="minor2Tag"></div>
           <input type="hidden" name="minor2" id="minor2Val">
         </div>
-        <div class="field">
+        <div class="field hidden-field" id="minor3Field">
           <label>Third Minor <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
           <div class="ac-wrap">
             <span class="ac-icon">🔍</span>
@@ -661,17 +870,14 @@
         <!-- ADVISOR EXCEPTIONS -->
         <div id="exceptionsSection">
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
-        <div class="field">
-          <textarea name="exceptions" id="exceptionsInput" rows="8" placeholder="One per line. Examples:&#10;SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;SUB: EDUC-2100 = PSYC-2510&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;MAP: PSYC-2510 = W5&#10;WAIVE: PEHS-1000&#10;STATUS: BSNS-4560 = current" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
-          <div style="font-size:0.73rem;color:var(--muted);margin-top:0.35rem;line-height:1.7;">
-            <strong>SUB: REQUIRED-COURSE = TAKEN-COURSE</strong> &nbsp;·&nbsp; substitute one course for a requirement slot<br>
-            <span style="padding-left:1rem;color:#888;">Example: <code>SUB: EDUC-2100 = PSYC-2510</code> &nbsp;— student took PSYC-2510, counts for EDUC-2100</span><br>
-            <strong>MAP: TAKEN-COURSE = AREA</strong> &nbsp;·&nbsp; map a course toward an LA area (F1–F7, W1–W8, WI, SI)<br>
-            <span style="padding-left:1rem;color:#888;">Example: <code>MAP: PSYC-2510 = W5</code> &nbsp;— count PSYC-2510 toward W5 Social &amp; Behavioral</span><br>
-            <strong>WAIVE: COURSE</strong> &nbsp;·&nbsp; mark a requirement as advisor-waived (0 credits)<br>
-            <span style="padding-left:1rem;color:#888;">Example: <code>WAIVE: COMM-1000</code> &nbsp;— waive COMM-1000 requirement</span><br>
-            <strong>STATUS: COURSE = current / scheduled / satisfied</strong> &nbsp;·&nbsp; override a course's enrollment status<br>
-            <span style="padding-left:1rem;color:#888;">Example: <code>STATUS: BSNS-4560 = current</code> &nbsp;— mark BSNS-4560 as in-progress</span>
+        <div class="field context-card">
+          <div class="context-copy">Use one line per rule. These are advisor-only overrides for substitutions, area mapping, waivers, or status adjustments.</div>
+          <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|scheduled|satisfied" autocomplete="off"></textarea>
+          <div class="help-grid">
+            <div class="help-item"><strong>SUB</strong> — substitute one course for a requirement slot. Example: <code>SUB: EDUC-2100 = PSYC-2510</code></div>
+            <div class="help-item"><strong>MAP</strong> — count a course toward LA area. Example: <code>MAP: PSYC-2510 = W5</code></div>
+            <div class="help-item"><strong>WAIVE</strong> — mark requirement advisor-waived (0 credits). Example: <code>WAIVE: COMM-1000</code></div>
+            <div class="help-item"><strong>STATUS</strong> — override enrollment state. Example: <code>STATUS: BSNS-4560 = current</code></div>
           </div>
         </div>
         </div><!-- end exceptionsSection -->
@@ -681,9 +887,10 @@
 
         <!-- REGISTRAR NOTE TO ADVISOR -->
         <div id="registrarNoteSection">
-        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — shown on screen only, not on PDF)</span></div>
-        <div class="field">
-          <textarea id="registrarNoteInput" rows="2" placeholder="Note to advisor explaining why this audit is being sent (not included in the PDF)…" autocomplete="off" style="width:100%;padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);transition:border-color 0.2s;resize:vertical;line-height:1.5;"></textarea>
+        <div class="section-label">Registrar Note <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <div class="field context-card">
+          <div class="context-copy">Shown on-screen after generation for advisor context only. This note is not written into the PDF.</div>
+          <textarea id="registrarNoteInput" rows="3" class="context-textarea" placeholder="Registrar context note to advisor (screen-only)…" autocomplete="off"></textarea>
         </div>
         </div><!-- end registrarNoteSection -->
 
@@ -745,14 +952,134 @@ async function tryPassword() {
     }
     sessionStorage.setItem('auditpw', pw);
     overlay.classList.add('hidden');
-    updateStatus(await res.json());
-    loadPrograms();
+    init();
   } catch(e) { pwError.textContent = 'Connection error.'; pwError.style.display = 'block'; }
 }
 document.getElementById('pwSubmit').addEventListener('click', tryPassword);
 pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
 
-function init() { loadStatus(); loadPrograms(); }
+const LAST_STUDENTS_KEY = 'audit:last_students';
+
+function getRecentStudents() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LAST_STUDENTS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function rememberStudentName(first, last) {
+  const f = (first || '').trim();
+  const l = (last || '').trim();
+  if (!f || !l) return;
+  const next = [{ first: f, last: l }]
+    .concat(
+      getRecentStudents().filter(
+        s => !(s.first.toLowerCase() === f.toLowerCase() && s.last.toLowerCase() === l.toLowerCase())
+      )
+    )
+    .slice(0, 5);
+  localStorage.setItem(LAST_STUDENTS_KEY, JSON.stringify(next));
+}
+
+function applyRecentName(first, last) {
+  document.getElementById('firstName').value = first || '';
+  document.getElementById('lastName').value = last || '';
+}
+
+function renderRecentNameHints() {
+  const box = document.getElementById('recentNameHints');
+  const list = document.getElementById('recentNameList');
+  const firstQuery = document.getElementById('firstName').value.trim().toLowerCase();
+  const lastQuery = document.getElementById('lastName').value.trim().toLowerCase();
+
+  let recent = getRecentStudents();
+  if (firstQuery || lastQuery) {
+    recent = recent.filter(s =>
+      (!firstQuery || s.first.toLowerCase().startsWith(firstQuery)) &&
+      (!lastQuery || s.last.toLowerCase().startsWith(lastQuery))
+    );
+  }
+
+  if (!recent.length) {
+    box.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = recent
+    .map(
+      s =>
+        `<button type="button" class="name-suggest-item" data-first="${s.first}" data-last="${s.last}">${s.first} ${s.last}</button>`
+    )
+    .join('');
+  box.style.display = '';
+
+  list.querySelectorAll('.name-suggest-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyRecentName(btn.dataset.first, btn.dataset.last);
+      renderRecentNameHints();
+    });
+  });
+}
+
+function setupRecentNameHints() {
+  const first = document.getElementById('firstName');
+  const last = document.getElementById('lastName');
+  if (!first || !last) return;
+  ['focus', 'input'].forEach(evt => {
+    first.addEventListener(evt, renderRecentNameHints);
+    last.addEventListener(evt, renderRecentNameHints);
+  });
+  ['blur'].forEach(evt => {
+    first.addEventListener(evt, () => setTimeout(renderRecentNameHints, 120));
+    last.addEventListener(evt, () => setTimeout(renderRecentNameHints, 120));
+  });
+}
+
+function setupRepeatableProgramFields() {
+  const addMajorBtn = document.getElementById('addMajorBtn');
+  const addMinorBtn = document.getElementById('addMinorBtn');
+  const majorFields = ['major2Field', 'major3Field'];
+  const minorFields = ['minor2Field', 'minor3Field'];
+
+  function revealNext(fields, btn) {
+    const nextId = fields.find(id => document.getElementById(id).classList.contains('hidden-field'));
+    if (!nextId) {
+      btn.disabled = true;
+      return;
+    }
+    document.getElementById(nextId).classList.remove('hidden-field');
+    const stillHidden = fields.some(id => document.getElementById(id).classList.contains('hidden-field'));
+    if (!stillHidden) btn.disabled = true;
+  }
+
+  if (addMajorBtn) addMajorBtn.addEventListener('click', () => revealNext(majorFields, addMajorBtn));
+  if (addMinorBtn) addMinorBtn.addEventListener('click', () => revealNext(minorFields, addMinorBtn));
+}
+
+function resetRepeatableProgramFields() {
+  ['major2Field', 'major3Field', 'minor2Field', 'minor3Field'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden-field');
+  });
+  const addMajorBtn = document.getElementById('addMajorBtn');
+  const addMinorBtn = document.getElementById('addMinorBtn');
+  if (addMajorBtn) addMajorBtn.disabled = false;
+  if (addMinorBtn) addMinorBtn.disabled = false;
+}
+
+function init() {
+  loadStatus();
+  loadPrograms();
+  if (!window.__auditUiInitDone) {
+    setupRecentNameHints();
+    setupRepeatableProgramFields();
+    window.__auditUiInitDone = true;
+  }
+  renderRecentNameHints();
+}
 
 // ── Programs ──────────────────────────────────────────────────────────────────
 let allPrograms  = {}; // key -> label (everything)
@@ -1052,6 +1379,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
         setTimeout(() => { noteDiv.style.display = 'none'; }, 30000);
       }
       toast('✓ Audit generated!' + emailMsg + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
+      rememberStudentName(firstName, lastName);
       loadStatus();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('auditForm').reset();
@@ -1061,6 +1389,8 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     ['conc1Section','conc2Section','conc3Section'].forEach(id => { document.getElementById(id).style.display = 'none'; });
       ['major1Tag','major2Tag','major3Tag','minor1Tag','minor2Tag','minor3Tag'].forEach(id => document.getElementById(id).innerHTML = '');
       document.getElementById('fileName').style.display = 'none';
+      resetRepeatableProgramFields();
+      renderRecentNameHints();
     } catch(err) { toast('Network error. Please try again.', true); }
     finally { btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; }
   }
