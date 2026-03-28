@@ -126,7 +126,7 @@
   .status-bar {
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.85rem 1.1rem; background: var(--cream2);
-    border-radius: 8px; margin-bottom: 1.6rem; border: 1px solid var(--border);
+    border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border);
   }
   .status-bar-label { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
   .status-bar-value { font-size: 0.86rem; font-weight: 600; }
@@ -661,11 +661,6 @@
     </div>
     <div class="card-body">
 
-      <div class="status-bar" id="statusBar">
-        <span class="status-bar-label">Audits Available</span>
-        <span class="status-bar-value ok" id="statusVal">Loading…</span>
-      </div>
-
       <form id="auditForm">
 
         <!-- MODE TOGGLE -->
@@ -702,7 +697,7 @@
           <label>Catalog Year</label>
           <div class="radio-group">
             <label class="radio-option">
-              <input type="radio" name="catalog_year" value="2022-23" id="year2022">
+              <input type="radio" name="catalog_year" value="2022-23" id="year2022" checked>
               <span>2022–23</span>
             </label>
             <label class="radio-option">
@@ -916,8 +911,13 @@
 
         <button type="submit" class="btn-generate" id="submitBtn">
           <div class="spinner" id="spinner"></div>
-          <span id="btnText">Generate Audit PDF</span>
+          <span id="btnText">Generate Audit</span>
         </button>
+
+        <div class="status-bar" id="statusBar">
+          <span class="status-bar-label">Audits Available</span>
+          <span class="status-bar-value ok" id="statusVal">Loading…</span>
+        </div>
 
       </form>
     </div>
@@ -973,13 +973,16 @@ function rememberStudentName(first, last) {
   const f = (first || '').trim();
   const l = (last || '').trim();
   if (!f || !l) return;
-  const next = [{ first: f, last: l }]
-    .concat(
-      getRecentStudents().filter(
-        s => !(s.first.toLowerCase() === f.toLowerCase() && s.last.toLowerCase() === l.toLowerCase())
-      )
-    )
-    .slice(0, 5);
+  const merged = [{ first: f, last: l }].concat(getRecentStudents());
+  const next = [];
+  const seen = new Set();
+  for (const s of merged) {
+    const key = `${(s.first || "").trim().toLowerCase()}|${(s.last || "").trim().toLowerCase()}`;
+    if (!key || key === "|" || seen.has(key)) continue;
+    seen.add(key);
+    next.push({ first: (s.first || "").trim(), last: (s.last || "").trim() });
+    if (next.length === 5) break;
+  }
   localStorage.setItem(LAST_STUDENTS_KEY, JSON.stringify(next));
 }
 
@@ -1071,6 +1074,10 @@ function resetRepeatableProgramFields() {
 }
 
 function init() {
+  const defaultYear = document.getElementById('year2022');
+  if (defaultYear && !document.querySelector('input[name="catalog_year"]:checked')) {
+    defaultYear.checked = true;
+  }
   loadStatus();
   loadPrograms();
   if (!window.__auditUiInitDone) {
@@ -1324,13 +1331,13 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     a.click(); URL.revokeObjectURL(url);
     toast(`✓ ${done} audits generated and zipped!`);
     loadStatus();
-    btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF';
+    btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit';
 
   } else {
     // ── SINGLE MODE ──
     btnText.textContent = 'Generating…';
     const major1 = document.getElementById('major1Val').value;
-    if (!major1) { toast('Please select a primary major.', true); btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; return; }
+    if (!major1) { toast('Please select a primary major.', true); btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit'; return; }
     const form = new FormData(e.target);
     const firstName = document.getElementById('firstName').value.trim();
     const lastName = document.getElementById('lastName').value.trim();
@@ -1385,7 +1392,6 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       toast('✓ Audit generated!' + emailMsg + (remaining ? ' ' + remaining + ' pulls remaining.' : ''));
       rememberStudentName(firstName, lastName);
       loadStatus();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('auditForm').reset();
       document.querySelectorAll('.radio-option input').forEach(r => r.checked = false);
       ['major1Val','major2Val','major3Val','minor1Val','minor2Val','minor3Val'].forEach(id => document.getElementById(id).value = '');
@@ -1396,7 +1402,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       resetRepeatableProgramFields();
       renderRecentNameHints();
     } catch(err) { toast('Network error. Please try again.', true); }
-    finally { btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit PDF'; }
+    finally { btn.disabled=false; spinner.style.display='none'; btnText.textContent='Generate Audit'; }
   }
 });
 
