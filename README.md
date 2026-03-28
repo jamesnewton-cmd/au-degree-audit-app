@@ -35,17 +35,60 @@ audit_app/
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 
 # Run locally
-uvicorn main:app --reload
+python3 -m uvicorn main:app --reload
 
 # Open in browser
 http://localhost:8000
 ```
 
+### Regression checks (recommended before push/deploy)
+
+```bash
+# Run compile checks + targeted regression suite
+make check
+```
+
+This now verifies:
+- Python module syntax/compilation
+- Program/year availability validation (FSB + non-FSB)
+- Overlap handling consistency (`engineering_management`)
+- Auth-protected utility route expectations
+- `/programs/all/{year}` response shape used by the frontend
+
 Default password for local dev: `ravens2025`
 **Change this before deploying.**
+
+---
+
+## Stop Indentation Errors Before They Reach GitHub/Render
+
+This project includes auto-format and syntax guardrails:
+
+- `pyproject.toml` configures Black
+- `.pre-commit-config.yaml` runs Python AST checks + formatting hooks
+- `Makefile` provides one-command checks
+
+### One-time setup
+
+```bash
+python3 -m pip install black pre-commit
+python3 -m pre_commit install
+```
+
+### Everyday workflow (recommended)
+
+```bash
+# format code consistently (fixes indentation style issues)
+make fmt
+
+# fail fast if Python syntax/indentation is broken
+make check
+```
+
+If `make check` fails, fix the reported file before committing/pushing.
 
 ---
 
@@ -64,6 +107,36 @@ Default password for local dev: `ravens2025`
 **Cost:** Free tier on Render is sufficient for 1,000 pulls/year.
 Note: Free tier spins down after 15 min of inactivity (first request takes ~30s to wake).
 Upgrade to Starter ($7/mo) for always-on if AU prefers instant response.
+
+---
+
+## Render Deploy Smoke Checks (Go / No-Go)
+
+After each Render deploy, run this from repo root:
+
+```bash
+python3 render_smoke_check.py "https://<your-service>.onrender.com" "<AUDIT_PASSWORD>"
+```
+
+What it verifies:
+- Protected endpoints reject unauthenticated requests (`401`)
+- Authenticated `/status` and `/programs/all/{year}` return valid payloads
+- Catalog-year FSB naming sanity (e.g., `Sports Management` in 2025-26)
+- One valid `/generate` request returns a PDF (`200`)
+- One invalid major/year request returns `400`
+
+If all checks pass, result is:
+- `OVERALL RESULT: PASS`
+
+Use this merge rule:
+- **PASS** => PR can be marked ready and merged
+- **FAIL** => do not merge; fix issues and redeploy
+
+Shortcut via Makefile:
+
+```bash
+make render-smoke RENDER_URL="https://<your-service>.onrender.com" AUDIT_PASSWORD="<AUDIT_PASSWORD>"
+```
 
 ---
 

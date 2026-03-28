@@ -16,15 +16,15 @@ from requirements.non_fsb_programs import (
     ALL_NON_FSB_PROGRAMS,
 )
 
-
 # ─────────────────────────────────────────────
 # Data models
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class CourseRecord:
-    course_id: str          # e.g. "BIOL 2210"
-    grade: str              # "A", "B+", "C", "IP", "TR", etc.
+    course_id: str  # e.g. "BIOL 2210"
+    grade: str  # "A", "B+", "C", "IP", "TR", etc.
     credits: float
     term: str = ""
 
@@ -41,17 +41,26 @@ class CourseRecord:
     @property
     def grade_points(self) -> float:
         gp_map = {
-            "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7,
-            "C+": 2.3, "C": 2.0, "C-": 1.7, "D+": 1.3, "D": 1.0,
-            "D-": 0.7, "F": 0.0,
+            "A": 4.0,
+            "A-": 3.7,
+            "B+": 3.3,
+            "B": 3.0,
+            "B-": 2.7,
+            "C+": 2.3,
+            "C": 2.0,
+            "C-": 1.7,
+            "D+": 1.3,
+            "D": 1.0,
+            "D-": 0.7,
+            "F": 0.0,
         }
         return gp_map.get(self.grade.upper(), 0.0)
 
 
 @dataclass
 class RequirementStatus:
-    label: str                 # e.g. "BIOL 2210 Foundations of Modern Biology I"
-    status: str                # "Satisfied", "In Progress", "Not Met"
+    label: str  # e.g. "BIOL 2210 Foundations of Modern Biology I"
+    status: str  # "Satisfied", "In Progress", "Not Met"
     course_used: Optional[str] = None
     notes: str = ""
 
@@ -72,6 +81,7 @@ class NonFSBAuditResult:
 # ─────────────────────────────────────────────
 # Core engine
 # ─────────────────────────────────────────────
+
 
 class NonFSBAuditEngine:
 
@@ -108,11 +118,7 @@ class NonFSBAuditEngine:
         return completed, in_progress
 
     def _check_course(
-        self,
-        course_id: str,
-        completed: dict,
-        in_progress: dict,
-        alternatives: list[str] = None
+        self, course_id: str, completed: dict, in_progress: dict, alternatives: list[str] = None
     ) -> RequirementStatus:
         """
         Check if a single course (or one of its alternatives) is satisfied.
@@ -210,8 +216,14 @@ class NonFSBAuditEngine:
             results.append(self._check_course(course_id, completed, in_progress))
 
         # ── Foundation blocks ─────────────────────────────────
-        for block_key in ["foundation", "core", "dept_core", "ministry_core",
-                           "required_science", "required_exsc"]:
+        for block_key in [
+            "foundation",
+            "core",
+            "dept_core",
+            "ministry_core",
+            "required_science",
+            "required_exsc",
+        ]:
             for course_id in req.get(block_key, []):
                 results.append(self._check_course(course_id, completed, in_progress))
 
@@ -220,27 +232,39 @@ class NonFSBAuditEngine:
             if key.startswith("choose_one") or key == "choose_one":
                 options = req[key]
                 if isinstance(options, list):
-                    satisfied = any(
-                        self._normalize_id(c) in completed for c in options
+                    satisfied = any(self._normalize_id(c) in completed for c in options)
+                    in_prog = (
+                        any(self._normalize_id(c) in in_progress for c in options)
+                        if not satisfied
+                        else False
                     )
-                    in_prog = any(
-                        self._normalize_id(c) in in_progress for c in options
-                    ) if not satisfied else False
                     status = "Satisfied" if satisfied else ("In Progress" if in_prog else "Not Met")
                     used = next(
-                        (self._normalize_id(c) for c in options
-                         if self._normalize_id(c) in completed),
-                        None
+                        (
+                            self._normalize_id(c)
+                            for c in options
+                            if self._normalize_id(c) in completed
+                        ),
+                        None,
                     )
-                    results.append(RequirementStatus(
-                        label=f"One of: {', '.join(options[:3])}{'...' if len(options)>3 else ''}",
-                        status=status,
-                        course_used=used,
-                    ))
+                    results.append(
+                        RequirementStatus(
+                            label=f"One of: {', '.join(options[:3])}{'...' if len(options)>3 else ''}",
+                            status=status,
+                            course_used=used,
+                        )
+                    )
 
         # ── Elective blocks ───────────────────────────────────
-        for elective_key in ["elective_upper", "elective_upper_div", "elective", "math",
-                             "elective_chem", "elective_lit", "elective_writing"]:
+        for elective_key in [
+            "elective_upper",
+            "elective_upper_div",
+            "elective",
+            "math",
+            "elective_chem",
+            "elective_lit",
+            "elective_writing",
+        ]:
             elective_conf = req.get(elective_key)
             if elective_conf and isinstance(elective_conf, dict):
                 credits_needed = elective_conf.get("credits", 0)
@@ -251,28 +275,38 @@ class NonFSBAuditEngine:
                     except ValueError:
                         credits_needed = 0
                 if credits_needed:
-                    results.append(self._check_elective_block(
-                        label=f"Elective: {credits_needed} cr",
-                        required_credits=float(credits_needed),
-                        completed=completed,
-                        elective_config=elective_conf,
-                    ))
+                    results.append(
+                        self._check_elective_block(
+                            label=f"Elective: {credits_needed} cr",
+                            required_credits=float(credits_needed),
+                            completed=completed,
+                            elective_config=elective_conf,
+                        )
+                    )
 
         # ── Applied music / ensembles (Music programs) ────────
-        for music_key in ["applied", "applied_primary", "applied_voice",
-                          "applied_music", "major_ensemble", "ensembles"]:
+        for music_key in [
+            "applied",
+            "applied_primary",
+            "applied_voice",
+            "applied_music",
+            "major_ensemble",
+            "ensembles",
+        ]:
             music_conf = req.get(music_key)
             if music_conf and isinstance(music_conf, dict):
                 credits_needed = music_conf.get("credits", 0)
                 if isinstance(credits_needed, int) and credits_needed:
                     # Check for MUPF/ensemble courses
                     dept = "MUPF" if "applied" in music_key else "MUSC"
-                    results.append(self._check_elective_block(
-                        label=f"{music_key.replace('_', ' ').title()}: {credits_needed} cr",
-                        required_credits=float(credits_needed),
-                        completed=completed,
-                        elective_config={"dept": dept},
-                    ))
+                    results.append(
+                        self._check_elective_block(
+                            label=f"{music_key.replace('_', ' ').title()}: {credits_needed} cr",
+                            required_credits=float(credits_needed),
+                            completed=completed,
+                            elective_config={"dept": dept},
+                        )
+                    )
 
         # ── Concentrations: check at least one track satisfied ──
         concentrations = req.get("concentrations") or req.get("tracks")
@@ -281,21 +315,24 @@ class NonFSBAuditEngine:
             for track_name, track_req in concentrations.items():
                 if isinstance(track_req, list):
                     satisfied_count = sum(
-                        1 for c in track_req
-                        if self._normalize_id(c) in completed
+                        1 for c in track_req if self._normalize_id(c) in completed
                     )
                     track_results.append((track_name, satisfied_count, len(track_req)))
 
             if track_results:
                 best = max(track_results, key=lambda x: x[1])
-                status = "Satisfied" if best[1] == best[2] else (
-                    "In Progress" if best[1] > 0 else "Not Met"
+                status = (
+                    "Satisfied"
+                    if best[1] == best[2]
+                    else ("In Progress" if best[1] > 0 else "Not Met")
                 )
-                results.append(RequirementStatus(
-                    label=f"Concentration/Track ({best[0]})",
-                    status=status,
-                    notes=f"{best[1]}/{best[2]} courses in best track",
-                ))
+                results.append(
+                    RequirementStatus(
+                        label=f"Concentration/Track ({best[0]})",
+                        status=status,
+                        notes=f"{best[1]}/{best[2]} courses in best track",
+                    )
+                )
 
         # ── Calculate major GPA ───────────────────────────────
         major_credits = 0.0
@@ -380,6 +417,7 @@ class NonFSBAuditEngine:
 # ─────────────────────────────────────────────
 # Convenience function (mirrors FSB engine interface)
 # ─────────────────────────────────────────────
+
 
 def run_non_fsb_audit(
     program_key: str,

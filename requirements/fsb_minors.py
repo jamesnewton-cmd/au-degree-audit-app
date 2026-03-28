@@ -22,7 +22,14 @@ FSB_MINORS = {
             "total_credits": 18,
             "fsb_majors_track": {
                 "required": ["BSNS 3130", "BSNS 4360", "BSNS 4560"],
-                "choose_6_from": ["BSNS 3210", "BSNS 3220", "BSNS 3550", "BSNS 4400", "BSNS 4550", "BSNS 4800"],
+                "choose_6_from": [
+                    "BSNS 3210",
+                    "BSNS 3220",
+                    "BSNS 3550",
+                    "BSNS 4400",
+                    "BSNS 4550",
+                    "BSNS 4800",
+                ],
             },
             "non_fsb_track": {
                 "required": ["BSNS 2810"],
@@ -35,7 +42,14 @@ FSB_MINORS = {
             "total_credits": 18,
             "fsb_majors_track": {
                 "required": ["BSNS 3130", "BSNS 4360", "BSNS 4560"],
-                "choose_6_from": ["BSNS 3210", "BSNS 3220", "BSNS 3550", "BSNS 4400", "BSNS 4550", "BSNS 4800"],
+                "choose_6_from": [
+                    "BSNS 3210",
+                    "BSNS 3220",
+                    "BSNS 3550",
+                    "BSNS 4400",
+                    "BSNS 4550",
+                    "BSNS 4800",
+                ],
             },
             "non_fsb_track": {
                 "required": ["BSNS 2810"],
@@ -48,7 +62,14 @@ FSB_MINORS = {
             "total_credits": 18,
             "fsb_majors_track": {
                 "required": ["BSNS 3130", "BSNS 4360", "BSNS 4560"],
-                "choose_6_from": ["BSNS 3210", "BSNS 3220", "BSNS 3550", "BSNS 4400", "BSNS 4550", "BSNS 4800"],
+                "choose_6_from": [
+                    "BSNS 3210",
+                    "BSNS 3220",
+                    "BSNS 3550",
+                    "BSNS 4400",
+                    "BSNS 4550",
+                    "BSNS 4800",
+                ],
             },
             "non_fsb_track": {
                 "required": ["BSNS 2810"],
@@ -70,34 +91,43 @@ FSB_MINORS = {
             },
         },
     },
-
     "accounting_minor": {
         "2022-23": {
             "name": "Accounting Minor",
             "total_credits": 15,
             "required": ["ACCT 2010", "ACCT 2020"],
-            "choose_9_from": ["ACCT 3010", "ACCT 3020", "ACCT 3110", "ACCT 3500", "ACCT 4020", "ACCT 4050", "ACCT 4100"],
+            "choose_9_from": [
+                "ACCT 3010",
+                "ACCT 3020",
+                "ACCT 3110",
+                "ACCT 3500",
+                "ACCT 4020",
+                "ACCT 4050",
+                "ACCT 4100",
+            ],
         },
         "2023-24": {"same_as": "2022-23", "name": "Accounting Minor", "total_credits": 15},
         "2024-25": {"same_as": "2022-23", "name": "Accounting Minor", "total_credits": 15},
         "2025-26": {"same_as": "2022-23", "name": "Accounting Minor", "total_credits": 15},
     },
-
     "economics_minor": {
         "2022-23": {
             "name": "Economics Minor",
             "total_credits": 18,
             "required": ["ECON 2010", "ECON 2020", "ECON 3020", "ECON 3410"],
             "choose_6_from": [
-                "ECON 3110", "ECON 3210", "ECON 3850", "ECON 4020",
-                "BSNS 4240", "POSC 2200",
+                "ECON 3110",
+                "ECON 3210",
+                "ECON 3850",
+                "ECON 4020",
+                "BSNS 4240",
+                "POSC 2200",
             ],
         },
         "2023-24": {"same_as": "2022-23", "name": "Economics Minor", "total_credits": 18},
         "2024-25": {"same_as": "2022-23", "name": "Economics Minor", "total_credits": 18},
         "2025-26": {"same_as": "2022-23", "name": "Economics Minor", "total_credits": 18},
     },
-
     "entrepreneurship_minor": {
         "2022-23": {
             "name": "Entrepreneurship Minor",
@@ -110,7 +140,6 @@ FSB_MINORS = {
         "2024-25": {"same_as": "2022-23"},
         "2025-26": {"same_as": "2022-23"},
     },
-
     "finance_minor": {
         "2022-23": {
             "name": "Finance Minor",
@@ -125,7 +154,6 @@ FSB_MINORS = {
         "2024-25": {"same_as": "2022-23"},
         "2025-26": {"same_as": "2022-23"},
     },
-
     "global_business_minor": {
         "2022-23": {
             "name": "Global Business Minor",
@@ -138,7 +166,6 @@ FSB_MINORS = {
         "2024-25": {"same_as": "2022-23"},
         "2025-26": {"same_as": "2022-23"},
     },
-
     "management_minor": {
         "2022-23": {
             "name": "Management Minor",
@@ -154,7 +181,6 @@ FSB_MINORS = {
         "2024-25": {"same_as": "2022-23"},
         "2025-26": {"same_as": "2022-23"},
     },
-
     "marketing_minor": {
         "2022-23": {
             "name": "Marketing Minor",
@@ -169,18 +195,23 @@ FSB_MINORS = {
         "2024-25": {"same_as": "2022-23"},
         "2025-26": {"same_as": "2022-23"},
     },
-
     "music_entertainment_business_minor": {
         "2022-23": {
             "name": "Music & Entertainment Business Minor",
             "total_credits": 18,
-            "required": ["BSNS 3320", "BSNS 3330", "BSNS 3360", "MUBS 2010", "MUBS 2020", "MUBS 3100"],
+            "required": [
+                "BSNS 3320",
+                "BSNS 3330",
+                "BSNS 3360",
+                "MUBS 2010",
+                "MUBS 2020",
+                "MUBS 3100",
+            ],
         },
         "2023-24": None,  # Major removed, minor may also be gone — verify
         "2024-25": None,
         "2025-26": None,
     },
-
     "social_media_minor": {
         "2022-23": {
             "name": "Social Media Minor",

@@ -24,10 +24,16 @@ try:
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
     from reportlab.platypus import (
-        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-        KeepTogether, HRFlowable,
+        SimpleDocTemplate,
+        Paragraph,
+        Spacer,
+        Table,
+        TableStyle,
+        KeepTogether,
+        HRFlowable,
     )
     from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -37,16 +43,16 @@ except ImportError:
 # BRAND COLORS (Anderson University)
 # ─────────────────────────────────────────────
 
-AU_BLACK      = colors.HexColor("#000000")
-AU_GOLD       = colors.HexColor("#C8A84B")
-AU_DARK_GOLD  = colors.HexColor("#A08030")
-AU_WHITE      = colors.white
+AU_BLACK = colors.HexColor("#000000")
+AU_GOLD = colors.HexColor("#C8A84B")
+AU_DARK_GOLD = colors.HexColor("#A08030")
+AU_WHITE = colors.white
 AU_LIGHT_GRAY = colors.HexColor("#F5F5F5")
-AU_MED_GRAY   = colors.HexColor("#CCCCCC")
-AU_DARK_GRAY  = colors.HexColor("#555555")
+AU_MED_GRAY = colors.HexColor("#CCCCCC")
+AU_DARK_GRAY = colors.HexColor("#555555")
 
-STATUS_GREEN  = colors.HexColor("#2E7D32")
-STATUS_RED    = colors.HexColor("#C62828")
+STATUS_GREEN = colors.HexColor("#2E7D32")
+STATUS_RED = colors.HexColor("#C62828")
 STATUS_YELLOW = colors.HexColor("#F9A825")
 
 
@@ -55,16 +61,15 @@ class AuditPDFGenerator:
 
     PAGE_WIDTH, PAGE_HEIGHT = letter
     MARGIN = 0.65 * inch
-    COL_LABEL_WIDTH  = 3.4 * inch
+    COL_LABEL_WIDTH = 3.4 * inch
     COL_COURSE_WIDTH = 1.8 * inch
     COL_STATUS_WIDTH = 1.4 * inch
-    COL_NOTES_WIDTH  = 1.0 * inch
+    COL_NOTES_WIDTH = 1.0 * inch
 
     def __init__(self):
         if not REPORTLAB_AVAILABLE:
             raise ImportError(
-                "reportlab is required for PDF generation. "
-                "Install with: pip install reportlab"
+                "reportlab is required for PDF generation. " "Install with: pip install reportlab"
             )
         self._setup_styles()
 
@@ -185,7 +190,9 @@ class AuditPDFGenerator:
             story.append(Spacer(1, 0.1 * inch))
 
         if audit_result.major_requirements:
-            story += self._build_section(f"{audit_result.major} — Major Requirements", audit_result.major_requirements)
+            story += self._build_section(
+                f"{audit_result.major} — Major Requirements", audit_result.major_requirements
+            )
             story.append(Spacer(1, 0.1 * inch))
 
         if audit_result.minor_requirements:
@@ -208,17 +215,23 @@ class AuditPDFGenerator:
         elements = []
 
         # Gold bar at top
-        elements.append(HRFlowable(
-            width="100%",
-            thickness=6,
-            color=AU_GOLD,
-            spaceAfter=6,
-        ))
+        elements.append(
+            HRFlowable(
+                width="100%",
+                thickness=6,
+                color=AU_GOLD,
+                spaceAfter=6,
+            )
+        )
 
         elements.append(Paragraph("Anderson University", self.styles["header_title"]))
-        elements.append(Paragraph("Falls School of Business — Degree Audit", self.styles["header_sub"]))
+        elements.append(
+            Paragraph("Falls School of Business — Degree Audit", self.styles["header_sub"])
+        )
 
-        elements.append(HRFlowable(width="100%", thickness=1, color=AU_MED_GRAY, spaceBefore=4, spaceAfter=6))
+        elements.append(
+            HRFlowable(width="100%", thickness=1, color=AU_MED_GRAY, spaceBefore=4, spaceAfter=6)
+        )
 
         # Student info table
         info_data = [
@@ -230,21 +243,29 @@ class AuditPDFGenerator:
             ]
         ]
         info_table = Table(info_data, colWidths=["25%", "15%", "25%", "35%"])
-        info_table.setStyle(TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ]))
+        info_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
         elements.append(info_table)
         elements.append(Spacer(1, 0.05 * inch))
 
         # Print date
-        elements.append(Paragraph(
-            f"Generated: {date.today().strftime('%B %d, %Y')}  |  "
-            f"Status: {'✓ Degree Requirements Met' if r.is_complete else '⚠ Requirements Outstanding'}",
-            self.styles["header_sub"],
-        ))
+        elements.append(
+            Paragraph(
+                f"Generated: {date.today().strftime('%B %d, %Y')}  |  "
+                f"Status: {'✓ Degree Requirements Met' if r.is_complete else '⚠ Requirements Outstanding'}",
+                self.styles["header_sub"],
+            )
+        )
 
-        elements.append(HRFlowable(width="100%", thickness=1, color=AU_MED_GRAY, spaceBefore=6, spaceAfter=4))
+        elements.append(
+            HRFlowable(width="100%", thickness=1, color=AU_MED_GRAY, spaceBefore=6, spaceAfter=4)
+        )
         return elements
 
     # ─────────────────────────────────────────────
@@ -252,28 +273,34 @@ class AuditPDFGenerator:
     # ─────────────────────────────────────────────
 
     def _build_gpa_bar(self, r: AuditResult) -> list:
-        gpa_data = [[
-            Paragraph(
-                f"<b>Overall GPA:</b> {r.overall_gpa:.2f}",
-                self.styles["gpa_label"],
-            ),
-            Paragraph(
-                f"<b>Major GPA:</b> {r.major_gpa:.2f}",
-                self.styles["gpa_label"],
-            ),
-            Paragraph(
-                f"<b>Credits Completed:</b> {int(r.total_credits_completed)}",
-                self.styles["gpa_label"],
-            ),
-        ]]
+        gpa_data = [
+            [
+                Paragraph(
+                    f"<b>Overall GPA:</b> {r.overall_gpa:.2f}",
+                    self.styles["gpa_label"],
+                ),
+                Paragraph(
+                    f"<b>Major GPA:</b> {r.major_gpa:.2f}",
+                    self.styles["gpa_label"],
+                ),
+                Paragraph(
+                    f"<b>Credits Completed:</b> {int(r.total_credits_completed)}",
+                    self.styles["gpa_label"],
+                ),
+            ]
+        ]
         t = Table(gpa_data, colWidths=["33%", "33%", "34%"])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), AU_LIGHT_GRAY),
-            ("BOX", (0, 0), (-1, -1), 1, AU_MED_GRAY),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]))
+        t.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), AU_LIGHT_GRAY),
+                    ("BOX", (0, 0), (-1, -1), 1, AU_MED_GRAY),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
         return [t]
 
     # ─────────────────────────────────────────────
@@ -288,21 +315,27 @@ class AuditPDFGenerator:
             [[Paragraph(heading, self.styles["section_heading"])]],
             colWidths=["100%"],
         )
-        heading_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), AU_BLACK),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ]))
+        heading_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), AU_BLACK),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ]
+            )
+        )
         elements.append(heading_table)
 
         # Column headers
-        col_header_data = [[
-            Paragraph("<b>Requirement</b>", self.styles["cell_label"]),
-            Paragraph("<b>Course</b>", self.styles["cell_label"]),
-            Paragraph("<b>Status</b>", self.styles["cell_label"]),
-            Paragraph("<b>Notes</b>", self.styles["cell_notes"]),
-        ]]
+        col_header_data = [
+            [
+                Paragraph("<b>Requirement</b>", self.styles["cell_label"]),
+                Paragraph("<b>Course</b>", self.styles["cell_label"]),
+                Paragraph("<b>Status</b>", self.styles["cell_label"]),
+                Paragraph("<b>Notes</b>", self.styles["cell_notes"]),
+            ]
+        ]
 
         rows = [col_header_data[0]]
         row_colors = []
@@ -343,20 +376,22 @@ class AuditPDFGenerator:
         ]
 
         table = Table(rows, colWidths=col_widths, repeatRows=1)
-        style = TableStyle([
-            # Header row
-            ("BACKGROUND", (0, 0), (-1, 0), AU_DARK_GOLD),
-            ("TEXTCOLOR", (0, 0), (-1, 0), AU_WHITE),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 9),
-            # All cells
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-            ("GRID", (0, 0), (-1, -1), 0.5, AU_MED_GRAY),
-        ])
+        style = TableStyle(
+            [
+                # Header row
+                ("BACKGROUND", (0, 0), (-1, 0), AU_DARK_GOLD),
+                ("TEXTCOLOR", (0, 0), (-1, 0), AU_WHITE),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                # All cells
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("GRID", (0, 0), (-1, -1), 0.5, AU_MED_GRAY),
+            ]
+        )
         for cmd in row_colors:
             style.add(*cmd)
         table.setStyle(style)
@@ -376,21 +411,25 @@ class AuditPDFGenerator:
             [[Paragraph("Student Action Plan", self.styles["section_heading"])]],
             colWidths=["100%"],
         )
-        heading_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), AU_BLACK),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ]))
+        heading_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), AU_BLACK),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ]
+            )
+        )
         elements.append(heading_table)
 
         sections = [
-            ("Liberal Arts Outstanding",  plan.get("liberal_arts_outstanding", [])),
+            ("Liberal Arts Outstanding", plan.get("liberal_arts_outstanding", [])),
             ("Business Core Outstanding", plan.get("core_outstanding", [])),
             ("Major Requirements Outstanding", plan.get("major_outstanding", [])),
             ("Minor Requirements Outstanding", plan.get("minor_outstanding", [])),
-            ("GPA Concerns",              plan.get("gpa_concerns", [])),
-            ("Other",                     plan.get("other", [])),
+            ("GPA Concerns", plan.get("gpa_concerns", [])),
+            ("Other", plan.get("other", [])),
         ]
 
         any_items = False
@@ -405,10 +444,12 @@ class AuditPDFGenerator:
 
         if not any_items:
             elements.append(Spacer(1, 0.06 * inch))
-            elements.append(Paragraph(
-                "✓ All requirements satisfied. No outstanding items.",
-                self.styles["cell_satisfied"],
-            ))
+            elements.append(
+                Paragraph(
+                    "✓ All requirements satisfied. No outstanding items.",
+                    self.styles["cell_satisfied"],
+                )
+            )
 
         return elements
 
@@ -429,6 +470,7 @@ class AuditPDFGenerator:
 # ─────────────────────────────────────────────
 # STANDALONE GENERATE FUNCTION
 # ─────────────────────────────────────────────
+
 
 def generate_audit_pdf(audit_result: AuditResult) -> bytes:
     """Generate a PDF audit report. Returns raw bytes."""
