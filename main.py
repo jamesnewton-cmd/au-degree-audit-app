@@ -496,38 +496,39 @@ async def generate(
 
         is_fsb = major in FSB_MAJORS
 
-        if is_fsb:
-            engine_name = FSB_MAJORS[major]["engine"]
-            mod = load_engine(engine_name)
+    if is_fsb:
+        engine_name = FSB_MAJORS[major]["engine"]
+        mod = load_engine(engine_name)
 
-            print("major:", major)
-            print("engine_name:", engine_name)
-            print("mod:", mod.__name__)
+        print("major:", major)
+        print("engine_name:", engine_name)
+        print("mod:", mod.__name__)
 
-            if hasattr(mod, "MAJOR_KEY"):
-                mod.MAJOR_KEY = major
-                mod.CATALOG_YEAR = catalog_year
+    if hasattr(mod, "MAJOR_KEY"):
+        mod.MAJOR_KEY = major
+        mod.CATALOG_YEAR = catalog_year
 
-        try:
-            res = mod.audit(raw_courses, minor_key=minor1 or None)
-        except TypeError:
-            res = mod.audit(raw_courses)
+    try:
+        res = mod.audit(raw_courses, minor_key=minor1 or None)
+    except TypeError:
+        res = mod.audit(raw_courses)
 
-        print("FSB bc count right after audit:", len(res.get("bc", [])))
+    print("FSB bc count right after audit:", len(res.get("bc", [])))
 
-            res["catalog_year"] = catalog_year
-            res["advisor_notes"] = advisor_notes
-            major_label = FSB_MAJORS[major]["label"]
-            res["major_section_label"] = f"{major_label} Major — {catalog_year}"
-            res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
-            res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
-            print("eligible_to_walk:", res["eligible_to_walk"])
-        else:
-            # ── NON-FSB PATH: dynamic scanner ────────────────────────────────
-            from requirements.non_fsb_programs import (
-                get_non_fsb_requirements,
-                ALL_NON_FSB_PROGRAMS,
-            )
+    res["catalog_year"] = catalog_year
+    res["advisor_notes"] = advisor_notes
+    major_label = FSB_MAJORS[major]["label"]
+    res["major_section_label"] = f"{major_label} Major — {catalog_year}"
+    res["major_subsections"] = [(f"{major_label} Required Courses", res.get("mr", []))]
+    res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
+
+    print("eligible_to_walk:", res["eligible_to_walk"])
+
+else:
+    from requirements.non_fsb_programs import (
+        get_non_fsb_requirements,
+        ALL_NON_FSB_PROGRAMS,
+    )
 
             if major not in ALL_NON_FSB_PROGRAMS:
                 raise HTTPException(400, f"Unknown major: {major}")
