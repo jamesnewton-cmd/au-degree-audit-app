@@ -331,7 +331,7 @@ def build(res, student_name, major_label, out, exceptions=""):
     met_rows = [
         [Paragraph("Metric", P["met_hdr_l"]), Paragraph("Value", P["met_hdr_r"])],
         [Paragraph("Earned Hours", P["met_lbl"]), Paragraph(str(float(earned)), P["met_val"])],
-        [Paragraph("In-Progress Hours", P["met_lbl"]), Paragraph(str(float(ip_hrs)), P["met_val"])],
+        [Paragraph("Currently Enrolled Hours", P["met_lbl"]), Paragraph(str(float(ip_hrs)), P["met_val"])],
         [
             Paragraph("Projected Total Hours", P["met_lbl"]),
             Paragraph(str(float(proj)), P["met_val"]),
@@ -528,7 +528,7 @@ def build(res, student_name, major_label, out, exceptions=""):
         story.append(Spacer(1, 8))
 
     # ── LA SECTION ────────────────────────────────────────────────────────────
-    story.append(Paragraph("Liberal Arts — Current", P["sec_gold"]))
+    story.append(Paragraph("Liberal Arts — Currently Enrolled", P["sec_gold"]))
     story.append(Spacer(1, 4))
 
     la_cw = [CW * 0.06, CW * 0.22, CW * 0.40, CW * 0.15, CW * 0.06, CW * 0.11]
@@ -587,7 +587,7 @@ def build(res, student_name, major_label, out, exceptions=""):
         [
             [
                 Paragraph(
-                    f"Liberal Arts Hours — Earned: {la_earned} cr  ·  In Progress / Scheduled: {la_ip} cr  ·  Total Required: {la_total} cr",
+                    f"Liberal Arts Hours — Earned: {la_earned} cr  ·  Currently enrolled / Scheduled: {la_ip} cr  ·  Total Required: {la_total} cr",
                     ps("la_tot", fontName="Helvetica-Bold", fontSize=8, textColor=DARK, leading=10),
                 )
             ]
@@ -790,7 +790,7 @@ def build(res, student_name, major_label, out, exceptions=""):
         [
             [
                 Paragraph(
-                    f"Major Hours — Earned: {mj_earned} cr  ·  In Progress / Scheduled: {mj_ip} cr  ·  Total Required: {mj_req} cr",
+                    f"Major Hours — Earned: {mj_earned} cr  ·  Currently enrolled / Scheduled: {mj_ip} cr  ·  Total Required: {mj_req} cr",
                     ps("mj_tot", fontName="Helvetica-Bold", fontSize=8, textColor=DARK, leading=10),
                 )
             ]
@@ -854,7 +854,7 @@ def build(res, student_name, major_label, out, exceptions=""):
             [
                 [
                     Paragraph(
-                        f"Major Hours — Earned: {ex_earned} cr  ·  In Progress / Scheduled: {ex_ip} cr  ·  Total Required: {ex_req} cr",
+                        f"Major Hours — Earned: {ex_earned} cr  ·  Currently enrolled / Scheduled: {ex_ip} cr  ·  Total Required: {ex_req} cr",
                         ps(
                             "ex_tot",
                             fontName="Helvetica-Bold",
@@ -1064,7 +1064,7 @@ def build(res, student_name, major_label, out, exceptions=""):
         [
             [
                 Paragraph(
-                    f"Course History — Earned: {ch_earned_hrs} cr  ·  In Progress / Scheduled: {ch_ip_hrs} cr  ·  Projected Total: {ch_earned_hrs + ch_ip_hrs} cr",
+                    f"Course History — Earned: {ch_earned_hrs} cr  ·  Currently enrolled / Scheduled: {ch_ip_hrs} cr  ·  Projected Total: {ch_earned_hrs + ch_ip_hrs} cr",
                     ps("ch_tot", fontName="Helvetica-Bold", fontSize=8, textColor=DARK, leading=10),
                 )
             ]
@@ -1325,7 +1325,10 @@ def build(res, student_name, major_label, out, exceptions=""):
                 if r["status"] == "Satisfied":
                     action = f"✓ Satisfied — {course_str}"
                 elif r["status"] == "Current":
-                    action = f"⟳ Current — {course_str} — complete with passing grade this semester"
+                    action = (
+                        f"⟳ Currently enrolled — {course_str} "
+                        "— complete with passing grade this semester"
+                    )
                 elif r["status"] == "Scheduled":
                     action = (
                         f"⟳ Scheduled — {course_str} — confirm enrollment and complete with passing grade"
@@ -1345,7 +1348,7 @@ def build(res, student_name, major_label, out, exceptions=""):
             if r["status"] in ("Current", "Scheduled") and r.get("course"):
                 course_str = f"{r['course']['raw']} {r['course']['name']}"
                 wi_action_prefix = (
-                    "⟳ Current"
+                    "⟳ Currently enrolled"
                     if r["status"] == "Current"
                     else "⟳ Scheduled"
                 )
@@ -1361,11 +1364,11 @@ def build(res, student_name, major_label, out, exceptions=""):
                     )
                 )
 
-    ap_section("Liberal Arts — Current", la_cur, GOLD_BAR)
+    ap_section("Liberal Arts — Currently Enrolled", la_cur, GOLD_BAR)
     ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR)
     ap_section("Liberal Arts — Missing", la_miss, GOLD_BAR)
     ap_section("Advanced Competency — WI", wi_items, GOLD_BAR)
-    ap_section("Major — Current", maj_cur, BLUE_BAR)
+    ap_section("Major — Currently Enrolled", maj_cur, BLUE_BAR)
     ap_section("Major — Scheduled", maj_sched, BLUE_BAR)
     ap_section("Major — Missing", maj_miss, BLUE_BAR)
     ap_section("Credit Hours", credit_items, BLUE_BAR)
@@ -1415,7 +1418,7 @@ def build(res, student_name, major_label, out, exceptions=""):
                         )
                     )
         mn = res.get("minor_name", "Minor")
-        ap_section(f"Minor — Current ({mn})", minor_cur, GOLD_BAR)
+        ap_section(f"Minor — Currently Enrolled ({mn})", minor_cur, GOLD_BAR)
         ap_section(f"Minor — Scheduled ({mn})", minor_sched, GOLD_BAR)
         ap_section(f"Minor — Missing ({mn})", minor_miss, GOLD_BAR)
 
@@ -1446,7 +1449,7 @@ def build(res, student_name, major_label, out, exceptions=""):
             (f"{still_needed} hrs still needed", f"Enroll in approved elective: {opt_str}")
         )
     if elec_required_hrs > 0:
-        ap_section("Electives — Current", elec_cur, GOLD_BAR)
+        ap_section("Electives — Currently Enrolled", elec_cur, GOLD_BAR)
         ap_section("Electives — Scheduled", elec_sched, GOLD_BAR)
         ap_section("Electives — Missing", elec_miss, GOLD_BAR)
 
