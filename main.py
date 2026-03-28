@@ -508,10 +508,12 @@ async def generate(
                 mod.MAJOR_KEY = major
                 mod.CATALOG_YEAR = catalog_year
 
-            try:
-                res = mod.audit(raw_courses, minor_key=minor1 or None)
-            except TypeError:
-                res = mod.audit(raw_courses)
+        try:
+            res = mod.audit(raw_courses, minor_key=minor1 or None)
+        except TypeError:
+            res = mod.audit(raw_courses)
+
+        print("FSB bc count right after audit:", len(res.get("bc", [])))
 
             res["catalog_year"] = catalog_year
             res["advisor_notes"] = advisor_notes
