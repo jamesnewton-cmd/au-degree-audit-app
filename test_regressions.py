@@ -98,7 +98,7 @@ class ProgramYearRegressionTests(unittest.TestCase):
 
 
 class CsvStatusNormalizationTests(unittest.TestCase):
-    def test_scheduled_is_normalized_to_current(self):
+    def test_scheduled_status_is_preserved(self):
         from engines.sport_marketing import parse_csv
 
         tmp_dir = Path(tempfile.mkdtemp(prefix="audit-scheduled-status-"))
@@ -114,7 +114,7 @@ class CsvStatusNormalizationTests(unittest.TestCase):
             rows = parse_csv(str(csv_path))
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["code"], "BSNS_2310")
-            self.assertEqual(rows[0]["status"], "current")
+            self.assertEqual(rows[0]["status"], "scheduled")
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 

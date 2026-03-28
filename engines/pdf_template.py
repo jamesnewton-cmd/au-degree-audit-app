@@ -1324,8 +1324,12 @@ def build(res, student_name, major_label, out, exceptions=""):
                 course_str = f"{r['course']['raw']} {r['course']['name']}"
                 if r["status"] == "Satisfied":
                     action = f"✓ Satisfied — {course_str}"
-                elif r["status"] in ("Current", "Scheduled"):
-                    action = f"⟳ In Progress — {course_str} — complete with passing grade"
+                elif r["status"] == "Current":
+                    action = f"⟳ Current — {course_str} — complete with passing grade this semester"
+                elif r["status"] == "Scheduled":
+                    action = (
+                        f"⟳ Scheduled — {course_str} — confirm enrollment and complete with passing grade"
+                    )
                 else:
                     action = (
                         "Enroll in a WI-designated course (at least 1 must be upper-division 3000+)"
@@ -1340,10 +1344,20 @@ def build(res, student_name, major_label, out, exceptions=""):
         for i, r in enumerate(wi_rows, 1):
             if r["status"] in ("Current", "Scheduled") and r.get("course"):
                 course_str = f"{r['course']['raw']} {r['course']['name']}"
+                wi_action_prefix = (
+                    "⟳ Current"
+                    if r["status"] == "Current"
+                    else "⟳ Scheduled"
+                )
+                wi_action_suffix = (
+                    "complete with passing grade this semester"
+                    if r["status"] == "Current"
+                    else "confirm enrollment and complete with passing grade"
+                )
                 wi_items.append(
                     (
                         f"WI Writing Intensive #{i}",
-                        f"⟳ In Progress — {course_str} — complete with passing grade",
+                        f"{wi_action_prefix} — {course_str} — {wi_action_suffix}",
                     )
                 )
 
