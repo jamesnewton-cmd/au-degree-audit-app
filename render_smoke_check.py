@@ -18,7 +18,6 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-
 EXPECTED_YEARS = {"2022-23", "2023-24", "2024-25", "2025-26"}
 
 
@@ -81,7 +80,9 @@ def _build_multipart(fields: dict[str, str], file_field: str, file_path: Path):
     return b"".join(chunks), f"multipart/form-data; boundary={boundary}"
 
 
-def run_checks(base_url: str, password: str, include_generate: bool, timeout: float) -> list[CheckResult]:
+def run_checks(
+    base_url: str, password: str, include_generate: bool, timeout: float
+) -> list[CheckResult]:
     base_url = base_url.rstrip("/")
     auth = _auth_header(password)
     results: list[CheckResult] = []
@@ -211,7 +212,9 @@ def run_checks(base_url: str, password: str, include_generate: bool, timeout: fl
             )
             ok = code == 400
             detail = f"expected 400, got {code}"
-            results.append(CheckResult(name="auth POST /generate invalid combo", ok=ok, detail=detail))
+            results.append(
+                CheckResult(name="auth POST /generate invalid combo", ok=ok, detail=detail)
+            )
         finally:
             csv_path.unlink(missing_ok=True)
 
@@ -220,7 +223,9 @@ def run_checks(base_url: str, password: str, include_generate: bool, timeout: fl
 
 def main():
     parser = argparse.ArgumentParser(description="Run Render smoke checks for AU Degree Audit.")
-    parser.add_argument("--base-url", required=True, help="Render base URL, e.g. https://app.onrender.com")
+    parser.add_argument(
+        "--base-url", required=True, help="Render base URL, e.g. https://app.onrender.com"
+    )
     parser.add_argument("--password", required=True, help="AUDIT_PASSWORD value for Basic auth")
     parser.add_argument(
         "--include-generate",

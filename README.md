@@ -58,6 +58,19 @@ This now verifies:
 - Auth-protected utility route expectations
 - `/programs/all/{year}` response shape used by the frontend
 
+### Known-good QA transcript pack (content/data sanity)
+
+Run canned transcript fixtures through `/generate` and verify expected outcomes:
+
+```bash
+make qa BASE_URL="http://127.0.0.1:8000" AUDIT_PASSWORD="your-password"
+```
+
+This runs a mixed FSB/non-FSB fixture set and checks:
+- valid program/year combos generate PDFs (`200`)
+- intentionally invalid combos return validation errors (`400`)
+- report artifacts are written under `qa/reports/` and generated PDFs under `qa/output/`
+
 Default password for local dev: `ravens2025`
 **Change this before deploying.**
 
