@@ -163,6 +163,11 @@ def _normalize_anderson_email(email: str) -> str:
     return normalized
 
 
+def _normalize_auth_code(raw_code: str) -> str:
+    """Normalize verification codes to digits-only form."""
+    return "".join(ch for ch in (raw_code or "") if ch.isdigit())
+
+
 def _cleanup_auth_state() -> None:
     now = _now_utc()
     for email, payload in list(AUTH_CODES.items()):
@@ -189,6 +194,9 @@ def _smtp_send(msg: EmailMessage) -> None:
 
 def _generate_auth_code() -> str:
     if AUTH_STATIC_TEST_CODE:
+        static_code = _normalize_auth_code(AUTH_STATIC_TEST_CODE)
+        if static_code:
+            return static_code[:6]
         return AUTH_STATIC_TEST_CODE
     return f"{secrets.randbelow(1_000_000):06d}"
 
@@ -269,8 +277,9 @@ def auth_verify_code(payload: AuthVerifyRequest):
     if challenge["expires_at"] <= _now_utc():
         AUTH_CODES.pop(email, None)
         raise HTTPException(status_code=401, detail="Verification code expired.")
-    incoming = "".join(ch for ch in (payload.code or "") if ch.isdigit())
-    if not secrets.compare_digest(incoming, challenge["code"]):
+    incoming = _normalize_auth_code(payload.code)
+    expected = _normalize_auth_code(str(challenge.get("code", ""))) or str(challenge.get("code", ""))
+    if not secrets.compare_digest(incoming, expected):
         challenge["attempts_left"] -= 1
         if challenge["attempts_left"] <= 0:
             AUTH_CODES.pop(email, None)

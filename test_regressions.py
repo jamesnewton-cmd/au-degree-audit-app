@@ -421,6 +421,23 @@ class AuthFlowTests(unittest.TestCase):
         self.assertEqual(me.status_code, 200)
         self.assertEqual(me.json().get("email"), "advisor@anderson.edu")
 
+    def test_static_code_with_punctuation_still_verifies_digits(self):
+        orig_static = main.AUTH_STATIC_TEST_CODE
+        try:
+            main.AUTH_CODES.clear()
+            main.AUTH_SESSIONS.clear()
+            main.AUTH_STATIC_TEST_CODE = "123456!"
+            req = self.client.post("/auth/request-code", json={"email": "advisor@anderson.edu"})
+            self.assertEqual(req.status_code, 200)
+            verify = self.client.post(
+                "/auth/verify-code",
+                json={"email": "advisor@anderson.edu", "code": "123456"},
+            )
+            self.assertEqual(verify.status_code, 200)
+            self.assertTrue(verify.json().get("access_token"))
+        finally:
+            main.AUTH_STATIC_TEST_CODE = orig_static
+
 
 class FilenameFormattingTests(unittest.TestCase):
     @classmethod
