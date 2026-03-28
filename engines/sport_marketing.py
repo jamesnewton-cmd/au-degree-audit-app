@@ -1049,6 +1049,14 @@ def audit(courses, minor_key=None):
     def find(codes):
         return best(courses, codes)
 
+    # MAP exceptions are encoded as synthetic rows by apply_exceptions().
+    # Build a lookup of target-area/requirement -> taken course codes.
+    map_by_area = {}
+    for c in courses:
+        area = c.get("__map_area__")
+        if area:
+            map_by_area.setdefault(area, []).append(c.get("__map_taken_code__", c["code"]))
+
     # ── EXCEPTION RULE 1: ENGL-1110 tested out ──────────────────────────────────
     # If ENGL-1120 is present but ENGL-1110 is absent, the student tested out of
     # ENGL-1110. Inject a synthetic "Satisfied" record for ENGL-1110 (3 cr, T grade).
@@ -1143,7 +1151,17 @@ def audit(courses, minor_key=None):
                 s = "Not Satisfied"
         else:
             c = find(opts) if opts else None
+            # Allow MAP: TAKEN = AREA overrides for LA rows.
+            if map_by_area.get(area):
+                mapped = find(map_by_area.get(area, []))
+                if mapped:
+                    c = mapped
             s = status_of(c)
+        if c is None and map_by_area.get(area):
+            mapped = find(map_by_area.get(area, []))
+            if mapped:
+                c = mapped
+                s = status_of(c)
         # course_col override for W rows
         if course_col is None and c is not None:
             course_col = f"{c['raw']} {c['name']}"
@@ -1162,6 +1180,11 @@ def audit(courses, minor_key=None):
     bc = []
     for rid, label, opts, dcr in BUS_CORE:
         c = find(opts)
+        # MAP supports targeting concrete requirement ids (e.g. BSNS_2310).
+        if map_by_area.get(rid):
+            mapped = find(map_by_area.get(rid, []))
+            if mapped:
+                c = mapped
         s = status_of(c)
         bc.append({"id": rid, "label": label, "opts": opts, "status": s, "course": c, "dcr": dcr})
 
@@ -1187,6 +1210,10 @@ def audit(courses, minor_key=None):
                 c = None
         else:
             c = find(opts)
+        if map_by_area.get(rid):
+            mapped = find(map_by_area.get(rid, []))
+            if mapped:
+                c = mapped
         s = status_of(c)
         mr.append({"id": rid, "label": label, "status": s, "course": c, "dcr": dcr})
 
@@ -1251,6 +1278,18 @@ def audit(courses, minor_key=None):
 
     # ── MINOR AUDIT ───────────────────────────────────────────────────────────
     minor_rows = audit_minor(courses, minor_key, find, status_of)
+    if minor_rows:
+        for row in minor_rows:
+            rid = row.get("id")
+            if not rid:
+                continue
+            mapped_codes = map_by_area.get(rid)
+            if not mapped_codes:
+                continue
+            mapped = find(mapped_codes)
+            if mapped:
+                row["course"] = mapped
+                row["status"] = status_of(mapped)
 
     return dict(
         la=la,
