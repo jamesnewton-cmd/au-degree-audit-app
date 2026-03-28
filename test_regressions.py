@@ -366,6 +366,28 @@ class W8CrosslistCoverageTests(unittest.TestCase):
         self.assertEqual(w8.get("course", {}).get("code"), "CPSC_4970")
 
 
+class ManagementW1RegressionTests(unittest.TestCase):
+    def test_management_w1_accepts_rlgn_3010(self):
+        from engines.management import audit
+
+        courses = [
+            {
+                "code": "RLGN_3010",
+                "raw": "RLGN-3010",
+                "name": "Faith in Context",
+                "cr": 3,
+                "status": "grade posted",
+                "grade": "C",
+                "reg_date": "2024-04-24",
+            }
+        ]
+        res = audit(courses)
+        la_by_area = {row["area"]: row for row in res["la"]}
+        self.assertIn("W1", la_by_area)
+        self.assertEqual(la_by_area["W1"]["status"], "Satisfied")
+        self.assertEqual(la_by_area["W1"]["course"]["code"], "RLGN_3010")
+
+
 class AuthFlowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
