@@ -1354,10 +1354,14 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
       if (!res.ok) { const err = await res.json(); toast(err.detail || 'Generation failed.', true); return; }
       const blob = await res.blob();
       const cd = res.headers.get('Content-Disposition') || '';
-      const fnMatch = cd.match(/filename=(.+)/);
+      const fnMatch = cd.match(/filename\*?=(?:UTF-8''|\"?)([^\";]+)/i);
+      let downloadName = fnMatch ? decodeURIComponent(fnMatch[1]).replace(/^["']|["']$/g, '') : 'audit.pdf';
+      if (!downloadName.toLowerCase().endsWith('.pdf')) {
+        downloadName = `${downloadName}.pdf`;
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = fnMatch ? fnMatch[1] : 'audit.pdf';
+      a.href = url; a.download = downloadName;
       a.click(); URL.revokeObjectURL(url);
       const remaining = res.headers.get('X-Pulls-Remaining');
       const advisorEmail = document.getElementById('advisorEmail').value.trim();
