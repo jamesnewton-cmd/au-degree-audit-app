@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 import secrets
@@ -131,6 +131,12 @@ app = FastAPI(title="AU Degree Audit", docs_url="/docs", redoc_url=None)
 bearer_security = HTTPBearer(auto_error=False)
 
 from engines.audit_routes import router
+from engines.scheduling import (
+    parse_class_sections_workbook,
+    parse_student_requests_workbook,
+    generate_student_schedules,
+    build_schedule_workbook,
+)
 
 
 # ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -905,6 +911,56 @@ def dashboard(user=Depends(verify)):
     pct = min(100, round(log["total"] / MAX_PULLS * 100))
     html = html.replace("{{PCT}}", str(pct))
     return HTMLResponse(html)
+
+
+@app.get("/scheduling", response_class=HTMLResponse)
+def scheduling_page(user=Depends(verify)):
+    return HTMLResponse(open("templates/scheduling.html").read())
+
+
+@app.post("/scheduling/generate")
+async def scheduling_generate(
+    class_listings: UploadFile = File(...),
+    student_requests: UploadFile = File(...),
+    max_courses_per_student: int = Form(5),
+    user: str = Depends(verify),
+):
+    del user  # auth gate only
+    if max_courses_per_student < 1:
+        raise HTTPException(400, "Max courses per student must be at least 1.")
+
+    class_bytes = await class_listings.read()
+    student_bytes = await student_requests.read()
+    if not class_bytes:
+        raise HTTPException(400, "Class listing workbook is empty.")
+    if not student_bytes:
+        raise HTTPException(400, "Student request workbook is empty.")
+
+    try:
+        sections, class_warnings = parse_class_sections_workbook(class_bytes)
+        students, request_warnings = parse_student_requests_workbook(student_bytes)
+        result = generate_student_schedules(
+            sections,
+            students,
+            max_courses_per_student=max_courses_per_student,
+        )
+        warnings = class_warnings + request_warnings
+        workbook_bytes = build_schedule_workbook(result, warnings=warnings)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, f"Scheduling generation failed: {str(e)}")
+
+    return Response(
+        content=workbook_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": 'attachment; filename="student_schedules.xlsx"',
+            "X-Scheduling-Students": str(result["summary"]["students"]),
+            "X-Scheduling-Assignments": str(result["summary"]["assignments"]),
+            "X-Scheduling-Unscheduled": str(result["summary"]["unscheduled"]),
+        },
+    )
 
 
 @app.post("/generate")

@@ -1,9 +1,11 @@
 import shutil
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from openpyxl import Workbook, load_workbook
 
 import main
 
@@ -357,6 +359,130 @@ class FilenameFormattingTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         disposition = response.headers.get("content-disposition", "")
         self.assertIn('filename="Tyler_H_Audit.pdf"', disposition)
+
+
+def _build_class_listings_xlsx() -> bytes:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Class Listings"
+    ws.append(
+        [
+            "Course Code",
+            "Course Title",
+            "Section",
+            "Instructor",
+            "Capacity",
+            "Days",
+            "Start Time",
+            "End Time",
+        ]
+    )
+    ws.append(["MATH 1010", "College Algebra", "A", "Prof Euler", 1, "MWF", "09:00 AM", "10:00 AM"])
+    ws.append(["MATH 1010", "College Algebra", "B", "Prof Noether", 1, "TR", "11:00 AM", "12:15 PM"])
+    ws.append(["ENGL 1010", "Composition I", "A", "Prof Angelou", 2, "MWF", "09:30 AM", "10:20 AM"])
+    ws.append(["HIST 1000", "World History", "A", "Prof Herodotus", 1, "TR", "11:00 AM", "12:15 PM"])
+    out = BytesIO()
+    wb.save(out)
+    return out.getvalue()
+
+
+def _build_student_requests_xlsx() -> bytes:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Requests"
+    ws.append(["Student ID", "Student Name", "Advisor", "Request 1", "Request 2", "Request 3"])
+    ws.append(["S001", "Alice Smith", "Dr. Rivera", "MATH 1010", "ENGL 1010", "HIST 1000"])
+    ws.append(["S002", "Bob Jones", "Dr. Rivera", "MATH 1010", "HIST 1000", "ENGL 1010"])
+    ws.append(["S003", "Cara Lee", "Dr. Ahmed", "MATH 1010", "ENGL 1010", "BIOL 1000"])
+    out = BytesIO()
+    wb.save(out)
+    return out.getvalue()
+
+
+class SchedulingRegressionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._orig_auth_static = main.AUTH_STATIC_TEST_CODE
+        main.AUTH_STATIC_TEST_CODE = "123456"
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
+        cls.client = TestClient(main.app)
+        cls.headers = _auth_headers(_issue_auth_token(cls.client))
+
+    @classmethod
+    def tearDownClass(cls):
+        main.AUTH_STATIC_TEST_CODE = cls._orig_auth_static
+        main.AUTH_CODES.clear()
+        main.AUTH_SESSIONS.clear()
+
+    def test_scheduling_page_requires_auth(self):
+        self.assertEqual(self.client.get("/scheduling").status_code, 401)
+        authed = self.client.get("/scheduling", headers=self.headers)
+        self.assertEqual(authed.status_code, 200)
+        self.assertIn("Professor / Advisor Scheduling", authed.text)
+
+    def test_scheduling_generate_returns_xlsx_and_summary_headers(self):
+        files = {
+            "class_listings": (
+                "class_listings.xlsx",
+                _build_class_listings_xlsx(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+            "student_requests": (
+                "student_requests.xlsx",
+                _build_student_requests_xlsx(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+        }
+        data = {"max_courses_per_student": "3"}
+        response = self.client.post(
+            "/scheduling/generate",
+            data=data,
+            files=files,
+            headers=self.headers,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response.headers.get("content-type", ""),
+        )
+        self.assertEqual(response.headers.get("x-scheduling-students"), "3")
+        self.assertEqual(response.headers.get("x-scheduling-assignments"), "6")
+        self.assertEqual(response.headers.get("x-scheduling-unscheduled"), "3")
+
+        workbook = load_workbook(BytesIO(response.content), data_only=True)
+        self.assertIn("Student Schedules", workbook.sheetnames)
+        self.assertIn("Unscheduled Requests", workbook.sheetnames)
+        self.assertIn("Section Fill", workbook.sheetnames)
+        self.assertIn("Summary", workbook.sheetnames)
+
+        summary = workbook["Summary"]
+        summary_values = {summary.cell(row=i, column=1).value: summary.cell(row=i, column=2).value for i in range(2, 6)}
+        self.assertEqual(summary_values.get("Students"), 3)
+        self.assertEqual(summary_values.get("Assignments"), 6)
+        self.assertEqual(summary_values.get("Unscheduled"), 3)
+
+    def test_scheduling_generate_rejects_invalid_max_courses(self):
+        files = {
+            "class_listings": (
+                "class_listings.xlsx",
+                _build_class_listings_xlsx(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+            "student_requests": (
+                "student_requests.xlsx",
+                _build_student_requests_xlsx(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ),
+        }
+        response = self.client.post(
+            "/scheduling/generate",
+            data={"max_courses_per_student": "0"},
+            files=files,
+            headers=self.headers,
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("at least 1", response.text)
 
 
 if __name__ == "__main__":
