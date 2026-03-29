@@ -280,6 +280,27 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Writing internship experience" in lbl for lbl in labels))
         self.assertTrue(any("Design/digital elective" in lbl for lbl in labels))
 
+    def test_math_ba_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("math_ba", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in ("MATH-2010", "MATH-2020", "MATH-3010", "MATH-3020", "MATH-4000"):
+            self.assertIn(course, required)
+
+        groups = req.get("dist_groups", [])
+        names = {g.get("name") for g in groups if isinstance(g, dict)}
+        self.assertIn("Upper Math course", names)
+        self.assertIn("Additional upper Math", names)
+
+        rows = main._build_major_rows(req, [], sm_mod)
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Upper Math course" in lbl for lbl in labels))
+        self.assertTrue(any("Additional upper Math" in lbl for lbl in labels))
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {

@@ -3265,19 +3265,33 @@ MATHEMATICS = {
                 "MATH-3020",
                 "MATH-4000",
             ],
-            "elective_groups": [
+            "dist_groups": [
                 {
                     "name": "Upper Math course",
                     "credits": 3,
-                    "dept": "MATH",
-                    "min_level": 4010,
+                    "min_courses": 1,
+                    "choose_from": [
+                        "MATH-4010",
+                        "MATH-4100",
+                        "MATH-4200",
+                    ],
                     "notes": "One course numbered MATH-4010 or above",
                 },
                 {
                     "name": "Additional upper Math",
                     "credits": 6,
-                    "dept": "MATH",
-                    "min_level": 3100,
+                    "min_courses": 2,
+                    "choose_from": [
+                        "MATH-3100",
+                        "MATH-3200",
+                        "MATH-3300",
+                        "MATH-3400",
+                        "MATH-3500",
+                        "MATH-3600",
+                        "MATH-4010",
+                        "MATH-4100",
+                        "MATH-4200",
+                    ],
                     "notes": "At least two additional courses numbered MATH-3100 or above",
                 },
             ],
