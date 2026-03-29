@@ -233,6 +233,30 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertIn("Global History upper-division", names)
         self.assertIn("Third Field advanced electives", names)
 
+    def test_psychology_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("psychology", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in ("PSYC-2000", "PSYC-2010", "PSYC-4900"):
+            self.assertIn(course, required)
+
+        groups = req.get("dist_groups", [])
+        self.assertTrue(
+            any(isinstance(g, dict) and g.get("name") == "PSYC upper-division core list (min 12 hrs)" for g in groups)
+        )
+        self.assertTrue(
+            any(isinstance(g, dict) and g.get("name") == "PSYC remaining elective hours" for g in groups)
+        )
+
+        rows = main._build_major_rows(req, [], sm_mod)
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("PSYC upper-division core list (min 12 hrs)" in lbl for lbl in labels))
+        self.assertTrue(any("PSYC remaining elective hours" in lbl for lbl in labels))
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {
