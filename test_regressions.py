@@ -415,6 +415,62 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Valuing Through Literature" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 30)
 
+    def test_ppe_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("polsci_philosophy_economics", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "POSC-2020",
+            "POSC-2100",
+            "POSC-2200",
+            "POSC-2400",
+            "POSC-2420",
+            "MATH-2120",
+            "ECON-2010",
+            "ECON-2020",
+            "PHIL-2000",
+            "PHIL-2120",
+            "POSC-3510",
+            "ECON-3410",
+            "POSC-4930",
+        ):
+            self.assertIn(course, required)
+
+        choose_one = req.get("choose_one", [])
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "History of Political Thought" for g in choose_one))
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "Ethics and Morality for Professionals" for g in choose_one))
+
+        groups = req.get("elective_groups", [])
+        ppe_upper = next(
+            (
+                g
+                for g in groups
+                if isinstance(g, dict) and g.get("name") == "Upper-division POSC/PHIL/ECON electives"
+            ),
+            {},
+        )
+        self.assertEqual(ppe_upper.get("credits"), 12)
+        self.assertEqual(ppe_upper.get("min_courses"), 4)
+        self.assertIn("BIBL-3420", set(ppe_upper.get("choose_from", [])))
+        self.assertIn("RLGN-3120", set(ppe_upper.get("choose_from", [])))
+
+    def test_ppe_2022_builds_grouped_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("polsci_philosophy_economics", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("History of Political Thought" in lbl for lbl in labels))
+        self.assertTrue(any("Ethics and Morality for Professionals" in lbl for lbl in labels))
+        self.assertTrue(any("Upper-division POSC/PHIL/ECON electives" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 19)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
