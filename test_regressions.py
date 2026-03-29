@@ -94,6 +94,24 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertIn("Social Media Minor", fsb)
         self.assertEqual(fsb["Social Media Minor"], "social_media_minor")
 
+    def test_programs_all_includes_all_year_valid_fsb_majors_and_minors(self):
+        from requirements.fsb_majors import FSB_MAJORS
+        from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
+
+        for year in main.CATALOG_YEARS:
+            payload = self.client.get(f"/programs/all/{year}", headers=self.headers).json()
+            fsb_keys = set(payload["fsb_programs"][year].values())
+
+            expected_major_keys = {k for k, year_map in FSB_MAJORS.items() if isinstance(year_map.get(year), dict)}
+            expected_minor_keys = {k for k in FSB_MINORS if get_minor_requirements(k, year)}
+            expected_all = expected_major_keys | expected_minor_keys
+
+            missing = expected_all - fsb_keys
+            self.assertFalse(
+                missing,
+                f"Missing FSB programs in /programs/all/{year}: {sorted(missing)}",
+            )
+
     def test_generate_valid_and_invalid_program_year(self):
         valid_fsb = self._post_generate("management", "2022-23")
         self.assertEqual(valid_fsb.status_code, 200)

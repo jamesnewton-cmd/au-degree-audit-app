@@ -75,6 +75,18 @@ def get_fsb_program_labels_for_year(catalog_year: str) -> dict[str, str]:
     return labels
 
 
+def get_fsb_minor_labels_for_year(catalog_year: str) -> dict[str, str]:
+    """Return {minor_key: display_label} for FSB minors offered in a year."""
+    from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
+
+    labels = {}
+    for key in FSB_MINORS:
+        req = get_minor_requirements(key, catalog_year)
+        if isinstance(req, dict):
+            labels[key] = req.get("name", _pretty_program_key(key))
+    return labels
+
+
 def is_fsb_program_key(program_key: str, catalog_year: str) -> bool:
     """True when a key maps to an FSB major in the given catalog year."""
     return program_key in get_fsb_program_labels_for_year(catalog_year)
@@ -121,6 +133,9 @@ def list_all_programs_for_year(catalog_year: str) -> list[dict]:
     programs = []
     fsb_labels = get_fsb_program_labels_for_year(catalog_year)
     for key, label in fsb_labels.items():
+        programs.append({"key": key, "label": label, "type": "FSB"})
+    fsb_minor_labels = get_fsb_minor_labels_for_year(catalog_year)
+    for key, label in fsb_minor_labels.items():
         programs.append({"key": key, "label": label, "type": "FSB"})
     from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
 
@@ -1249,6 +1264,7 @@ def status(user: str = Depends(verify)):
     all_majors = []
     for year in CATALOG_YEARS:
         all_majors.extend(get_fsb_program_labels_for_year(year).values())
+        all_majors.extend(get_fsb_minor_labels_for_year(year).values())
         from requirements.non_fsb_programs import list_programs_by_year
 
         for key in list_programs_by_year(year):
@@ -1291,16 +1307,13 @@ def majors_for_year(year: str, user: str = Depends(verify)):
 @app.get("/programs/all/{year}")
 def programs_all(year: str, user: str = Depends(verify)):
     from requirements.non_fsb_programs import list_programs_by_year
-    from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
 
     if year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
     fsb_for_year = {label: key for key, label in get_fsb_program_labels_for_year(year).items()}
-    for key in FSB_MINORS:
-        req = get_minor_requirements(key, year)
-        if req:
-            fsb_for_year[resolve_program_label(key, year)] = key
+    for key, label in get_fsb_minor_labels_for_year(year).items():
+        fsb_for_year[label] = key
     non_fsb = {}
     for key in list_programs_by_year(year):
         # Keep FSB/non-FSB partitions disjoint in UI payloads.
