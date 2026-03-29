@@ -112,6 +112,21 @@ class ProgramYearRegressionTests(unittest.TestCase):
                 f"Missing FSB programs in /programs/all/{year}: {sorted(missing)}",
             )
 
+    def test_programs_all_includes_all_year_valid_non_fsb_programs(self):
+        from requirements.non_fsb_programs import list_programs_by_year
+
+        for year in main.CATALOG_YEARS:
+            payload = self.client.get(f"/programs/all/{year}", headers=self.headers).json()
+            non_fsb = payload["non_fsb_programs"]
+            fsb_option_keys = main.get_fsb_option_keys_for_year(year)
+            expected_non_fsb = {k for k in list_programs_by_year(year) if k not in fsb_option_keys}
+            returned_non_fsb = set(non_fsb.keys())
+            missing = expected_non_fsb - returned_non_fsb
+            self.assertFalse(
+                missing,
+                f"Missing non-FSB programs in /programs/all/{year}: {sorted(missing)}",
+            )
+
     def test_generate_valid_and_invalid_program_year(self):
         valid_fsb = self._post_generate("management", "2022-23")
         self.assertEqual(valid_fsb.status_code, 200)

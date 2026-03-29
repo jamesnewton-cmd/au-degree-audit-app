@@ -87,6 +87,13 @@ def get_fsb_minor_labels_for_year(catalog_year: str) -> dict[str, str]:
     return labels
 
 
+def get_fsb_option_keys_for_year(catalog_year: str) -> set[str]:
+    """Return all FSB keys surfaced in UI options (majors + minors)."""
+    return set(get_fsb_program_labels_for_year(catalog_year)) | set(
+        get_fsb_minor_labels_for_year(catalog_year)
+    )
+
+
 def is_fsb_program_key(program_key: str, catalog_year: str) -> bool:
     """True when a key maps to an FSB major in the given catalog year."""
     return program_key in get_fsb_program_labels_for_year(catalog_year)
@@ -137,11 +144,6 @@ def list_all_programs_for_year(catalog_year: str) -> list[dict]:
     fsb_minor_labels = get_fsb_minor_labels_for_year(catalog_year)
     for key, label in fsb_minor_labels.items():
         programs.append({"key": key, "label": label, "type": "FSB"})
-    from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
-
-    for key in FSB_MINORS:
-        if get_minor_requirements(key, catalog_year):
-            programs.append({"key": key, "label": resolve_program_label(key, catalog_year), "type": "FSB"})
 
     from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
 
@@ -1314,10 +1316,11 @@ def programs_all(year: str, user: str = Depends(verify)):
     fsb_for_year = {label: key for key, label in get_fsb_program_labels_for_year(year).items()}
     for key, label in get_fsb_minor_labels_for_year(year).items():
         fsb_for_year[label] = key
+    fsb_option_keys = get_fsb_option_keys_for_year(year)
     non_fsb = {}
     for key in list_programs_by_year(year):
         # Keep FSB/non-FSB partitions disjoint in UI payloads.
-        if is_fsb_program_key(key, year):
+        if key in fsb_option_keys:
             continue
         non_fsb[key] = resolve_program_label(key, year)
 
