@@ -652,6 +652,80 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Computing" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 30)
 
+    def test_computer_science_ba_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("cs_ba", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "CPSC-2020",
+            "CPSC-2030",
+            "CPSC-2100",
+            "CPSC-2330",
+            "CPSC-2420",
+            "CPSC-2430",
+            "CPSC-2500",
+            "CPSC-3410",
+            "CPSC-4420",
+            "CPSC-4430",
+        ):
+            self.assertIn(course, required)
+
+        self.assertEqual(req.get("total_credits"), 59)
+
+        choose_one = req.get("choose_one", [])
+        names = {g.get("name") for g in choose_one if isinstance(g, dict)}
+        self.assertIn("Discrete Mathematical Structures", names)
+        self.assertIn("Mathematics Elective", names)
+        self.assertIn("Professional Core applied experience", names)
+
+        discrete = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Discrete Mathematical Structures"),
+            {},
+        )
+        self.assertEqual(set(discrete.get("choose_from", [])), {"MATH-2200", "CPSC-2250"})
+
+        math_elective = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Mathematics Elective"),
+            {},
+        )
+        self.assertEqual(set(math_elective.get("choose_from", [])), {"MATH-2010", "MATH-2120"})
+
+        prof_applied = next(
+            (
+                g
+                for g in choose_one
+                if isinstance(g, dict) and g.get("name") == "Professional Core applied experience"
+            ),
+            {},
+        )
+        self.assertEqual(
+            set(prof_applied.get("choose_from", [])),
+            {"CPSC-4480", "CPSC-4800", "CPSC-4970", "CPSC-4950", "CPSC-4960"},
+        )
+
+        cs_elective = req.get("computer_science_electives", {})
+        self.assertEqual(cs_elective.get("credits"), 10)
+        self.assertEqual(set(cs_elective.get("dept", [])), {"CPSC", "ENGR", "MATH", "PHYS"})
+        self.assertEqual(cs_elective.get("min_level"), 2000)
+
+    def test_computer_science_ba_2022_builds_choice_and_elective_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("cs_ba", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Discrete Mathematical Structures" in lbl for lbl in labels))
+        self.assertTrue(any("Mathematics Elective" in lbl for lbl in labels))
+        self.assertTrue(any("Professional Core applied experience" in lbl for lbl in labels))
+        self.assertTrue(any("Computer Science elective" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 14)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
