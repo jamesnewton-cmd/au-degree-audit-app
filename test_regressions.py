@@ -88,6 +88,12 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertIn("engineering_management", fsb.values())
         self.assertNotIn("engineering_management", non_fsb)
 
+    def test_programs_all_includes_fsb_minors_like_social_media_minor(self):
+        payload = self.client.get("/programs/all/2022-23", headers=self.headers).json()
+        fsb = payload["fsb_programs"]["2022-23"]
+        self.assertIn("Social Media Minor", fsb)
+        self.assertEqual(fsb["Social Media Minor"], "social_media_minor")
+
     def test_generate_valid_and_invalid_program_year(self):
         valid_fsb = self._post_generate("management", "2022-23")
         self.assertEqual(valid_fsb.status_code, 200)

@@ -100,6 +100,13 @@ def resolve_program_label(program_key: str, catalog_year: str) -> str:
     if program_key in FSB_ENGINE_MAP:
         fsb_labels = get_fsb_program_labels_for_year(catalog_year)
         return fsb_labels.get(program_key, _pretty_program_key(program_key))
+    from requirements.fsb_minors import get_minor_requirements, FSB_MINORS
+
+    if program_key in FSB_MINORS:
+        req = get_minor_requirements(program_key, catalog_year) or {}
+        if isinstance(req, dict):
+            return req.get("name", _pretty_program_key(program_key))
+        return _pretty_program_key(program_key)
 
     from requirements.non_fsb_programs import get_non_fsb_requirements
 
@@ -115,6 +122,11 @@ def list_all_programs_for_year(catalog_year: str) -> list[dict]:
     fsb_labels = get_fsb_program_labels_for_year(catalog_year)
     for key, label in fsb_labels.items():
         programs.append({"key": key, "label": label, "type": "FSB"})
+    from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
+
+    for key in FSB_MINORS:
+        if get_minor_requirements(key, catalog_year):
+            programs.append({"key": key, "label": resolve_program_label(key, catalog_year), "type": "FSB"})
 
     from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS
 
@@ -1279,11 +1291,16 @@ def majors_for_year(year: str, user: str = Depends(verify)):
 @app.get("/programs/all/{year}")
 def programs_all(year: str, user: str = Depends(verify)):
     from requirements.non_fsb_programs import list_programs_by_year
+    from requirements.fsb_minors import FSB_MINORS, get_minor_requirements
 
     if year not in CATALOG_YEARS:
         raise HTTPException(400, "Invalid catalog year")
 
     fsb_for_year = {label: key for key, label in get_fsb_program_labels_for_year(year).items()}
+    for key in FSB_MINORS:
+        req = get_minor_requirements(key, year)
+        if req:
+            fsb_for_year[resolve_program_label(key, year)] = key
     non_fsb = {}
     for key in list_programs_by_year(year):
         # Keep FSB/non-FSB partitions disjoint in UI payloads.
