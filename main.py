@@ -565,6 +565,57 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
     rows = []
     used_required_codes = set()  # track codes already used by required rows
 
+    def _expand_group_list_rows(group_key: str, group_defs: list[dict]) -> None:
+        """
+        Expand list-of-dict requirement groups (e.g. elective_groups/dist_groups/choose_one)
+        into explicit audit rows so majors don't collapse to only base required courses.
+        """
+        if not isinstance(group_defs, list):
+            return
+        for idx, gdef in enumerate(group_defs, start=1):
+            if not isinstance(gdef, dict):
+                continue
+            choose_from = gdef.get("choose_from", gdef.get("options", gdef.get("courses", [])))
+            if isinstance(choose_from, str):
+                choose_from = [choose_from]
+            if not isinstance(choose_from, list) or not choose_from:
+                continue
+
+            credits = _safe_credits(gdef.get("credits", 3))
+            min_courses = max(1, _safe_credits(gdef.get("min_courses", 0), fallback=0))
+            course_size = 3
+            slots = min_courses if min_courses else max(1, round(credits / course_size))
+            group_name = gdef.get("name", group_key.replace("_", " ").title())
+            note_txt = gdef.get("notes", "")
+
+            used_codes = set()
+            for slot in range(slots):
+                remaining = [
+                    opt
+                    for opt in choose_from
+                    if sm_mod.norm(str(opt).replace(" ", "_").replace("-", "_")) not in used_codes
+                ]
+                c = _find_course(remaining) if remaining else None
+                if c:
+                    used_codes.add(c["code"])
+
+                slot_label = (
+                    f"{group_name} ({slot + 1} of {slots})"
+                    if slots > 1
+                    else group_name
+                )
+                row_note = f" ({note_txt})" if note_txt else ""
+                rows.append(
+                    {
+                        "id": _norm_code(f"{group_key}_{idx}_{slot+1}"),
+                        "label": f"{slot_label}{row_note}",
+                        "status": _status_of_c(c),
+                        "course": c,
+                        "dcr": course_size,
+                        "note": "",
+                    }
+                )
+
     # Pass 1: list-type keys → individual required course rows
     for req_key, req_val in prog_reqs.items():
         if req_key in _skip_keys:
@@ -685,6 +736,12 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                     "note": "",
                 }
             )
+
+    # Pass 2b: list-of-dict grouped requirements (common in non-FSB definitions)
+    for group_key in ("elective_groups", "dist_groups", "choose_one"):
+        group_defs = prog_reqs.get(group_key)
+        if isinstance(group_defs, list):
+            _expand_group_list_rows(group_key, group_defs)
 
     # Apply concentration courses if one was selected
     if concentration and isinstance(prog_reqs.get("concentrations"), dict):

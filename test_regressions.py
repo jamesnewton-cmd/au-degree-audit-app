@@ -151,6 +151,20 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("content-type"), "application/pdf")
 
+    def test_social_studies_teaching_builds_distribution_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("social_studies_teaching", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("World History" in lbl for lbl in labels))
+        self.assertTrue(any("Political Science" in lbl for lbl in labels))
+        # Should include required + distribution groups, not just the 4 fixed required.
+        self.assertGreaterEqual(len(rows), 8)
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {
