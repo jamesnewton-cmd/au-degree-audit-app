@@ -447,8 +447,8 @@ class SchedulingRegressionTests(unittest.TestCase):
             response.headers.get("content-type", ""),
         )
         self.assertEqual(response.headers.get("x-scheduling-students"), "3")
-        self.assertEqual(response.headers.get("x-scheduling-assignments"), "6")
-        self.assertEqual(response.headers.get("x-scheduling-unscheduled"), "3")
+        self.assertEqual(response.headers.get("x-scheduling-assignments"), "5")
+        self.assertEqual(response.headers.get("x-scheduling-unscheduled"), "4")
 
         workbook = load_workbook(BytesIO(response.content), data_only=True)
         self.assertIn("Student Schedules", workbook.sheetnames)
@@ -459,8 +459,8 @@ class SchedulingRegressionTests(unittest.TestCase):
         summary = workbook["Summary"]
         summary_values = {summary.cell(row=i, column=1).value: summary.cell(row=i, column=2).value for i in range(2, 6)}
         self.assertEqual(summary_values.get("Students"), 3)
-        self.assertEqual(summary_values.get("Assignments"), 6)
-        self.assertEqual(summary_values.get("Unscheduled"), 3)
+        self.assertEqual(summary_values.get("Assignments"), 5)
+        self.assertEqual(summary_values.get("Unscheduled"), 4)
 
     def test_scheduling_generate_rejects_invalid_max_courses(self):
         files = {

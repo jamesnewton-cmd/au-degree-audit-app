@@ -915,7 +915,7 @@ def dashboard(user=Depends(verify)):
 
 @app.get("/scheduling", response_class=HTMLResponse)
 def scheduling_page(user=Depends(verify)):
-    return HTMLResponse(open("templates/scheduling.html").read())
+    return HTMLResponse(Path("templates/scheduling.html").read_text())
 
 
 @app.post("/scheduling/generate")
