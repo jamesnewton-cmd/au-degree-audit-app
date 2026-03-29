@@ -301,6 +301,63 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Upper Math course" in lbl for lbl in labels))
         self.assertTrue(any("Additional upper Math" in lbl for lbl in labels))
 
+    def test_cybersecurity_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("cybersecurity_major", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "CPSC-2080",
+            "CPSC-2180",
+            "CPSC-2300",
+            "CPSC-3380",
+            "CPSC-3410",
+            "CPSC-4080",
+            "CPSC-4480",
+            "POSC-2030",
+            "POSC-2200",
+            "POSC-2400",
+            "POSC-2420",
+            "MATH-2120",
+        ):
+            self.assertIn(course, required)
+
+        choose_one = req.get("choose_one", [])
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "Discrete Mathematical Structures" for g in choose_one))
+        self.assertTrue(
+            any(
+                isinstance(g, dict) and g.get("name") == "National Security Policy sequence (alt years)"
+                for g in choose_one
+            )
+        )
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "Ethics" for g in choose_one))
+
+        elective_groups = req.get("elective_groups", [])
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "Cybersecurity electives" for g in elective_groups))
+        cyber_elective = next(
+            (g for g in elective_groups if isinstance(g, dict) and g.get("name") == "Cybersecurity electives"),
+            {},
+        )
+        self.assertEqual(cyber_elective.get("credits"), 9)
+        self.assertIn("CRIM-2520", set(cyber_elective.get("choose_from", [])))
+
+    def test_cybersecurity_2022_builds_grouped_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("cybersecurity_major", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Discrete Mathematical Structures" in lbl for lbl in labels))
+        self.assertTrue(any("National Security Policy sequence (alt years)" in lbl for lbl in labels))
+        self.assertTrue(any("Ethics" in lbl for lbl in labels))
+        self.assertTrue(any("Cybersecurity electives" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 18)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
