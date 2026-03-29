@@ -785,12 +785,21 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                                     "note": "",
                                 }
                             )
-                    # Process elective/choose sub-blocks
-                    for sub_key, sub_val in cval.items():
-                        if sub_key in ("required", "notes", "name"):
-                            continue
-                        if not isinstance(sub_val, dict) or "credits" not in sub_val:
-                            continue
+                    # Process elective/choose sub-blocks. Some program maps provide a nested
+                    # block (e.g. "elective_pool": {"credits": ...}) while others provide
+                    # named child blocks. Support both shapes.
+                    sub_blocks = []
+                    if "credits" in cval:
+                        sub_blocks.append((ckey, cval))
+                    else:
+                        for sub_key, sub_val in cval.items():
+                            if sub_key in ("required", "notes", "name"):
+                                continue
+                            if not isinstance(sub_val, dict) or "credits" not in sub_val:
+                                continue
+                            sub_blocks.append((sub_key, sub_val))
+
+                    for sub_key, sub_val in sub_blocks:
                         credits = _safe_credits(sub_val.get("credits", 3))
                         dept = sub_val.get("dept", "")
                         course = sub_val.get("course", "")
