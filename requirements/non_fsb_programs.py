@@ -4423,7 +4423,6 @@ COMMUNICATION = {
             "total_credits": 52,
             "required": [
                 "COMM-2000",
-                "COMM-2010",
                 "COMM-2020",
                 "COMM-2060",
                 "COMM-2160",
@@ -4455,7 +4454,6 @@ COMMUNICATION = {
                     "choose_from": [
                         "COMM-3050",
                         "COMM-3160",
-                        "COMM-3260",
                         "COMM-4120",
                         "COMM-4900",
                         "ENGL-3140",

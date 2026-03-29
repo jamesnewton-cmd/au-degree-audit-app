@@ -726,6 +726,63 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Computer Science elective" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 14)
 
+    def test_cinema_media_arts_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("cinema_media_arts", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "COMM-2000",
+            "COMM-2020",
+            "COMM-2060",
+            "COMM-2160",
+            "COMM-2200",
+            "COMM-2320",
+            "COMM-2420",
+            "COMM-3120",
+            "COMM-3200",
+            "COMM-3220",
+            "COMM-3420",
+            "COMM-4000",
+        ):
+            self.assertIn(course, required)
+        self.assertNotIn("COMM-2010", required)
+
+        self.assertEqual(req.get("total_credits"), 52)
+        groups = req.get("elective_groups", [])
+        practicum = next((g for g in groups if isinstance(g, dict) and g.get("name") == "CMA practicum"), {})
+        self.assertEqual(practicum.get("credits"), 4)
+        self.assertEqual(set(practicum.get("choose_from", [])), {"COMM-2860"})
+
+        internship = next((g for g in groups if isinstance(g, dict) and g.get("name") == "CMA internship"), {})
+        self.assertEqual(internship.get("credits"), 1)
+        self.assertEqual(set(internship.get("choose_from", [])), {"COMM-4800"})
+
+        electives = next((g for g in groups if isinstance(g, dict) and g.get("name") == "CMA electives"), {})
+        self.assertEqual(electives.get("credits"), 3)
+        self.assertNotIn("COMM-3260", set(electives.get("choose_from", [])))
+        self.assertTrue(
+            {"COMM-3050", "COMM-3160", "COMM-4120", "COMM-4900", "THEA-2110", "THEA-2210", "ENGL-3140"}
+            <= set(electives.get("choose_from", []))
+        )
+
+    def test_cinema_media_arts_2022_builds_grouped_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("cinema_media_arts", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("COMM-4800" in lbl for lbl in labels))
+        self.assertTrue(any("CMA practicum" in lbl for lbl in labels))
+        self.assertTrue(any("CMA internship" in lbl for lbl in labels))
+        self.assertTrue(any("CMA electives" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 15)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
