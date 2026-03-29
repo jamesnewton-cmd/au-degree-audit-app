@@ -301,6 +301,49 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Upper Math course" in lbl for lbl in labels))
         self.assertTrue(any("Additional upper Math" in lbl for lbl in labels))
 
+    def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("exercise_science", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in ("EXSC-1360", "EXSC-2455", "EXSC-4920", "PEHS-1550", "PSYC-2000"):
+            self.assertIn(course, required)
+
+        chemistry = req.get("chemistry_choose", {})
+        self.assertEqual(chemistry.get("credits"), 4)
+        self.assertEqual(set(chemistry.get("choose_from", [])), {"CHEM-1000", "CHEM-2110"})
+
+        concentrations = req.get("concentrations", {})
+        self.assertIn("Clinical Exercise Physiology", concentrations)
+        self.assertIn("Pre-Health", concentrations)
+        self.assertIn("Sports Performance", concentrations)
+
+        clinical = concentrations["Clinical Exercise Physiology"]
+        self.assertEqual(set(clinical.get("required", [])), {"EXSC-4050", "EXSC-4160"})
+
+        pre_health = concentrations["Pre-Health"].get("elective_pool", {})
+        self.assertEqual(pre_health.get("credits"), 14)
+        self.assertIn("SOCI-2010", set(pre_health.get("choose_from", [])))
+
+        sports = concentrations["Sports Performance"]
+        self.assertEqual(set(sports.get("required", [])), {"ATRG-1530", "EXSC-4010"})
+
+    def test_exercise_science_clinical_concentration_builds_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("exercise_science", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod, concentration="Clinical Exercise Physiology")
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("[Clinical Exercise Physiology] EXSC-4050" in lbl for lbl in labels))
+        self.assertTrue(any("[Clinical Exercise Physiology] EXSC-4160" in lbl for lbl in labels))
+        self.assertTrue(any("Clinical Exercise Physiology electives" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 21)
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {
