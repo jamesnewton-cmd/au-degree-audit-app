@@ -125,6 +125,21 @@ class ProgramYearRegressionTests(unittest.TestCase):
         content_disposition = response.headers.get("content-disposition", "")
         self.assertIn("Sport_S_Audit.pdf", content_disposition)
 
+    def test_marketing_pdf_build_uses_major_specific_w8_notes(self):
+        files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
+        data = {
+            "student_name": "Marketing Build Regression Student",
+            "major": "marketing",
+            "catalog_year": "2022-23",
+        }
+        response = self.client.post("/generate", data=data, files=files, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        # Response headers must reflect major engine output, not sport marketing defaults.
+        self.assertEqual(response.headers.get("content-type"), "application/pdf")
+        content_disposition = response.headers.get("content-disposition", "")
+        self.assertIn("Marketing_", content_disposition)
+        self.assertIn("_Audit.pdf", content_disposition)
+
 
 class CsvStatusNormalizationTests(unittest.TestCase):
     def test_scheduled_status_is_preserved(self):

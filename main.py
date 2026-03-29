@@ -8,7 +8,7 @@ Non-FSB majors use the dynamic scanner against non_fsb_programs.py definitions.
 All majors share: parse_csv, apply_exceptions, build_la_rows_for_non_fsb, pdf_template.
 """
 
-import os, io, csv, json, datetime, tempfile, importlib.util, smtplib
+import os, io, csv, json, datetime, tempfile, importlib.util, smtplib, hashlib
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
@@ -402,7 +402,9 @@ def load_engine(engine_name: str):
     engine_file = ENGINES_DIR / f"{engine_name}.py"
     if not engine_file.exists():
         raise HTTPException(status_code=400, detail=f"Engine not found: {engine_name}")
-    spec = importlib.util.spec_from_file_location("engine", engine_file)
+    module_hash = hashlib.md5(str(engine_file.resolve()).encode("utf-8")).hexdigest()[:10]
+    module_name = f"engine_{engine_name}_{module_hash}"
+    spec = importlib.util.spec_from_file_location(module_name, engine_file)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -963,9 +965,12 @@ async def generate(
             raise HTTPException(400, f"Unknown or unavailable program for {catalog_year}: {major}")
         is_fsb = bucket == "FSB"
 
+        builder_mod = sm_mod
+        builder_mod = sm_mod
         if is_fsb:
             engine_name = FSB_ENGINE_MAP[major]
             mod = load_engine(engine_name)
+            builder_mod = mod
 
             if hasattr(mod, "MAJOR_KEY"):
                 mod.MAJOR_KEY = major
@@ -981,6 +986,7 @@ async def generate(
             major_label = resolve_program_label(major, catalog_year)
             res["major_section_label"] = f"{major_label} Major — {catalog_year}"
             res["eligible_to_walk"] = sm_mod.eligible_to_walk(res)
+            builder_mod = mod
 
         else:
             from requirements.non_fsb_programs import (
@@ -1129,7 +1135,11 @@ async def generate(
         combined_label = " / ".join(all_labels)
 
         # ── Generate PDF ──────────────────────────────────────────────────────
-        sm_mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
+        try:
+            builder_mod.build(res, student_name, combined_label, tmp_pdf, exceptions=exceptions)
+        except TypeError:
+            # Some engines don't accept the optional exceptions kwarg.
+            builder_mod.build(res, student_name, combined_label, tmp_pdf)
 
         total = record_pull(user, student_name, major_label, catalog_year)
         filename = f"{download_stem}_Audit.pdf"
