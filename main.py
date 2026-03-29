@@ -558,7 +558,6 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
         "la_credits",
         "elective_credits",
         "min_level",
-        "choose_one",
         "accreditation",
     }
 

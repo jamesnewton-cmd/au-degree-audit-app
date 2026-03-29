@@ -210,10 +210,28 @@ class ProgramYearRegressionTests(unittest.TestCase):
         rows = main._build_major_rows(req, [], sm_mod)
 
         labels = [r.get("label", "") for r in rows]
-        self.assertTrue(any("World History" in lbl for lbl in labels))
-        self.assertTrue(any("Political Science" in lbl for lbl in labels))
+        self.assertTrue(any("US History upper-division" in lbl for lbl in labels))
+        self.assertTrue(any("Third Field advanced electives" in lbl for lbl in labels))
         # Should include required + distribution groups, not just the 4 fixed required.
         self.assertGreaterEqual(len(rows), 8)
+
+    def test_social_studies_teaching_definition_matches_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("social_studies_teaching", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in ("HIST-4700", "HIST-2000", "POSC-2020", "POSC-2100", "POSC-2580"):
+            self.assertIn(course, required)
+
+        dist_groups = req.get("dist_groups", [])
+        names = {g.get("name") for g in dist_groups if isinstance(g, dict)}
+        self.assertIn("US History upper-division", names)
+        self.assertIn("European History foundations", names)
+        self.assertIn("European History upper-division", names)
+        self.assertIn("Global History upper-division", names)
+        self.assertIn("Third Field advanced electives", names)
 
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
