@@ -2553,7 +2553,7 @@ ENGLISH = {
             "required": ["ENGL-4910"],
             "elective_groups": [
                 {
-                    "name": "Writing courses",
+                    "name": "Writing / Editing / Publishing courses",
                     "credits": 18,
                     "choose_from": [
                         "ENGL-2500",
@@ -2569,30 +2569,34 @@ ENGLISH = {
                         "ENGL-3870",
                         "ENGL-3880",
                     ],
+                    "notes": "Advising sheet range is 18-25 hours from this writing-focused list.",
                 },
                 {
-                    "name": "Media/Comm elective",
+                    "name": "Any other ENGL 2000+ not already used",
+                    "credits": 6,
+                    "dept": "ENGL",
+                    "min_level": 2000,
+                    "notes": "Advising sheet allows 3-8 additional ENGL hours from courses not listed above.",
+                },
+                {
+                    "name": "Writing internship experience",
                     "credits": 3,
-                    "choose_from": ["COMM-3220", "COMM-3260"],
-                },
-                {
-                    "name": "Internship",
-                    "credits": 2,
                     "choose_from": ["ENGL-4800"],
-                    "notes": "1-3 hrs writing internship required",
+                    "notes": "1-3 hrs required; approved in advance by department chair.",
                 },
                 {
                     "name": "Design/digital elective",
-                    "credits": 3,
+                    "credits": 4,
                     "choose_from": [
                         "ARTS-2100",
                         "ARTS-1250",
-                        "COMM-2240",
                         "CPSC-1100",
                         "CPSC-1200",
                     ],
+                    "notes": "Advising sheet indicates 3-4 hours from ARTS 2100/1250 or CPSC 1100/1200.",
                 },
             ],
+            "notes": "Writing Major advising sheet (Rev 11/2021): 35 total hours including ENGL-4910 capstone.",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {

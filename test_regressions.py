@@ -257,6 +257,29 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("PSYC upper-division core list (min 12 hrs)" in lbl for lbl in labels))
         self.assertTrue(any("PSYC remaining elective hours" in lbl for lbl in labels))
 
+    def test_writing_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("writing", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        self.assertIn("ENGL-4910", required)
+
+        groups = req.get("elective_groups", [])
+        names = {g.get("name") for g in groups if isinstance(g, dict)}
+        self.assertIn("Writing / Editing / Publishing courses", names)
+        self.assertIn("Any other ENGL 2000+ not already used", names)
+        self.assertIn("Writing internship experience", names)
+        self.assertIn("Design/digital elective", names)
+
+        rows = main._build_major_rows(req, [], sm_mod)
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Writing / Editing / Publishing courses" in lbl for lbl in labels))
+        self.assertTrue(any("Writing internship experience" in lbl for lbl in labels))
+        self.assertTrue(any("Design/digital elective" in lbl for lbl in labels))
+
     def test_sport_marketing_has_no_elective_section_requirement(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {
