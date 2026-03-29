@@ -233,9 +233,40 @@ def _resolve_transfer_code(course_code, equiv_course):
 
 def _parse_term_date(raw_value):
     """Best-effort parse for SIS date fields used with Scheduled rows."""
-    value = (raw_value or "").strip()
+    value = str(raw_value or "").strip()
     if not value:
         return None
+    # SIS placeholder dates should not drive status promotion.
+    if value.startswith("1/1/0001") or value.startswith("0001-01-01"):
+        return None
+    import re as _re
+
+    # Handles SIS exports like: 11/20/2025 5:54:05 PM +00:00
+    m = _re.match(r"^\s*(\d{1,2})/(\d{1,2})/(\d{2,4})", value)
+    if m:
+        month = int(m.group(1))
+        day = int(m.group(2))
+        year = int(m.group(3))
+        if year < 100:
+            year += 2000
+        if year < 1900:
+            return None
+        try:
+            return datetime.date(year, month, day)
+        except ValueError:
+            pass
+    # Handles ISO style where date may be followed by time.
+    m = _re.match(r"^\s*(\d{4})-(\d{1,2})-(\d{1,2})", value)
+    if m:
+        year = int(m.group(1))
+        month = int(m.group(2))
+        day = int(m.group(3))
+        if year < 1900:
+            return None
+        try:
+            return datetime.date(year, month, day)
+        except ValueError:
+            pass
     for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
         try:
             return datetime.datetime.strptime(value, fmt).date()

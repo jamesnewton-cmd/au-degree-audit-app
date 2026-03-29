@@ -545,6 +545,26 @@ class CsvStatusNormalizationTests(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    def test_scheduled_with_timestamp_registration_date_is_promoted_to_current(self):
+        from engines.sport_marketing import parse_csv
+
+        tmp_dir = Path(tempfile.mkdtemp(prefix="audit-scheduled-ts-to-current-"))
+        try:
+            csv_path = tmp_dir / "scheduled_started_term_timestamp.csv"
+            csv_path.write_text(
+                (
+                    "Course Code,Equivalent Course,Status,Letter Grade,Credits,Registration Date,Course Name\n"
+                    "EDUC-4010,,Scheduled,,10,11/20/2025 5:54:05 PM +00:00,Student Teaching: 10 cr hr in field\n"
+                ),
+                encoding="utf-8",
+            )
+            rows = parse_csv(str(csv_path))
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["code"], "EDUC_4010")
+            self.assertEqual(rows[0]["status"], "current")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
     def test_sport_marketing_w1_and_f7_accept_equivalents(self):
         from engines.sport_marketing import audit, parse_csv
 
