@@ -127,6 +127,56 @@ class ProgramYearRegressionTests(unittest.TestCase):
                 f"Missing non-FSB programs in /programs/all/{year}: {sorted(missing)}",
             )
 
+    def test_non_fsb_schema_uses_supported_requirement_shapes(self):
+        from requirements.non_fsb_programs import ALL_NON_FSB_PROGRAMS, get_non_fsb_requirements
+
+        meta_keys = {
+            "name",
+            "total_credits",
+            "delivery",
+            "notes",
+            "teaching_fields",
+            "department",
+            "concentration_note",
+            "special_rules",
+            "same_as",
+            "optional_cma",
+            "concentrations",
+            "tracks",
+            "total_major_credits",
+            "lead_courses_credits",
+            "la_credits",
+            "elective_credits",
+            "min_level",
+            "choose_one",
+            "accreditation",
+            "prerequisites",
+            "dummy_2022_23",
+            "dummy_elective",
+            "required_old",
+            "dept_dummy",
+            "upper_div_psyc",
+            "required_foundational",
+            "required_capstone",
+        }
+        supported_list_of_dict = {"elective_groups", "dist_groups", "choose_one"}
+
+        for year in main.CATALOG_YEARS:
+            for key in ALL_NON_FSB_PROGRAMS:
+                req = get_non_fsb_requirements(key, year)
+                if not isinstance(req, dict):
+                    continue
+                for section_key, section_val in req.items():
+                    if section_key in meta_keys:
+                        continue
+                    if isinstance(section_val, list) and section_val:
+                        if isinstance(section_val[0], dict):
+                            self.assertIn(
+                                section_key,
+                                supported_list_of_dict,
+                                f"Unsupported list-of-dict requirement block: {key} {year} {section_key}",
+                            )
+
     def test_generate_valid_and_invalid_program_year(self):
         valid_fsb = self._post_generate("management", "2022-23")
         self.assertEqual(valid_fsb.status_code, 200)
