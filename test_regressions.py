@@ -471,6 +471,61 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Upper-division POSC/PHIL/ECON electives" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 19)
 
+    def test_visual_communication_design_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("visual_communication_design", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "ARTH-3010",
+            "ARTH-3020",
+            "ARTH-3030",
+            "ARTS-2010",
+            "ARTS-2011",
+            "ARTS-2060",
+            "ARTS-2100",
+            "ARTS-3110",
+            "ARTS-3114",
+            "ARTS-3310",
+            "ARTS-4114",
+            "ARTS-4310",
+            "ARTS-4420",
+            "ARTS-4820",
+            "ARTS-4930",
+            "ARTS-4950",
+        ):
+            self.assertIn(course, required)
+
+        groups = req.get("choose_one", [])
+        names = {g.get("name") for g in groups if isinstance(g, dict)}
+        self.assertIn("Graphic design studio elective", names)
+        self.assertIn("Branding / social media elective", names)
+
+        design_prod = next(
+            (g for g in groups if isinstance(g, dict) and g.get("name") == "Graphic design studio elective"),
+            {},
+        )
+        self.assertEqual(set(design_prod.get("choose_from", [])), {"ARTS-4450", "COMM-3160"})
+
+    def test_visual_communication_design_builds_grouped_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("visual_communication_design", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Graphic design studio elective" in lbl for lbl in labels))
+        self.assertTrue(any("Branding / social media elective" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 18)
+
+    def test_program_bucket_accepts_visual_communication_design_alias(self):
+        # Guardrail for historic registrar naming variant used in uploads/UI.
+        self.assertEqual(main.program_bucket("visual_comm_design", "2022-23"), "NON_FSB")
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 

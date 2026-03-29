@@ -4313,6 +4313,73 @@ NURSING = {
 # COMMUNICATION / CINEMA / JOURNALISM
 # ─────────────────────────────────────────────────────────────────────────
 COMMUNICATION = {
+    "visual_communication_design": {
+        "2022-23": {
+            "name": "Visual Communication Design",
+            "total_credits": 53,
+            "required": [
+                "ARTH-3010",
+                "ARTH-3020",
+                "ARTH-3030",
+                "ARTS-2010",
+                "ARTS-2011",
+                "ARTS-2060",
+                "ARTS-2100",
+                "ARTS-3110",
+                "ARTS-3114",
+                "ARTS-3310",
+                "ARTS-4114",
+                "ARTS-4310",
+                "ARTS-4420",
+                "ARTS-4820",
+                "ARTS-4930",
+                "ARTS-4950",
+            ],
+            "choose_one": [
+                {
+                    "name": "Graphic design studio elective",
+                    "choose_from": ["ARTS-4450", "COMM-3160"],
+                },
+                {
+                    "name": "Branding / social media elective",
+                    "choose_from": ["BSNS-3550", "COMM-3370"],
+                },
+            ],
+        },
+        "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+    },
+    "visual_communication_design_complementary": {
+        "2022-23": {
+            "name": "Visual Communication Design Complementary Major",
+            "total_credits": 35,
+            "required": [
+                "ARTH-3030",
+                "ARTS-2010",
+                "ARTS-2011",
+                "ARTS-2060",
+                "ARTS-2100",
+                "ARTS-3110",
+                "ARTS-3114",
+                "ARTS-3310",
+                "ARTS-4310",
+                "ARTS-4420",
+                "ARTS-4930",
+            ],
+            "choose_one": [
+                {
+                    "name": "Studio elective",
+                    "choose_from": ["ARTS-4450", "COMM-3160"],
+                },
+                {
+                    "name": "Professional elective",
+                    "choose_from": ["BSNS-3550", "COMM-3370"],
+                },
+            ],
+        },
+        "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+    },
     "cinema_media_arts": {
         "2022-23": {
             "name": "Cinema & Media Arts",
@@ -5052,10 +5119,16 @@ for _section in [
 ]:
     ALL_NON_FSB_PROGRAMS.update(_section)
 
+# Canonical-key aliases for legacy UI labels / historical inputs.
+NON_FSB_KEY_ALIASES = {
+    "visual_comm_design": "visual_communication_design",
+}
+
 
 def get_non_fsb_requirements(program_key: str, year: str):
     """Return the requirements dict for a given program and catalog year."""
-    prog = ALL_NON_FSB_PROGRAMS.get(program_key)
+    canonical_key = NON_FSB_KEY_ALIASES.get(program_key, program_key)
+    prog = ALL_NON_FSB_PROGRAMS.get(canonical_key)
     if not prog:
         return None
     return _yr(prog, year)
