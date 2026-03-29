@@ -337,37 +337,53 @@ BUS_CORE = [
     ("ACCT_2010", "ACCT-2010 Principles of Accounting I", ["ACCT_2010"], 3),
     ("ACCT_2020", "ACCT-2020 Principles of Accounting II", ["ACCT_2020"], 3),
     ("BSNS_1050", "BSNS-1050 Business as a Profession", ["BSNS_1050"], 2),
-    ("BSNS_2310", "BSNS-2310 Business Analytics", ["BSNS_2310"], 3),
-    ("BSNS_2450", "BSNS-2450 Data Analytics and Decision Making", ["BSNS_2450"], 3),
+    (
+        "STATS_4CR",
+        "4 credit hours from BSNS-2450 / MATH-2120 / PSYC-2440",
+        ["BSNS_2450", "MATH_2120", "PSYC_2440"],
+        4,
+    ),
     ("BSNS_2510", "BSNS-2510 Principles of Finance", ["BSNS_2510"], 3),
     ("BSNS_2710", "BSNS-2710 Principles of Management", ["BSNS_2710"], 3),
     ("BSNS_2810", "BSNS-2810 Principles of Marketing", ["BSNS_2810"], 3),
-    ("BSNS_3270", "BSNS-3270 Project Management", ["BSNS_3270"], 3),
     ("BSNS_3420", "BSNS-3420 Business Law", ["BSNS_3420"], 3),
     ("BSNS_4500", "BSNS-4500 Strategic Management", ["BSNS_4500"], 3),
-    ("BSNS_4910", "BSNS-4910 Senior Seminar in Business / Ethics & Leadership", ["BSNS_4910"], 2),
+    ("BSNS_4910", "BSNS-4910 Seminar in Ethics and Leadership", ["BSNS_4910"], 1),
+    ("CPSC_1100", "CPSC-1100 Introduction to Business Informatics", ["CPSC_1100"], 3),
     ("ECON_2010", "ECON-2010 Principles of Macroeconomics", ["ECON_2010"], 3),
     ("ECON_2020", "ECON-2020 Principles of Microeconomics", ["ECON_2020"], 3),
 ]
 
 MGMT_REQ = [
-    ("BSNS_3120", "BSNS-3120 Global Business", ["BSNS_3120"], 3),
-    ("BSNS_3230", "BSNS-3230 Human Resource Management", ["BSNS_3230"], 3),
+    ("BSNS_3270", "BSNS-3270 Project Management", ["BSNS_3270"], 3),
     ("BSNS_4010", "BSNS-4010 Organizational Behavior and Theory", ["BSNS_4010"], 3),
     ("BSNS_4480", "BSNS-4480 Leadership", ["BSNS_4480"], 3),
-    ("BSNS_PRAC", "BSNS-3850 Practicum / BSNS-4800 Internship", ["BSNS_3850", "BSNS_4800"], 2),
+    ("BSNS_4920", "BSNS-4920 Senior Seminar in Management", ["BSNS_4920"], 1),
 ]
 
 ELEC_OPTS = [
     "BSNS_3100",
+    "BSNS_3120",
+    "BSNS_3230",
     "BSNS_3240",
+    "BSNS_3300",
+    "BSNS_3340",
+    "BSNS_3400",
+    "BSNS_3440",
+    "BSNS_3450",
     "BSNS_3510",
     "BSNS_4050",
     "BSNS_4120",
     "BSNS_4240",
+    "BSNS_4300",
     "BSNS_4310",
-    "BSNS_4310_23",
+    "BSNS_4320",
+    "BSNS_4340",
+    "BSNS_4800",
+    "COMM_3250",
+    "BSNS_3860",
 ]
+MGMT_CONCENTRATION_HRS = 9
 
 # Liberal Arts rows (Area label, Course display, Requirement text, option codes, default_cr)
 LA_ROWS = [
@@ -512,6 +528,7 @@ LA_ROWS = [
         [
             "BSNS_3120",
             "BSNS_4910",
+            "BSNS_4920",
             "ENGL_3110",
             "COMM_3130",
             "HIST_3260",
@@ -626,9 +643,10 @@ def audit(courses):
                         c = candidate
                         s = "Scheduled"
         elif area == "WI" and not opts:
-            # WI #2 upper division — BSNS-4910 double-dips here first;
-            # BSNS-3120 also qualifies as a WI-designated 3000+ course
+            # WI #2 upper division — BSNS-4910/4920 are major-designated WI
+            # options; BSNS-3120 can also satisfy WI.
             c4910 = cm.get("BSNS_4910")
+            c4920 = cm.get("BSNS_4920")
             c3120 = cm.get("BSNS_3120")
             if c4910 and done(c4910):
                 c = c4910
@@ -638,6 +656,15 @@ def audit(courses):
                 s = "Current"
             elif c4910 and sched(c4910):
                 c = c4910
+                s = "Scheduled"
+            elif c4920 and done(c4920):
+                c = c4920
+                s = "Satisfied"
+            elif c4920 and ip(c4920):
+                c = c4920
+                s = "Current"
+            elif c4920 and sched(c4920):
+                c = c4920
                 s = "Scheduled"
             elif c3120 and done(c3120):
                 c = c3120
@@ -678,25 +705,7 @@ def audit(courses):
     # Mgmt required
     mr = []
     for rid, label, opts, dcr in MGMT_REQ:
-        if rid == "BSNS_PRAC":
-            c4 = cm.get("BSNS_4800")
-            c3 = cm.get("BSNS_3850")
-            if c4 and done(c4):
-                c = c4
-            elif c3 and done(c3):
-                c = c3
-            elif c4 and ip(c4):
-                c = c4
-            elif c3 and ip(c3):
-                c = c3
-            elif c4 and sched(c4):
-                c = c4
-            elif c3 and sched(c3):
-                c = c3
-            else:
-                c = None
-        else:
-            c = find(opts)
+        c = find(opts)
         s = status_of(c)
         mr.append({"id": rid, "label": label, "status": s, "course": c, "dcr": dcr})
 
@@ -881,7 +890,7 @@ def build(res, student_name, major_label, out):
     prog_ok = (
         all(r["status"] == "Satisfied" for r in res["bc"])
         and all(r["status"] == "Satisfied" for r in res["mr"])
-        and res["ehrs"] + res["ehrs_ip"] >= 6
+        and res["ehrs"] + res["ehrs_ip"] >= MGMT_CONCENTRATION_HRS
     )
     proj120 = proj >= 120
     gpa_ok = gpa_o >= 2.0
@@ -895,7 +904,7 @@ def build(res, student_name, major_label, out):
     prog_ok_pend = (
         all(r["status"] in ("Satisfied", "Current", "Scheduled") for r in res["bc"])
         and all(r["status"] in ("Satisfied", "Current", "Scheduled") for r in res["mr"])
-        and res["ehrs"] + res["ehrs_ip"] >= 6
+        and res["ehrs"] + res["ehrs_ip"] >= MGMT_CONCENTRATION_HRS
     )
     wi_ok_pend = (
         sum(
@@ -1128,7 +1137,7 @@ def build(res, student_name, major_label, out):
         return row
 
     # Business Core
-    story.append(sub_section_row("Business Core Requirements (43 hrs)"))
+    story.append(sub_section_row("Business Core + Prerequisite (40-41 hrs)"))
     for i, r in enumerate(res["bc"]):
         c = r["course"]
         code = c["raw"] if c else r["id"].replace("_", "-")
@@ -1147,15 +1156,17 @@ def build(res, student_name, major_label, out):
         note = ""
         if r["id"] == "BSNS_4480":
             note = " (SI)"
-        if r["id"] == "BSNS_3120":
-            note = " (WI #1 · W7 Liberal Arts)"
+        if r["id"] == "BSNS_4920":
+            note = " (WI)"
         story.append(
             mj_row(code, r["label"] + note, r["status"], cr_disp(c, r["dcr"]), grade_disp(c), i)
         )
 
-    # Management Electives
+    # Management concentration courses
     story.append(
-        sub_section_row(f"Management Electives — 6 hrs required  (earned: {res['ehrs']} hrs)")
+        sub_section_row(
+            f"Management Concentration Courses — {MGMT_CONCENTRATION_HRS} hrs required  (earned: {res['ehrs']} hrs)"
+        )
     )
     row_i = 0
     if res["elecs"]:
@@ -1171,23 +1182,40 @@ def build(res, student_name, major_label, out):
         story.append(
             mj_row(
                 "",
-                "Electives needed from: BSNS 3100/3240/3510/4050/4120/4240/4310",
+                (
+                    "Concentration courses needed from approved options: "
+                    "BSNS 3100/3120/3230/3240/3300/3340/3400/3440/3450/3510/"
+                    "4050/4120/4240/4300/4310/4320/4340/4800, COMM 3250, BSNS 3860"
+                ),
                 "Not Satisfied",
-                "6",
+                str(MGMT_CONCENTRATION_HRS),
                 "",
                 0,
             )
         )
-    elif res["ehrs"] + res["ehrs_ip"] < 6:
+    elif res["ehrs"] + res["ehrs_ip"] < MGMT_CONCENTRATION_HRS:
         enrolled_codes = {c["raw"].upper() for c in res["elecs"] + res["elecs_ip"]}
         all_opts = [
             "BSNS-3100",
+            "BSNS-3120",
+            "BSNS-3230",
             "BSNS-3240",
+            "BSNS-3300",
+            "BSNS-3340",
+            "BSNS-3400",
+            "BSNS-3440",
+            "BSNS-3450",
             "BSNS-3510",
             "BSNS-4050",
             "BSNS-4120",
             "BSNS-4240",
+            "BSNS-4300",
             "BSNS-4310",
+            "BSNS-4320",
+            "BSNS-4340",
+            "BSNS-4800",
+            "COMM-3250",
+            "BSNS-3860",
         ]
         remaining = [o for o in all_opts if o not in enrolled_codes]
         if remaining:
@@ -1196,7 +1224,7 @@ def build(res, student_name, major_label, out):
                     "",
                     f"Additional electives needed from: {' / '.join(remaining)}",
                     "Not Satisfied",
-                    str(6 - res["ehrs"] - res["ehrs_ip"]),
+                    str(MGMT_CONCENTRATION_HRS - res["ehrs"] - res["ehrs_ip"]),
                     "",
                     row_i,
                 )
@@ -1207,8 +1235,8 @@ def build(res, student_name, major_label, out):
         [
             [
                 Paragraph(
-                    "Note: BSNS-4480 (Leadership) = SI  ·  BSNS-3120 (Global Business) = WI #1 (Liberal Arts Program)  ·  "
-                    f"BSNS-4910 (Senior Seminar) = WI  ·  W8 satisfied by: {', '.join(code.replace('_', '-') for code in get_fsb_w8_courses('management'))}  ·  "
+                    "Note: BSNS-4480 (Leadership) = SI  ·  BSNS-4910 and BSNS-4920 = WI  ·  "
+                    f"W8 satisfied by: {', '.join(code.replace('_', '-') for code in get_fsb_w8_courses('management'))}  ·  "
                     "W8 auto-satisfied when F1 (LART-1050) complete",
                     P["note"],
                 )
@@ -1528,7 +1556,7 @@ def build(res, student_name, major_label, out):
     maj_cur = []
     maj_sched = []
     for r in res["bc"] + res["mr"]:
-        code = "BSNS-4800" if r["id"] == "BSNS_PRAC" else r["id"].replace("_", "-")
+        code = r["id"].replace("_", "-")
         full_label = r["label"]
         if r["status"] == "Not Satisfied":
             maj_miss.append((full_label, f"Enroll in {code} — {r['label']}"))
@@ -1541,24 +1569,37 @@ def build(res, student_name, major_label, out):
             maj_sched.append(
                 (full_label, "Scheduled — confirm enrollment and complete with passing grade")
             )
-    if res["ehrs"] + res["ehrs_ip"] < 6:
+    if res["ehrs"] + res["ehrs_ip"] < MGMT_CONCENTRATION_HRS:
         enrolled_codes = {c["raw"].upper() for c in res["elecs"] + res["elecs_ip"]}
         all_opts = [
             "BSNS-3100",
+            "BSNS-3120",
+            "BSNS-3230",
             "BSNS-3240",
+            "BSNS-3300",
+            "BSNS-3340",
+            "BSNS-3400",
+            "BSNS-3440",
+            "BSNS-3450",
             "BSNS-3510",
             "BSNS-4050",
             "BSNS-4120",
             "BSNS-4240",
+            "BSNS-4300",
             "BSNS-4310",
+            "BSNS-4320",
+            "BSNS-4340",
+            "BSNS-4800",
+            "COMM-3250",
+            "BSNS-3860",
         ]
         remaining = [o for o in all_opts if o not in enrolled_codes]
-        hrs_still_needed = 6 - res["ehrs"] - res["ehrs_ip"]
+        hrs_still_needed = MGMT_CONCENTRATION_HRS - res["ehrs"] - res["ehrs_ip"]
         opt_str = ", ".join(remaining) if remaining else "see advisor"
         maj_miss.append(
             (
-                f"Management Electives — {hrs_still_needed} hrs still needed",
-                f"Enroll in elective from: {opt_str}",
+                f"Management Concentration Courses — {hrs_still_needed} hrs still needed",
+                f"Enroll in concentration option from: {opt_str}",
             )
         )
     for c in res["elecs_ip"]:

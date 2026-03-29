@@ -471,6 +471,24 @@ class ProgramYearRegressionTests(unittest.TestCase):
         content_disposition = response.headers.get("content-disposition", "")
         self.assertIn("Sport_S_Audit.pdf", content_disposition)
 
+    def test_management_2022_structure_matches_uploaded_advising_sheet(self):
+        from engines import management as mgmt_mod
+
+        business_core_ids = [rid for rid, _label, _opts, _dcr in mgmt_mod.BUS_CORE]
+        required_ids = [rid for rid, _label, _opts, _dcr in mgmt_mod.MGMT_REQ]
+
+        self.assertIn("MATH_1300", business_core_ids)
+        self.assertIn("STATS_4CR", business_core_ids)
+        self.assertIn("CPSC_1100", business_core_ids)
+        self.assertIn("BSNS_4910", business_core_ids)
+
+        self.assertEqual(set(required_ids), {"BSNS_3270", "BSNS_4010", "BSNS_4480", "BSNS_4920"})
+
+        self.assertEqual(mgmt_mod.MGMT_CONCENTRATION_HRS, 9)
+        self.assertIn("BSNS_3120", mgmt_mod.ELEC_OPTS)
+        self.assertIn("COMM_3250", mgmt_mod.ELEC_OPTS)
+        self.assertIn("BSNS_4800", mgmt_mod.ELEC_OPTS)
+
     def test_marketing_pdf_build_uses_major_specific_w8_notes(self):
         files = {"transcript": ("transcript.csv", _sample_csv_bytes(), "text/csv")}
         data = {
@@ -758,6 +776,63 @@ class ManagementW1RegressionTests(unittest.TestCase):
         self.assertIn("W1", la_by_area)
         self.assertEqual(la_by_area["W1"]["status"], "Satisfied")
         self.assertEqual(la_by_area["W1"]["course"]["code"], "RLGN_3010")
+
+    def test_management_2022_matches_uploaded_sheet_core_and_required_blocks(self):
+        from engines.management import BUS_CORE, MGMT_REQ, MGMT_CONCENTRATION_HRS
+
+        core_ids = {rid for rid, *_ in BUS_CORE}
+        req_ids = {rid for rid, *_ in MGMT_REQ}
+
+        # Prerequisite + business core per uploaded advising sheet.
+        self.assertIn("MATH_1300", core_ids)
+        self.assertIn("STATS_4CR", core_ids)
+        self.assertIn("CPSC_1100", core_ids)
+        self.assertIn("BSNS_4910", core_ids)
+
+        # Management required block per uploaded advising sheet.
+        self.assertIn("BSNS_3270", req_ids)
+        self.assertIn("BSNS_4010", req_ids)
+        self.assertIn("BSNS_4480", req_ids)
+        self.assertIn("BSNS_4920", req_ids)
+
+        # Concentration requirement is 9 credits (one concentration area).
+        self.assertEqual(MGMT_CONCENTRATION_HRS, 9)
+
+    def test_management_concentration_hours_count_satisfied_and_current(self):
+        from engines.management import audit
+
+        courses = [
+            {
+                "code": "BSNS_3100",
+                "raw": "BSNS-3100",
+                "name": "New Venture Feasibility",
+                "cr": 3,
+                "status": "grade posted",
+                "grade": "A",
+                "reg_date": "2024-04-24",
+            },
+            {
+                "code": "BSNS_4310",
+                "raw": "BSNS-4310",
+                "name": "Business Plan Development",
+                "cr": 3,
+                "status": "grade posted",
+                "grade": "B",
+                "reg_date": "2024-04-24",
+            },
+            {
+                "code": "BSNS_3240",
+                "raw": "BSNS-3240",
+                "name": "Operations Management",
+                "cr": 3,
+                "status": "current",
+                "grade": "",
+                "reg_date": "2025-01-10",
+            },
+        ]
+        res = audit(courses)
+        self.assertEqual(res["ehrs"], 6)
+        self.assertEqual(res["ehrs_ip"], 3)
 
 
 class AuthFlowTests(unittest.TestCase):
