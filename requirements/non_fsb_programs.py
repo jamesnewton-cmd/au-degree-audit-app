@@ -3596,7 +3596,7 @@ ENGINEERING = {
     "mechanical_engineering_bs": {
         "2022-23": {
             "name": "Mechanical Engineering (BS)",
-            "total_credits": 83,
+            "total_credits": 84,
             "required": [
                 "CHEM-2110",
                 "PHYS-2240",
@@ -3615,12 +3615,24 @@ ENGINEERING = {
                 "ENGR-2090",
                 "ENGR-2110",
                 "ENGR-2310",
+                "ENGR-4950",
+                "ENGR-4960",
                 "ENGR-3030",
                 "ENGR-3100",
+                "ENGR-3110",
+                "ENGR-3160",
+                "ENGR-3180",
+                "ENGR-3190",
+                "ENGR-3510",
+                "ENGR-4100",
+                "ENGR-4110",
+                "ENGR-4130",
+                "ENGR-4160",
             ],
             "choose_one": [
                 {"name": "Computing", "choose_from": ["CPSC-2320", "CPSC-2500"]},
             ],
+            "notes": "CPSC-2320 may also be fulfilled with CPSC-2500.",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {

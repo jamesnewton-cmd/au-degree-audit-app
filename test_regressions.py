@@ -526,6 +526,69 @@ class ProgramYearRegressionTests(unittest.TestCase):
         # Guardrail for historic registrar naming variant used in uploads/UI.
         self.assertEqual(main.program_bucket("visual_comm_design", "2022-23"), "NON_FSB")
 
+    def test_mechanical_engineering_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("mechanical_engineering_bs", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "ENGR-2001",
+            "ENGR-2002",
+            "ENGR-2003",
+            "ENGR-2010",
+            "ENGR-2030",
+            "ENGR-2090",
+            "ENGR-2110",
+            "ENGR-2310",
+            "ENGR-4950",
+            "ENGR-4960",
+            "CHEM-2110",
+            "MATH-2010",
+            "MATH-2020",
+            "MATH-3010",
+            "MATH-3020",
+            "MATH-3100",
+            "PHYS-2240",
+            "PHYS-2250",
+            "ENGR-2070",
+            "ENGR-3030",
+            "ENGR-3100",
+            "ENGR-3110",
+            "ENGR-3160",
+            "ENGR-3180",
+            "ENGR-3190",
+            "ENGR-3510",
+            "ENGR-4100",
+            "ENGR-4110",
+            "ENGR-4130",
+            "ENGR-4160",
+        ):
+            self.assertIn(course, required)
+
+        self.assertEqual(req.get("total_credits"), 84)
+        choose_one = req.get("choose_one", [])
+        computing = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Computing"),
+            {},
+        )
+        self.assertEqual(set(computing.get("choose_from", [])), {"CPSC-2320", "CPSC-2500"})
+
+    def test_mechanical_engineering_2022_builds_full_required_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("mechanical_engineering_bs", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("ENGR-4960" in lbl for lbl in labels))
+        self.assertTrue(any("ENGR-4160" in lbl for lbl in labels))
+        self.assertTrue(any("Computing" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 31)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
