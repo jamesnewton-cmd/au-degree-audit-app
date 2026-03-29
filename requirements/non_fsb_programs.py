@@ -1334,9 +1334,14 @@ EDUCATION = {
                 "PETE-3710",
                 "PHYS-1030",
                 "BIOL-1000",
-                "ENGL-3590",
                 "HIST-2110",
                 "MATH-1100",
+            ],
+            "choose_one": [
+                {
+                    "name": "Valuing Through Literature",
+                    "choose_from": ["ENGL-1400", "ENGL-3590"],
+                },
             ],
         },
         "2023-24": {"same_as": "2022-23"},

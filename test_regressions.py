@@ -358,6 +358,63 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Cybersecurity electives" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 18)
 
+    def test_elementary_education_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("elementary_education", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "EDUC-2000",
+            "EDUC-2030",
+            "EDUC-2100",
+            "EDUC-2110",
+            "EDUC-2170",
+            "EDUC-2200",
+            "EDUC-2460",
+            "EDUC-2520",
+            "EDUC-2730",
+            "EDUC-3120",
+            "EDUC-3300",
+            "EDUC-4120",
+            "EDUC-4310",
+            "EDUC-4320",
+            "EDUC-4010",
+            "EDUC-4930",
+            "EDUC-4850",
+            "EDUC-4910",
+            "SPED-2400",
+            "SPED-3120",
+            "SPED-3200",
+            "MUED-2110",
+            "HIST-2000",
+            "MATH-1110",
+            "PETE-3710",
+            "PHYS-1030",
+            "BIOL-1000",
+            "HIST-2110",
+            "MATH-1100",
+        ):
+            self.assertIn(course, required)
+
+        choose_one = req.get("choose_one", [])
+        self.assertTrue(any(isinstance(g, dict) and g.get("name") == "Valuing Through Literature" for g in choose_one))
+        lit = next((g for g in choose_one if isinstance(g, dict) and g.get("name") == "Valuing Through Literature"), {})
+        self.assertEqual(set(lit.get("choose_from", [])), {"ENGL-1400", "ENGL-3590"})
+
+    def test_elementary_education_2022_builds_literature_choice_row(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("elementary_education", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Valuing Through Literature" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 30)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
