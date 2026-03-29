@@ -320,6 +320,9 @@
     resize: vertical;
     line-height: 1.5;
   }
+  .context-textarea.compact {
+    min-height: 100px;
+  }
   .context-rules-inline {
     margin-top: 0.5rem;
     font-size: 0.74rem;
@@ -828,6 +831,10 @@
             </div>
             <div class="file-name" id="fileName"></div>
           </div>
+          <div class="name-suggest" id="recentCsvHints" style="display:none;">
+            <div class="name-suggest-title">Recent CSVs</div>
+            <div class="name-suggest-list" id="recentCsvList"></div>
+          </div>
         </div>
         </div><!-- end singleMode -->
 
@@ -876,8 +883,7 @@
         <div id="exceptionsSection">
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field context-card">
-          <div class="context-copy tight">One line per rule. Advisor-only overrides for substitutions, area mapping, waivers, and enrollment status.</div>
-          <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|currently enrolled|scheduled|satisfied" autocomplete="off"></textarea>
+          <textarea name="exceptions" id="exceptionsInput" rows="4" class="context-textarea compact" placeholder="" autocomplete="off"></textarea>
           <div class="context-rules-inline">
             <strong>SUB</strong>: required=taken &nbsp;•&nbsp; <strong>MAP</strong>: taken=area &nbsp;•&nbsp; <strong>WAIVE</strong>: course<br>
             <strong>STATUS</strong>: course = current | currently enrolled | scheduled | satisfied
@@ -936,6 +942,7 @@ const SESSION_EMAIL_KEY = 'audit:session_email';
 const LAST_STUDENTS_KEY = 'audit:last_students';
 const LAST_MAJORS_KEY = 'audit:last_majors';
 const LAST_MINORS_KEY = 'audit:last_minors';
+const LAST_CSVS_KEY = 'audit:last_csv_files';
 
 let SESSION_TOKEN = sessionStorage.getItem(SESSION_TOKEN_KEY) || '';
 let SESSION_EMAIL = sessionStorage.getItem(SESSION_EMAIL_KEY) || '';
@@ -1122,6 +1129,69 @@ function getRecentPrograms(storeKey) {
   }
 }
 
+function getRecentCsvs() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LAST_CSVS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function rememberRecentCsv(filename) {
+  const name = (filename || '').trim();
+  if (!name) return;
+  const merged = [name].concat(getRecentCsvs());
+  const next = [];
+  const seen = new Set();
+  for (const item of merged) {
+    const key = (item || '').trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    next.push(item.trim());
+    if (next.length === 5) break;
+  }
+  localStorage.setItem(LAST_CSVS_KEY, JSON.stringify(next));
+}
+
+function applyRecentCsvNameHint(filename) {
+  const stem = (filename || '').replace(/\.csv$/i, '');
+  const tokens = stem
+    .split(/[_\-\s]+/)
+    .map(t => (t || '').trim())
+    .filter(Boolean);
+  if (tokens.length < 2) return;
+  const first = tokens[0];
+  const last = tokens[1];
+  const firstEl = document.getElementById('firstName');
+  const lastEl = document.getElementById('lastName');
+  if (!firstEl || !lastEl) return;
+  firstEl.value = first;
+  lastEl.value = last;
+  renderRecentNameHints();
+}
+
+function renderRecentCsvHints() {
+  const box = document.getElementById('recentCsvHints');
+  const list = document.getElementById('recentCsvList');
+  if (!box || !list) return;
+  const items = getRecentCsvs();
+  if (!items.length) {
+    box.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+  list.innerHTML = items
+    .map(name => `<button type="button" class="name-suggest-item" data-csv="${name.replace(/"/g, '&quot;')}">${name}</button>`)
+    .join('');
+  box.style.display = '';
+  list.querySelectorAll('.name-suggest-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyRecentCsvNameHint(btn.dataset.csv || '');
+    });
+  });
+}
+
 function rememberRecentProgram(kind, key, label) {
   const storeKey = kind === 'major' ? LAST_MAJORS_KEY : LAST_MINORS_KEY;
   const k = (key || '').trim();
@@ -1297,6 +1367,7 @@ function init() {
   renderRecentNameHints();
   renderRecentProgramHints('major');
   renderRecentProgramHints('minor');
+  renderRecentCsvHints();
 }
 
 // ── Programs ──────────────────────────────────────────────────────────────────
@@ -1328,6 +1399,7 @@ async function loadPrograms() {
     });
     renderRecentProgramHints('major');
     renderRecentProgramHints('minor');
+    renderRecentCsvHints();
   } catch (e) {}
 }
 document.querySelectorAll('input[name="catalog_year"]').forEach(r => r.addEventListener('change', loadPrograms));
@@ -1480,6 +1552,8 @@ fileInput.addEventListener('change', () => {
   if (fileInput.files[0]) {
     fileName.textContent = `✓ ${fileInput.files[0].name}`;
     fileName.style.display = 'block';
+    rememberRecentCsv(fileInput.files[0].name);
+    renderRecentCsvHints();
   }
 });
 ['dragover', 'dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('dragover'); }));
@@ -1492,6 +1566,8 @@ drop.addEventListener('drop', ev => {
     fileInput.files = dt.files;
     fileName.textContent = `✓ ${f.name}`;
     fileName.style.display = 'block';
+    rememberRecentCsv(f.name);
+    renderRecentCsvHints();
   }
 });
 
@@ -1519,6 +1595,8 @@ document.getElementById('batchFiles').addEventListener('change', function () {
   const list = document.getElementById('batchFileList');
   const count = document.getElementById('batchCount');
   const files = Array.from(this.files);
+  files.forEach(f => rememberRecentCsv(f.name));
+  renderRecentCsvHints();
   count.textContent = `${files.length} file${files.length !== 1 ? 's' : ''} selected`;
   list.innerHTML = files.map(f => `<div class="batch-file-item">✓ ${f.name}</div>`).join('');
 });
@@ -1531,6 +1609,8 @@ batchDrop.addEventListener('drop', ev => {
   if (!files.length) return;
   const dt = new DataTransfer();
   files.forEach(f => dt.items.add(f));
+  files.forEach(f => rememberRecentCsv(f.name));
+  renderRecentCsvHints();
   document.getElementById('batchFiles').files = dt.files;
   document.getElementById('batchCount').textContent = `${files.length} file${files.length !== 1 ? 's' : ''} selected`;
   document.getElementById('batchFileList').innerHTML = files.map(f => `<div class="batch-file-item">✓ ${f.name}</div>`).join('');
