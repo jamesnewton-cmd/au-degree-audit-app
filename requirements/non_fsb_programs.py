@@ -206,10 +206,28 @@ BIOCHEMISTRY = {
                 "BIOL-2240",
                 "BIOL-4050",
                 "BIOL-4310",
-                "BIOL-4210",
-                "CHEM-4210",
-                "BIOL-4910",
-                "BIOL-4920",
+            ],
+            "choose_one": [
+                {
+                    "name": "Biochemistry I",
+                    "credits": 4,
+                    "choose_from": ["BIOL-4210", "CHEM-4210"],
+                },
+                {
+                    "name": "Biochemistry II",
+                    "credits": 4,
+                    "choose_from": ["BIOL-4220", "CHEM-4220"],
+                },
+                {
+                    "name": "Science Seminar I",
+                    "credits": 1,
+                    "choose_from": ["BIOL-4910", "CHEM-4910", "PHYS-4910"],
+                },
+                {
+                    "name": "Science Seminar II",
+                    "credits": 1,
+                    "choose_from": ["BIOL-4920", "CHEM-4920", "PHYS-4920"],
+                },
             ],
             "elective_groups": [
                 {

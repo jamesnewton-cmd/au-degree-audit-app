@@ -783,6 +783,86 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("CMA electives" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 15)
 
+    def test_biochemistry_ba_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("biochemistry_ba", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "BIOL-2210",
+            "BIOL-2220",
+            "BIOL-2240",
+            "BIOL-4050",
+            "BIOL-4310",
+            "CHEM-2110",
+            "CHEM-2120",
+            "CHEM-2210",
+            "CHEM-2220",
+            "CHEM-3100",
+            "CHEM-4510",
+            "CHEM-4520",
+        ):
+            self.assertIn(course, required)
+
+        self.assertEqual(req.get("total_credits"), 56)
+        choose_one = req.get("choose_one", [])
+        names = {g.get("name") for g in choose_one if isinstance(g, dict)}
+        self.assertIn("Biochemistry I", names)
+        self.assertIn("Biochemistry II", names)
+        self.assertIn("Science Seminar I", names)
+        self.assertIn("Science Seminar II", names)
+
+        biochem_i = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Biochemistry I"),
+            {},
+        )
+        self.assertEqual(set(biochem_i.get("choose_from", [])), {"BIOL-4210", "CHEM-4210"})
+
+        biochem_ii = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Biochemistry II"),
+            {},
+        )
+        self.assertEqual(set(biochem_ii.get("choose_from", [])), {"BIOL-4220", "CHEM-4220"})
+
+        sem_i = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Science Seminar I"),
+            {},
+        )
+        self.assertEqual(set(sem_i.get("choose_from", [])), {"BIOL-4910", "CHEM-4910", "PHYS-4910"})
+
+        sem_ii = next(
+            (g for g in choose_one if isinstance(g, dict) and g.get("name") == "Science Seminar II"),
+            {},
+        )
+        self.assertEqual(set(sem_ii.get("choose_from", [])), {"BIOL-4920", "CHEM-4920", "PHYS-4920"})
+
+        groups = req.get("elective_groups", [])
+        biochem_elective = next(
+            (g for g in groups if isinstance(g, dict) and g.get("name") == "Biochemistry electives"),
+            {},
+        )
+        self.assertEqual(biochem_elective.get("credits"), 4)
+        self.assertEqual(
+            set(biochem_elective.get("choose_from", [])),
+            {"CHEM-3140", "CHEM-4090", "CHEM-4110", "BIOL-3030", "BIOL-4120"},
+        )
+
+    def test_biochemistry_ba_2022_builds_grouped_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("biochemistry_ba", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("Biochemistry I" in lbl for lbl in labels))
+        self.assertTrue(any("Science Seminar I" in lbl for lbl in labels))
+        self.assertTrue(any("Biochemistry electives" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 17)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
