@@ -2521,6 +2521,12 @@ MINISTRY = {
                 "CMIN-2260",
                 "CMIN-3260",
             ],
+            "departmental_elective": {
+                "label": "Departmental elective",
+                "credits": 3,
+                "dept": ["BIBL", "RLGN", "CMIN"],
+                "notes": "3 additional hours from any courses offered by the department.",
+            },
             "elective_groups": [
                 {
                     "name": "Ministry elective",

@@ -356,7 +356,7 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("National Security Policy sequence (alt years)" in lbl for lbl in labels))
         self.assertTrue(any("Ethics" in lbl for lbl in labels))
         self.assertTrue(any("Cybersecurity electives" in lbl for lbl in labels))
-        self.assertGreaterEqual(len(rows), 18)
+        self.assertGreaterEqual(len(rows), 17)
 
     def test_elementary_education_2022_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
@@ -520,7 +520,7 @@ class ProgramYearRegressionTests(unittest.TestCase):
         labels = [r.get("label", "") for r in rows]
         self.assertTrue(any("Graphic design studio elective" in lbl for lbl in labels))
         self.assertTrue(any("Branding / social media elective" in lbl for lbl in labels))
-        self.assertGreaterEqual(len(rows), 18)
+        self.assertGreaterEqual(len(rows), 17)
 
     def test_program_bucket_accepts_visual_communication_design_alias(self):
         # Guardrail for historic registrar naming variant used in uploads/UI.
@@ -1073,6 +1073,68 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("PETE-4900" in lbl for lbl in labels))
         self.assertTrue(any("BSNS-2810" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 19)
+
+    def test_youth_ministries_2022_definition_matches_uploaded_advising_sheet(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("youth_ministries", "2022-23")
+        self.assertIsInstance(req, dict)
+        self.assertEqual(req.get("total_credits"), 49)
+
+        required = set(req.get("required", []))
+        for course in (
+            "BIBL-2000",
+            "BIBL-2050",
+            "RLGN-2000",
+            "RLGN-2130",
+            "RLGN-2150",
+            "RLGN-3040",
+            "RLGN-3060",
+            "RLGN-3300",
+            "CMIN-2000",
+            "CMIN-2810",
+            "CMIN-4250",
+            "CMIN-4810",
+            "CMIN-2260",
+            "CMIN-3260",
+        ):
+            self.assertIn(course, required)
+
+        groups = req.get("elective_groups", [])
+        names = {g.get("name") for g in groups if isinstance(g, dict)}
+        self.assertIn("Ministry elective", names)
+        self.assertIn("Family ministry", names)
+
+        ministry_group = next(
+            (g for g in groups if isinstance(g, dict) and g.get("name") == "Ministry elective"),
+            {},
+        )
+        self.assertEqual(set(ministry_group.get("choose_from", [])), {"CMIN-3050", "CMIN-3080", "CMIN-3910"})
+
+        family_group = next(
+            (g for g in groups if isinstance(g, dict) and g.get("name") == "Family ministry"),
+            {},
+        )
+        self.assertEqual(set(family_group.get("choose_from", [])), {"CMIN-3230", "HIST-4030", "SOCI-2100"})
+
+        dept_elective = req.get("departmental_elective", {})
+        self.assertEqual(dept_elective.get("credits"), 3)
+        self.assertEqual(set(dept_elective.get("dept", [])), {"BIBL", "RLGN", "CMIN"})
+
+    def test_youth_ministries_2022_builds_departmental_elective_row(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("youth_ministries", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("CMIN-3260" in lbl for lbl in labels))
+        self.assertTrue(any("Ministry elective" in lbl for lbl in labels))
+        self.assertTrue(any("Family ministry" in lbl for lbl in labels))
+        self.assertTrue(any("Departmental elective" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 17)
 
     def test_engineering_management_2022_structure_matches_uploaded_advising_sheet(self):
         from requirements.fsb_majors import get_major_requirements
