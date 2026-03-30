@@ -597,13 +597,13 @@ BUSINESS_ANALYTICS = {
 ENGINEERING_MANAGEMENT = {
     "2022-23": {
         "name": "Engineering Management",
-        "total_credits": 63,
+        "total_credits": 65,
         "uses_business_core": False,  # Stand-alone core in 22-23
         "standalone_core": [
             {"code": "MATH 1300", "credits": 3},  # or MATH 1400 or MATH 2010
-            {"code": "BSNS 2450", "credits": 3},  # or MATH 2120
+            {"code": "MATH 2120", "credits": 4},
             {"code": "PHYS 2140", "credits": 4},  # or PHYS 2240
-            {"code": "ENGR 2130", "credits": 3},  # or CPSC 2040
+            {"code": "ENGR 2310", "credits": 3},
             {"code": "ECON 2010", "credits": 3},
             {"code": "ECON 2020", "credits": 3},
             {"code": "ENGR 2001", "credits": 1},
@@ -611,17 +611,52 @@ ENGINEERING_MANAGEMENT = {
             {"code": "ENGR 2003", "credits": 1},
             {"code": "ENGR 2060", "credits": 2},
             {"code": "ENGR 2090", "credits": 3},
-            {"code": "BSNS 1100", "credits": 1},
+            {"code": "CPSC 1100", "credits": 3},
             {"code": "BSNS 2710", "credits": 3},
-            {"code": "BSNS 2810", "credits": 3},
+            {"code": "BSNS 2810", "credits": 4},
             {"code": "BSNS 4500", "credits": 3},
-            {"code": "BSNS 4910", "credits": 2},
+            {"code": "BSNS 4910", "credits": 1},
             {"code": "ACCT 2010", "credits": 3},
             {"code": "PSYC 2100", "credits": 4},
         ],
+        "choose_one_math": {
+            "note": "One of:",
+            "options": ["MATH 1300", "MATH 1400", "MATH 2010"],
+        },
+        "choose_one_physics": {
+            "note": "One of:",
+            "options": ["PHYS 2140", "PHYS 2240"],
+        },
+        "choose_one_economics": {
+            "note": "One of:",
+            "options": ["ECON 2010", "ECON 2020"],
+        },
         "concentrations": {
-            "note": "Plus a concentration",
-            "options": ["Construction Management", "General Engineering Management"],
+            "note": "Select one specialization.",
+            "options": ["Management Specialization", "Sales and Marketing Specialization"],
+        },
+        "specializations": {
+            "Management Specialization": {
+                "required_courses": [
+                    {"code": "BSNS 3240", "credits": 3},
+                    {"code": "BSNS 3270", "credits": 3},
+                    {"code": "BSNS 3510", "credits": 3},
+                    {"code": "BSNS 4010", "credits": 3},
+                    {"code": "BSNS 4050", "credits": 3},
+                    {"code": "BSNS 4480", "credits": 3},
+                ]
+            },
+            "Sales and Marketing Specialization": {
+                "required_courses": [
+                    {"code": "BSNS 3210", "credits": 3},
+                    {"code": "BSNS 3220", "credits": 3},
+                    {"code": "BSNS 3510", "credits": 3},
+                    {"code": "BSNS 3550", "credits": 3},
+                    {"code": "BSNS 4110", "credits": 3},
+                    {"code": "BSNS 4430", "credits": 3},
+                    {"code": "BSNS 4440", "credits": 1},
+                ]
+            },
         },
     },
     "2023-24": {

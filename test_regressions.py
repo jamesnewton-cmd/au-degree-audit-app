@@ -972,6 +972,80 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Departmental elective" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 16)
 
+    def test_engineering_management_2022_structure_matches_uploaded_advising_sheet(self):
+        from requirements.fsb_majors import get_major_requirements
+
+        req = get_major_requirements("engineering_management", "2022-23")
+        self.assertIsInstance(req, dict)
+        self.assertEqual(req.get("total_credits"), 65)
+        self.assertFalse(req.get("uses_business_core", True))
+
+        standalone = req.get("standalone_core", [])
+        codes = {c.get("code") for c in standalone if isinstance(c, dict)}
+        for course in (
+            "ENGR 2001",
+            "ENGR 2002",
+            "ENGR 2003",
+            "ENGR 2060",
+            "ENGR 2090",
+            "ENGR 2310",
+            "CPSC 1100",
+            "BSNS 2710",
+            "BSNS 2810",
+            "ACCT 2010",
+            "BSNS 4500",
+            "BSNS 4910",
+            "PSYC 2100",
+        ):
+            self.assertIn(course, codes)
+
+        choose_one_math = req.get("choose_one_math", {})
+        self.assertEqual(
+            set(choose_one_math.get("options", [])),
+            {"MATH 1300", "MATH 1400", "MATH 2010"},
+        )
+
+        choose_one_physics = req.get("choose_one_physics", {})
+        self.assertEqual(set(choose_one_physics.get("options", [])), {"PHYS 2140", "PHYS 2240"})
+
+        choose_one_econ = req.get("choose_one_economics", {})
+        self.assertEqual(set(choose_one_econ.get("options", [])), {"ECON 2010", "ECON 2020"})
+
+        concentrations = req.get("concentrations", {})
+        self.assertEqual(
+            set(concentrations.get("options", [])),
+            {"Management Specialization", "Sales and Marketing Specialization"},
+        )
+
+        specializations = req.get("specializations", {})
+        mgmt = specializations.get("Management Specialization", {})
+        mgmt_codes = {
+            c.get("code")
+            for c in mgmt.get("required_courses", [])
+            if isinstance(c, dict) and c.get("code")
+        }
+        self.assertEqual(
+            mgmt_codes,
+            {"BSNS 3240", "BSNS 3270", "BSNS 3510", "BSNS 4010", "BSNS 4050", "BSNS 4480"},
+        )
+
+        sales = specializations.get("Sales and Marketing Specialization", {})
+        sales_codes = {
+            c.get("code")
+            for c in sales.get("required_courses", [])
+            if isinstance(c, dict) and c.get("code")
+        }
+        self.assertEqual(
+            sales_codes,
+            {"BSNS 3210", "BSNS 3220", "BSNS 3510", "BSNS 3550", "BSNS 4110", "BSNS 4430", "BSNS 4440"},
+        )
+
+    def test_engineering_management_2022_program_bucket_and_generation(self):
+        self.assertEqual(main.program_bucket("engineering_management", "2022-23"), "FSB")
+        response = self._post_generate("engineering_management", "2022-23")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("content-type"), "application/pdf")
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
