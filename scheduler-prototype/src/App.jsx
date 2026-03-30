@@ -1154,9 +1154,10 @@ export default function App() {
               })
             }
           >
-            Export Workbook (.xlsx)
+            Export Full Workbook (.xlsx)
           </button>
         </div>
+        <div className="export-help">Downloads all report sheets, not only the selected option.</div>
 
         <SectionTitle>{current.title}</SectionTitle>
         <BlockTitle>MWF Classes</BlockTitle>

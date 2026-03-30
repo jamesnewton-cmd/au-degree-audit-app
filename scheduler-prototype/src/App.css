@@ -146,6 +146,14 @@
   padding: 8px 8px 0 8px;
 }
 
+.export-caption {
+  width: 100%;
+  margin-top: 4px;
+  text-align: right;
+  font-size: 11px;
+  color: #5f7386;
+}
+
 .opt-tab {
   border: 1px solid #9db2c6;
   background: #f3f7fb;
