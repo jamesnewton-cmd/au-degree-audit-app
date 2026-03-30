@@ -38,6 +38,14 @@
 
 .upload-item input {
   font-size: 12px;
+  display: block;
+  width: 100%;
+}
+
+.upload-file-meta {
+  color: #5f7386;
+  font-size: 11px;
+  min-height: 14px;
 }
 
 .upload-item button {

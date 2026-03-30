@@ -351,15 +351,54 @@ function parseCsvLine(line) {
   return cells;
 }
 
+function detectDelimiter(headerLine) {
+  const line = String(headerLine || "");
+  const counts = {
+    ",": (line.match(/,/g) || []).length,
+    ";": (line.match(/;/g) || []).length,
+    "\t": (line.match(/\t/g) || []).length,
+    "|": (line.match(/\|/g) || []).length,
+  };
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] || ",";
+}
+
+function parseDelimitedLine(line, delimiter) {
+  if (delimiter === ",") return parseCsvLine(line);
+  const cells = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === delimiter && !inQuotes) {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
 function parseCsv(text) {
   const lines = String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
   if (lines.length < 2) return [];
-  const headers = parseCsvLine(lines[0]).map(normalizeHeader);
+  const delimiter = detectDelimiter(lines[0]);
+  const headers = parseDelimitedLine(lines[0], delimiter).map(normalizeHeader);
   return lines.slice(1).map((line) => {
-    const values = parseCsvLine(line);
+    const values = parseDelimitedLine(line, delimiter);
     const row = {};
     headers.forEach((header, idx) => {
       row[header] = values[idx] ?? "";
@@ -544,6 +583,10 @@ export default function App() {
   async function handleUpload(kind, event) {
     const file = event.target.files?.[0];
     if (!file) return;
+    setUploadState({
+      type: "ok",
+      message: `Reading ${file.name}...`,
+    });
     try {
       const text = await file.text();
       const parsed = parseCsv(text);
@@ -580,6 +623,9 @@ export default function App() {
         type: "error",
         message: `Upload failed for ${file.name}: ${err.message}`,
       });
+    } finally {
+      // Allow selecting the same file again and still firing onChange.
+      event.target.value = "";
     }
   }
 
@@ -590,15 +636,27 @@ export default function App() {
           <div className="upload-grid">
             <label>
               Student file (.csv)
-              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("student", e)} />
+              <input
+                type="file"
+                accept=".csv,text/csv,.txt,.tsv"
+                onChange={(e) => handleUpload("student", e)}
+              />
             </label>
             <label>
               Business fall file (.csv)
-              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("business", e)} />
+              <input
+                type="file"
+                accept=".csv,text/csv,.txt,.tsv"
+                onChange={(e) => handleUpload("business", e)}
+              />
             </label>
             <label>
               Liberal arts fall file (.csv)
-              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("la", e)} />
+              <input
+                type="file"
+                accept=".csv,text/csv,.txt,.tsv"
+                onChange={(e) => handleUpload("la", e)}
+              />
             </label>
           </div>
           <div className={uploadState.type === "error" ? "upload-state error" : "upload-state"}>
