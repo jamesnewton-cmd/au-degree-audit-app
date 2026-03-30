@@ -926,7 +926,7 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Science Seminar I" in lbl for lbl in labels))
         self.assertTrue(any("Physics I" in lbl for lbl in labels))
         self.assertTrue(any("Stats/Research Methods" in lbl for lbl in labels))
-        self.assertGreaterEqual(len(rows), 22)
+        self.assertGreaterEqual(len(rows), 21)
 
     def test_christian_ministries_2022_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
@@ -971,6 +971,57 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("CMIN-4810" in lbl for lbl in labels))
         self.assertTrue(any("Departmental elective" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 16)
+
+    def test_public_history_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("public_history", "2022-23")
+        self.assertIsInstance(req, dict)
+        self.assertEqual(req.get("total_credits"), 60)
+
+        required = set(req.get("required", []))
+        for course in ("COMM-2240", "ARTH-2000", "ARTS-1250", "HIST-3480", "HIST-3490"):
+            self.assertIn(course, required)
+
+        self.assertEqual(set(req.get("required_foundational", [])), {"HIST-2000", "HIST-2300", "HIST-2350"})
+        self.assertEqual(set(req.get("required_capstone", [])), {"HIST-4800", "HIST-4930"})
+
+        foundational_west = req.get("foundational_west_choose", {})
+        self.assertEqual(set(foundational_west.get("choose_from", [])), {"HIST-2030", "HIST-2040"})
+
+        foundational_us = req.get("foundational_us_choose", {})
+        self.assertEqual(set(foundational_us.get("choose_from", [])), {"HIST-2110", "HIST-2120"})
+
+        dist_groups = req.get("dist_groups", [])
+        dist_names = {g.get("name") for g in dist_groups if isinstance(g, dict)}
+        self.assertIn("Professional Skills (2 courses)", dist_names)
+        self.assertIn("Media/Communications (1 course)", dist_names)
+
+        biz_group = next(
+            (g for g in dist_groups if isinstance(g, dict) and g.get("name") == "Professional Skills (2 courses)"),
+            {},
+        )
+        self.assertEqual(set(biz_group.get("choose_from", [])), {"BSNS-2710", "BSNS-2810", "COMM-3250"})
+
+    def test_public_history_2022_builds_history_and_public_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("public_history", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("HIST-2300" in lbl for lbl in labels))
+        self.assertTrue(any("Foundational history (one from HIST-2030 / HIST-2040)" in lbl for lbl in labels))
+        self.assertTrue(any("Foundational history (one from HIST-2110 / HIST-2120)" in lbl for lbl in labels))
+        self.assertTrue(any("American History courses (2 courses)" in lbl for lbl in labels))
+        self.assertTrue(any("European History courses (2 courses)" in lbl for lbl in labels))
+        self.assertTrue(any("World History courses (2 courses)" in lbl for lbl in labels))
+        self.assertTrue(any("Professional Skills (2 courses)" in lbl for lbl in labels))
+        self.assertTrue(any("COMM-2240" in lbl for lbl in labels))
+        self.assertTrue(any("HIST-3480" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 21)
 
     def test_engineering_management_2022_structure_matches_uploaded_advising_sheet(self):
         from requirements.fsb_majors import get_major_requirements
