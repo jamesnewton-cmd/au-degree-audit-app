@@ -2397,6 +2397,13 @@ MINISTRY = {
                 "CMIN-4250",
                 "CMIN-4810",
             ],
+            "departmental_elective": {
+                "label": "Departmental elective",
+                "credits": 3,
+                "dept": ["BIBL", "RLGN", "CMIN"],
+                "min_level": 2000,
+                "notes": "Majors must take 3 additional credit hours from courses offered by the department.",
+            },
             "notes": "24 hrs departmental core + 19 hrs ministry core",
         },
         "2023-24": {"same_as": "2022-23"},

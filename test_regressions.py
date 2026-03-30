@@ -928,6 +928,50 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("Stats/Research Methods" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 22)
 
+    def test_christian_ministries_2022_definition_matches_uploaded_advising_sheet_structure(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("christian_ministries", "2022-23")
+        self.assertIsInstance(req, dict)
+
+        required = set(req.get("required", []))
+        for course in (
+            "BIBL-2000",
+            "BIBL-2050",
+            "RLGN-2000",
+            "RLGN-2130",
+            "RLGN-2150",
+            "RLGN-3040",
+            "RLGN-3060",
+            "RLGN-3300",
+            "CMIN-2000",
+            "CMIN-2810",
+            "CMIN-3050",
+            "CMIN-3080",
+            "CMIN-3910",
+            "CMIN-4250",
+            "CMIN-4810",
+        ):
+            self.assertIn(course, required)
+
+        self.assertEqual(req.get("total_credits"), 46)
+        dept_elective = req.get("departmental_elective", {})
+        self.assertEqual(dept_elective.get("credits"), 3)
+        self.assertEqual(set(dept_elective.get("dept", [])), {"CMIN", "RLGN", "BIBL"})
+
+    def test_christian_ministries_2022_builds_departmental_elective_row(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("christian_ministries", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("CMIN-4810" in lbl for lbl in labels))
+        self.assertTrue(any("Departmental elective" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 16)
+
     def test_exercise_science_definition_matches_uploaded_advising_sheet_structure(self):
         from requirements.non_fsb_programs import get_non_fsb_requirements
 
