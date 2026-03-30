@@ -258,8 +258,7 @@
 <header>
   <div class="header-brand">Selah · <span>Academic Solutions</span></div>
   <nav class="header-nav">
-    <a href="/">Degree Audit</a>
-    <a href="/dashboard">Dashboard</a>
+    <a href="/">Scheduling Home</a>
   </nav>
 </header>
 
@@ -304,7 +303,7 @@
       <div id="status"></div>
       <div id="summary"></div>
       <div class="hint" style="margin-top:0.9rem;">
-        Need degree audits instead? <a class="link-muted" href="/">Return to Degree Audit →</a>
+        This is a standalone scheduling app for advisor/professor use.
       </div>
     </div>
   </div>
@@ -489,7 +488,7 @@ form.addEventListener("submit", async (e) => {
     body.set("student_requests", requestFile);
     body.set("max_courses_per_student", String(document.getElementById("maxCourses").value || "5"));
 
-    const res = await fetch("/scheduling/generate", {
+    const res = await fetch("/schedule/generate", {
       method: "POST",
       body,
       headers: withAuthHeaders(),
