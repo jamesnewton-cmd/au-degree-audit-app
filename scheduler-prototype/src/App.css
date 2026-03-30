@@ -48,6 +48,16 @@
   min-height: 14px;
 }
 
+.upload-state {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #166534;
+}
+
+.upload-state.error {
+  color: #b91c1c;
+}
+
 .upload-item button {
   background: #1f4e78;
   color: #fff;

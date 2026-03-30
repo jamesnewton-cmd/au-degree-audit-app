@@ -474,6 +474,249 @@ function toSectionRows(rows) {
     .filter(Boolean);
 }
 
+const NUMBERS_HEAVY = new Set([
+  "ACCT-2010",
+  "ACCT-2020",
+  "ECON-2010",
+  "ECON-2020",
+  "MATH-1250",
+  "BSNS-2310",
+  "BSNS-2310_23",
+  "BSNS-2450_23",
+  "BSNS-2510",
+]);
+
+const RC_AU_TAGS = {
+  "COMM-1000": "RC2 - Speaking and Listening",
+  "MATH-1250": "RC3 - Quantitative Reasoning",
+  "EXSC-2140": "RC4 - Scientific Ways of Knowing",
+  "ECON-2010": "RC5 - Social and Behavioral Ways of Knowing",
+  "HIST-2110": "RC6 - Humanistic and Artistic Ways of Knowing",
+  "BIBL-2000": "AU2 - Biblical Literacy",
+  "RLGN-3010": "AU3 - Christian Ways of Knowing",
+  "PEHS-1000": "AU4 - Personal Wellness",
+  "LART-2000": "AU5 - Civil Discourse and Conflict Transformation",
+  "LART-1050": "AU1 - Understanding College",
+  "BSNS-3120": "AU6 - Global Ways of Knowing",
+};
+
+function canonicalCourse(value) {
+  const base = normalizeCourse(value).replace(/[^A-Z0-9_-]/g, "");
+  const dash = base.replace(/_/g, "-");
+  const match = dash.match(/^([A-Z]+-\d{4})-\d{2}$/);
+  return match ? match[1] : dash;
+}
+
+function parseMinutes(value) {
+  const raw = String(value || "").trim().toUpperCase();
+  if (!raw) return null;
+  const compact = raw.replace(/\s+/g, "");
+  const ampm = compact.match(/^(\d{1,2}):(\d{2})(AM|PM)$/);
+  if (ampm) {
+    let h = Number(ampm[1]);
+    const m = Number(ampm[2]);
+    const suffix = ampm[3];
+    if (suffix === "PM" && h !== 12) h += 12;
+    if (suffix === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  }
+  const plain = compact.match(/^(\d{1,2}):(\d{2})$/);
+  if (plain) {
+    const h = Number(plain[1]);
+    const m = Number(plain[2]);
+    return h * 60 + m;
+  }
+  return null;
+}
+
+function daySet(raw) {
+  const v = String(raw || "")
+    .toUpperCase()
+    .replace(/\s+/g, "")
+    .replace(/\//g, "");
+  if (!v) return new Set();
+  if (v === "TR" || v === "TTH" || v === "TTHR") return new Set(["T", "R"]);
+  if (v === "MWF") return new Set(["M", "W", "F"]);
+  if (v === "MW") return new Set(["M", "W"]);
+  const out = new Set();
+  for (const ch of v) {
+    if ("MTWRFSU".includes(ch)) out.add(ch);
+  }
+  return out;
+}
+
+function overlaps(a, b) {
+  const aDays = daySet(a.days);
+  const bDays = daySet(b.days);
+  if (!aDays.size || !bDays.size) return false;
+  let shared = false;
+  for (const d of aDays) {
+    if (bDays.has(d)) {
+      shared = true;
+      break;
+    }
+  }
+  if (!shared) return false;
+  const aStart = parseMinutes(a.start);
+  const aEnd = parseMinutes(a.end);
+  const bStart = parseMinutes(b.start);
+  const bEnd = parseMinutes(b.end);
+  if ([aStart, aEnd, bStart, bEnd].some((x) => x === null)) return false;
+  return aStart < bEnd && bStart < aEnd;
+}
+
+function completedOrCurrentCourseSet(transcriptRows) {
+  const set = new Set();
+  for (const r of transcriptRows) {
+    const course = canonicalCourse(r[0]);
+    const status = String(r[3] || "").toLowerCase();
+    const grade = String(r[4] || "").toUpperCase();
+    const isCurrent = status.includes("current") || status.includes("in progress");
+    const isCompleted = status.includes("grade posted") || status.includes("completed");
+    const passingGrade = /^(A|A-|B\+|B|B-|C\+|C|C-|CR|T|P)$/i.test(grade);
+    if (course && (isCurrent || (isCompleted && passingGrade))) {
+      set.add(course);
+    }
+  }
+  return set;
+}
+
+function strictLockedSet(transcriptRows) {
+  const done = completedOrCurrentCourseSet(transcriptRows);
+  const locked = new Set();
+  for (const [course, requires] of STRICT_PREREQS) {
+    const reqs = String(requires || "")
+      .split(",")
+      .map((x) => canonicalCourse(x.trim()))
+      .filter(Boolean);
+    if (reqs.length && !reqs.every((r) => done.has(r))) {
+      locked.add(canonicalCourse(course));
+    }
+  }
+  return locked;
+}
+
+function courseCategoryMap() {
+  const m = new Map();
+  for (const row of REQUIREMENT_STATUS_ROWS) {
+    m.set(canonicalCourse(row[0]), row[2]);
+  }
+  return m;
+}
+
+function sectionObjects(rows, source, categoryByCourse) {
+  return rows
+    .map((r) => {
+      const course = canonicalCourse(r[1]);
+      if (!course) return null;
+      return {
+        source,
+        classNo: String(r[0] || ""),
+        course,
+        section: String(r[2] || ""),
+        description: String(r[3] || ""),
+        days: String(r[4] || ""),
+        start: String(r[5] || ""),
+        end: String(r[6] || ""),
+        credits: Number(r[7] || 0) || 3,
+        instructionMode: String(r[8] || ""),
+        tag:
+          source === "la"
+            ? (RC_AU_TAGS[course] || "Liberal Arts")
+            : (categoryByCourse.get(course) || "Business Core"),
+      };
+    })
+    .filter(Boolean);
+}
+
+function buildOptionsFromUploads(transcriptRows, businessRows, laRows) {
+  const categoryByCourse = courseCategoryMap();
+  const done = completedOrCurrentCourseSet(transcriptRows);
+  const locked = strictLockedSet(transcriptRows);
+
+  const business = sectionObjects(businessRows, "business", categoryByCourse)
+    .filter((s) => !locked.has(s.course))
+    .filter((s) => !done.has(s.course))
+    .filter((s) => s.instructionMode.toLowerCase() !== "asynchronous online");
+  const liberalArts = sectionObjects(laRows, "la", categoryByCourse)
+    .filter((s) => !done.has(s.course));
+
+  const coreMajorPool = business.sort((a, b) => {
+    const aHeavy = NUMBERS_HEAVY.has(a.course) ? 1 : 0;
+    const bHeavy = NUMBERS_HEAVY.has(b.course) ? 1 : 0;
+    if (aHeavy !== bHeavy) return aHeavy - bHeavy;
+    const aStart = parseMinutes(a.start) ?? 9999;
+    const bStart = parseMinutes(b.start) ?? 9999;
+    return aStart - bStart || a.course.localeCompare(b.course);
+  });
+
+  const laPool = liberalArts.sort((a, b) => {
+    const aStart = parseMinutes(a.start) ?? 9999;
+    const bStart = parseMinutes(b.start) ?? 9999;
+    return aStart - bStart || a.course.localeCompare(b.course);
+  });
+
+  const optionDefs = [
+    { name: "Option 1", title: "Option 1 — 3 Core/Major + 2 Liberal Arts", targetCore: 3, targetLa: 2 },
+    { name: "Option 2", title: "Option 2 — 4 Core/Major + 1 Liberal Arts", targetCore: 4, targetLa: 1 },
+    { name: "Option 3", title: "Option 3 — All Core/Major Classes", targetCore: 5, targetLa: 0 },
+  ];
+
+  const makeOption = ({ name, title, targetCore, targetLa }) => {
+    const selected = [];
+    const used = new Set();
+    const addFromPool = (pool, maxCount) => {
+      for (const section of pool) {
+        if (used.has(section.course)) continue;
+        if (selected.length >= 5) break;
+        if (selected.some((s) => overlaps(s, section))) continue;
+        const heavyCount = selected.filter((s) => NUMBERS_HEAVY.has(s.course)).length;
+        if (NUMBERS_HEAVY.has(section.course) && heavyCount >= 2) continue;
+        const nextCredits = selected.reduce((sum, s) => sum + Number(s.credits || 0), 0) + Number(section.credits || 0);
+        if (nextCredits > 15) continue;
+        selected.push(section);
+        used.add(section.course);
+        const inBucket = selected.filter((s) => pool.includes(s)).length;
+        if (inBucket >= maxCount) break;
+      }
+    };
+
+    addFromPool(coreMajorPool, targetCore);
+    if (targetLa > 0) addFromPool(laPool, targetLa);
+    if (name !== "Option 1") addFromPool(coreMajorPool, targetCore);
+
+    // Backfill to at least 12 credits when possible.
+    const mergedPool = [...coreMajorPool, ...laPool];
+    for (const section of mergedPool) {
+      const currentCredits = selected.reduce((sum, s) => sum + Number(s.credits || 0), 0);
+      if (currentCredits >= 12 || selected.length >= 5) break;
+      if (used.has(section.course)) continue;
+      if (selected.some((s) => overlaps(s, section))) continue;
+      if (currentCredits + Number(section.credits || 0) > 15) continue;
+      selected.push(section);
+      used.add(section.course);
+    }
+
+    const mwf = selected.filter((s) => daySet(s.days).has("M")).sort((a, b) => (parseMinutes(a.start) ?? 0) - (parseMinutes(b.start) ?? 0));
+    const tr = selected.filter((s) => daySet(s.days).has("T") || daySet(s.days).has("R")).sort((a, b) => (parseMinutes(a.start) ?? 0) - (parseMinutes(b.start) ?? 0));
+    const total = selected.reduce((sum, s) => sum + Number(s.credits || 0), 0);
+    const coreCount = selected.filter((s) => s.source === "business").length;
+    const laCount = selected.filter((s) => s.source === "la").length;
+    const lockedCourses = [...locked].sort();
+    const reasons = [
+      `Built using uploaded section files to target ${targetCore} core/major and ${targetLa} liberal arts slots.`,
+      `Current option lands at ${total} credits with ${coreCount} core/major and ${laCount} liberal arts classes.`,
+      "Avoids direct time conflicts and avoids stacking more than two numbers-heavy courses.",
+      lockedCourses.length
+        ? `Does not schedule locked course(s) with unmet strict prerequisites: ${lockedCourses.join(", ")}.`
+        : "No strict-prereq locked courses detected from uploaded transcript data.",
+    ];
+    return { name, title, mwf, tr, why: reasons, totalCredits: total };
+  };
+
+  return optionDefs.map(makeOption);
+}
+
 function optionCredits(option) {
   return option.mwf.concat(option.tr).reduce((sum, r) => sum + Number(r.credits || 0), 0);
 }
