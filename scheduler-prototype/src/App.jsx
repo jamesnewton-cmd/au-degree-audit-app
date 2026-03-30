@@ -1,788 +1,600 @@
-import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Upload,
-  FileSpreadsheet,
-  GraduationCap,
-  CalendarDays,
-  CheckCircle2,
-  AlertCircle,
-  Lock,
-  Download,
-  Sparkles,
-} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import "./App.css";
 
-const MAJOR_REQUIREMENTS = [
-  { code: "ACCT 2010", title: "Accounting I", credits: 3, track: "Core" },
-  {
-    code: "ACCT 2020",
-    title: "Accounting II",
-    credits: 3,
-    track: "Core",
-    prereqs: ["ACCT 2010"],
-  },
-  { code: "BSNS 1050", title: "Intro to Business", credits: 3, track: "Core" },
-  { code: "BSNS 2450", title: "Spreadsheet Analytics", credits: 3, track: "Core" },
-  {
-    code: "BSNS 2510",
-    title: "Principles of Finance",
-    credits: 3,
-    track: "Core",
-    prereqs: ["ACCT 2010"],
-  },
-  { code: "BSNS 2710", title: "Principles of Management", credits: 3, track: "Core" },
-  {
-    code: "BSNS 3120",
-    title: "Global Business",
-    credits: 3,
-    track: "Core",
-    rcAuCategory: "AU6",
-  },
-  { code: "BSNS 3130", title: "Sports Management", credits: 3, track: "Major" },
-  { code: "BSNS 3420", title: "Business Law", credits: 3, track: "Core" },
-  {
-    code: "BSNS 4360",
-    title: "Sponsorship",
-    credits: 3,
-    track: "Major",
-    prereqs: ["BSNS 3130"],
-  },
-  {
-    code: "BSNS 4560",
-    title: "Business of the Game Day",
-    credits: 3,
-    track: "Major",
-    prereqs: ["BSNS 3130"],
-  },
-  { code: "COMM 2130", title: "Writing for the Media", credits: 3, track: "Major" },
-  {
-    code: "COMM 2140",
-    title: "Multimedia Content",
-    credits: 3,
-    track: "Major",
-    prereqs: ["COMM 2130"],
-  },
-  { code: "ECON 2010", title: "Microeconomics", credits: 3, track: "Core", rcAuCategory: "RC5" },
-  {
-    code: "ECON 2020",
-    title: "Macroeconomics",
-    credits: 3,
-    track: "Core",
-    prereqs: ["ECON 2010"],
-  },
-];
+const BLUE = "#1f4e78";
 
-const DEFAULT_RC_AU = [
-  { code: "COMM 1000", title: "Fundamentals of Communication", category: "RC2", credits: 3 },
-  { code: "MATH 1250", title: "College Algebra", category: "RC3", credits: 3 },
-  { code: "EXSC 2140", title: "Wellness Concepts", category: "RC4", credits: 3 },
-  { code: "ECON 2010", title: "Microeconomics", category: "RC5", credits: 3 },
-  { code: "HIST 2110", title: "American History", category: "RC6", credits: 3 },
-  { code: "BIBL 2000", title: "Biblical Literacy", category: "AU2", credits: 3 },
-  { code: "RLGN 3010", title: "Christian Faith", category: "AU3", credits: 3 },
-  { code: "PEHS 1000", title: "Lifetime Wellness", category: "AU4", credits: 1 },
-  { code: "LART 2000", title: "Civil Discourse", category: "AU5", credits: 3 },
-  { code: "BSNS 3120", title: "Global Business", category: "AU6", credits: 3 },
-];
-
-const CATEGORY_LIMITS = {
-  RC2: "3 hrs",
-  RC3: "3 hrs",
-  RC4: "3-4 hrs",
-  RC5: "3 hrs",
-  RC6: "3 hrs",
-  AU2: "3 hrs",
-  AU3: "3 hrs",
-  AU4: "1 hr",
-  AU5: "3 hrs",
-  AU6: "3 hrs",
+const SUMMARY_META = {
+  studentFile: "Aiden_fixed_for_scheduler.csv",
+  businessFallFile: "Dynamic_Export (1).csv",
+  laFallFile: "Liberal Arts Fall 2026.csv",
+  fallScope: "Only Fall 2026 scheduling is used in V5",
+  transcriptCount: 11,
+  businessSections: 36,
+  approvedLaSections: 74,
+  creditRule: "Up to 15 credits; 15 preferred, otherwise 12+",
+  scheduleRule:
+    "3 options; Option 1 = 3 core/major + 2 LA, Option 2 = 4 core/major + 1 LA, Option 3 = all core/major",
+  strictScope: "Only configured V5 strict rules are enforced; see Strict_Prereqs sheet",
 };
 
-const NUMBERS_HEAVY = new Set([
-  "ACCT 2010",
-  "ACCT 2020",
-  "ECON 2010",
-  "ECON 2020",
-  "MATH 1250",
-  "BSNS 2450",
-  "BSNS 2510",
-]);
-
-const SAMPLE_TRANSCRIPT = [
-  { course: "BSNS 1050", status: "Completed", grade: "B" },
-  { course: "COMM 1000", status: "Completed", grade: "A" },
-  { course: "MATH 1250", status: "Completed", grade: "C" },
-  { course: "ACCT 2010", status: "Completed", grade: "B" },
-  { course: "BSNS 2710", status: "Completed", grade: "B" },
+const SUMMARY_CREDITS = [
+  { label: "Option 1 — 3 Core/Major + 2 LA", credits: 15 },
+  { label: "Option 2 — 4 Core/Major + 1 LA", credits: 15 },
+  { label: "Option 3 — All Core/Major", credits: 15 },
 ];
 
-const SAMPLE_FALL = [
+const OPTIONS = [
   {
-    course: "BSNS 3130",
-    title: "Sports Management",
-    section: "01",
-    classNumber: "145031",
-    days: "TR",
-    start: "08:00",
-    end: "09:15",
-    credits: 3,
+    title: "Option 1 — 3 Core/Major + 2 Liberal Arts",
+    mwf: [
+      {
+        course: "MATH-1250",
+        description: "Explorations in Mathematics (23)",
+        section: "03",
+        classNo: "145092",
+        days: "MWF",
+        start: "11:00AM",
+        end: "11:50AM",
+        credits: 3,
+        tag: "AU3 - Christian Ways of Knowing (Max 3)",
+      },
+      {
+        course: "BSNS-3420",
+        description: "Business Law (23)",
+        section: "01",
+        classNo: "144982",
+        days: "MWF",
+        start: "01:00PM",
+        end: "01:50PM",
+        credits: 3,
+        tag: "Business Core / AU6 - Global Ways of Knowing (Max 4)",
+      },
+      {
+        course: "BIBL-2000",
+        description: "Intro to the Bible (23)",
+        section: "02",
+        classNo: "144859",
+        days: "MWF",
+        start: "03:00PM",
+        end: "03:50PM",
+        credits: 3,
+        tag: "RC6 - Humanistic and Artistic Ways of Knowing (Max 12)",
+      },
+    ],
+    tr: [
+      {
+        course: "BSNS-3130",
+        description: "Sports Marketing (23)",
+        section: "01",
+        classNo: "145031",
+        days: "TR",
+        start: "08:00AM",
+        end: "09:15AM",
+        credits: 3,
+        tag: "Major",
+      },
+      {
+        course: "BSNS-1050",
+        description: "Business as a Profession (23)",
+        section: "02",
+        classNo: "145021",
+        days: "TR",
+        start: "09:30AM",
+        end: "10:50AM",
+        credits: 3,
+        tag: "",
+      },
+    ],
+    why: [
+      "Built to land at 15 credit hours with exactly 3 core/major classes and 2 approved Liberal Arts / AU Experience classes.",
+      "Uses common default category choices where available: MATH-1250 for RC3 and BIBL-2000 for AU2.",
+      "Keeps the mix lighter on numbers by avoiding accounting, economics, and analytics in this option.",
+      "Does not schedule locked course(s) with unmet strict prerequisites: ACCT-2020, BSNS-2510, BSNS-4500, BSNS-4800.",
+    ],
+    totalCredits: 15,
   },
   {
-    course: "BSNS 3120",
-    title: "Global Business",
-    section: "01",
-    classNumber: "144958",
-    days: "MWF",
-    start: "10:00",
-    end: "10:50",
-    credits: 3,
+    title: "Option 2 — 4 Core/Major + 1 Liberal Arts",
+    mwf: [
+      {
+        course: "BSNS-3120",
+        description: "Global Business (23)",
+        section: "01",
+        classNo: "144958",
+        days: "MWF",
+        start: "10:00AM",
+        end: "10:50AM",
+        credits: 3,
+        tag: "Business Core / RC5 - Social and Behavioral Ways of Knowing (Max 12)",
+      },
+      {
+        course: "BSNS-3420",
+        description: "Business Law (23)",
+        section: "01",
+        classNo: "144982",
+        days: "MWF",
+        start: "01:00PM",
+        end: "01:50PM",
+        credits: 3,
+        tag: "Business Core / AU6 - Global Ways of Knowing (Max 4)",
+      },
+      {
+        course: "BSNS-2310_23",
+        description: "Business Analytics (23)",
+        section: "01",
+        classNo: "144843",
+        days: "MWF",
+        start: "02:00PM",
+        end: "02:50PM",
+        credits: 3,
+        tag: "RC6 - Humanistic and Artistic Ways of Knowing (Max 12)",
+      },
+    ],
+    tr: [
+      {
+        course: "BSNS-3130",
+        description: "Sports Marketing (23)",
+        section: "01",
+        classNo: "145031",
+        days: "TR",
+        start: "08:00AM",
+        end: "09:15AM",
+        credits: 3,
+        tag: "Major",
+      },
+      {
+        course: "RLGN-3010",
+        description: "Faith in Context (24)",
+        section: "02",
+        classNo: "144987",
+        days: "TR",
+        start: "01:00PM",
+        end: "02:15PM",
+        credits: 3,
+        tag: "",
+      },
+    ],
+    why: [
+      "Built to land at 15 credit hours with 4 core/major classes and 1 approved Liberal Arts class.",
+      "Uses RLGN-3010 as the preferred AU3 choice while keeping the rest of the schedule in the major/core pipeline.",
+      "Balances the week at 3 MWF classes and 2 T/Th classes while limiting the numbers-heavy mix to one analytics course.",
+      "Does not schedule locked course(s) with unmet strict prerequisites: ACCT-2020, BSNS-2510, BSNS-4500, BSNS-4800.",
+    ],
+    totalCredits: 15,
   },
   {
-    course: "BSNS 3420",
-    title: "Business Law",
-    section: "01",
-    classNumber: "144982",
-    days: "MWF",
-    start: "13:00",
-    end: "13:50",
-    credits: 3,
-  },
-  {
-    course: "ECON 2010",
-    title: "Microeconomics",
-    section: "01",
-    classNumber: "144940",
-    days: "MWF",
-    start: "09:00",
-    end: "09:50",
-    credits: 3,
-  },
-  {
-    course: "COMM 2130",
-    title: "Writing for the Media",
-    section: "01",
-    classNumber: "145044",
-    days: "TR",
-    start: "11:00",
-    end: "12:15",
-    credits: 3,
-  },
-  {
-    course: "HIST 2110",
-    title: "American History",
-    section: "01",
-    classNumber: "200451",
-    days: "MWF",
-    start: "11:00",
-    end: "11:50",
-    credits: 3,
-  },
-  {
-    course: "RLGN 3010",
-    title: "Christian Faith",
-    section: "01",
-    classNumber: "200612",
-    days: "TR",
-    start: "09:30",
-    end: "10:45",
-    credits: 3,
-  },
-  {
-    course: "BIBL 2000",
-    title: "Biblical Literacy",
-    section: "01",
-    classNumber: "200508",
-    days: "TR",
-    start: "13:00",
-    end: "14:15",
-    credits: 3,
-  },
-  {
-    course: "LART 2000",
-    title: "Civil Discourse",
-    section: "01",
-    classNumber: "200701",
-    days: "MWF",
-    start: "14:00",
-    end: "14:50",
-    credits: 3,
-  },
-  {
-    course: "PEHS 1000",
-    title: "Lifetime Wellness",
-    section: "01",
-    classNumber: "200801",
-    days: "TR",
-    start: "14:30",
-    end: "15:20",
-    credits: 1,
+    title: "Option 3 — All Core/Major Classes",
+    mwf: [
+      {
+        course: "ACCT-2010",
+        description: "Principles of Accounting I (23)",
+        section: "01",
+        classNo: "145009",
+        days: "MWF",
+        start: "08:00AM",
+        end: "08:50AM",
+        credits: 3,
+        tag: "Business Core",
+      },
+      {
+        course: "BSNS-3120",
+        description: "Global Business (23)",
+        section: "01",
+        classNo: "144958",
+        days: "MWF",
+        start: "10:00AM",
+        end: "10:50AM",
+        credits: 3,
+        tag: "Business Core / RC5 - Social and Behavioral Ways of Knowing (Max 12)",
+      },
+      {
+        course: "BSNS-3420",
+        description: "Business Law (23)",
+        section: "01",
+        classNo: "144982",
+        days: "MWF",
+        start: "01:00PM",
+        end: "01:50PM",
+        credits: 3,
+        tag: "Business Core / AU6 - Global Ways of Knowing (Max 4)",
+      },
+    ],
+    tr: [
+      {
+        course: "BSNS-3130",
+        description: "Sports Marketing (23)",
+        section: "01",
+        classNo: "145031",
+        days: "TR",
+        start: "08:00AM",
+        end: "09:15AM",
+        credits: 3,
+        tag: "Major",
+      },
+      {
+        course: "BSNS-1050",
+        description: "Business as a Profession (23)",
+        section: "02",
+        classNo: "145021",
+        days: "TR",
+        start: "09:30AM",
+        end: "10:50AM",
+        credits: 3,
+        tag: "",
+      },
+    ],
+    why: [
+      "Built to land at 15 credit hours using only core/major classes.",
+      "This is the most business-heavy option, but it still avoids stacking economics and analytics together.",
+      "Includes BSNS-3130 to move the student in the Sports Management sequence while adding ACCT-2010, BSNS-3120, BSNS-3420, and BSNS-1050.",
+      "Does not schedule locked course(s) with unmet strict prerequisites: ACCT-2020, BSNS-2510, BSNS-4500, BSNS-4800.",
+    ],
+    totalCredits: 15,
   },
 ];
 
-function normalizeCourseCode(value = "") {
-  return String(value).replace(/_/g, " ").replace(/\s+/g, " ").trim().toUpperCase();
+const TRANSCRIPT_ROWS = [
+  ["BSNS-2710", "Principles of Management", "3", "In Progress", "", "3", "", ""],
+  ["BSNS-2810", "Principles of Marketing", "3", "Completed", "A", "3", "", ""],
+  ["COMM-1000", "Intro to Speech Communication", "3", "In Progress", "", "3", "", ""],
+  ["ENGL-1110", "Rhetoric and Composition", "3", "Completed", "B", "3", "", ""],
+  ["ENGL-1120", "Rhetoric and Research", "3", "In Progress", "", "3", "", ""],
+  ["HIST-2110", "American History I", "3", "Completed", "A-", "3", "", ""],
+  ["LART-1050", "First-Year Experience Seminar", "1", "Completed", "CR", "1", "", ""],
+  ["PETE-1300", "Intro to Sport/Phys Activ/Rec", "2", "In Progress", "", "2", "", ""],
+  ["PETE-2250", "Motor Behavior", "3", "In Progress", "", "3", "", ""],
+  ["SPRL-1350", "Phys Act I: Team Sports", "3", "Completed", "B-", "3", "", ""],
+  ["SPRL-2450", "Phys Act III: Rec Act/Outdoor", "3", "In Progress", "", "3", "", ""],
+];
+
+const STRICT_PREREQS = [
+  ["ACCT-2020", "ACCT-2010", "Used for Fall 2026 scheduling only"],
+  ["BSNS-2510", "ACCT-2010", "Used for Fall 2026 scheduling only"],
+  ["BSNS-4500", "BSNS-2510, BSNS-3120", "Used for Fall 2026 scheduling only"],
+  ["BSNS-4910", "BSNS-4500", "Used for Fall 2026 scheduling only"],
+  ["BSNS-4360", "BSNS-3130", "Used for Fall 2026 scheduling only"],
+  ["BSNS-4560", "BSNS-3130", "Used for Fall 2026 scheduling only"],
+  ["COMM-2140", "COMM-2130", "Used for Fall 2026 scheduling only"],
+  ["BSNS-4800", "BSNS-3130", "Used for Fall 2026 scheduling only"],
+];
+
+const REQUIREMENT_STATUS_ROWS = [
+  ["ACCT-2010", "Principles of Accounting I", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["ACCT-2020", "Principles of Accounting II", "Business Core", "3", "Hold - strict prerequisite not met", "Yes", "ACCT-2010"],
+  ["BSNS-1050", "Business as a Profession", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-2550", "Business Communications", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-2310", "Spreadsheet Analytics", "Business Core", "3", "Needed - not in Fall 2026 file", "No", "—"],
+  ["BSNS-2450_23", "Principles of Business Analytics", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-2510", "Principles of Finance", "Business Core", "3", "Hold - strict prerequisite not met", "Yes", "ACCT-2010"],
+  ["BSNS-2710", "Principles of Management", "Business Core", "3", "Completed / In Progress", "Yes", "—"],
+  ["BSNS-2810", "Principles of Marketing", "Business Core", "3", "Completed / In Progress", "Yes", "—"],
+  ["BSNS-3120", "Global Business", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-3420", "Business Law", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-4500", "Strategic Management", "Business Core", "3", "Hold - strict prerequisite not met", "No", "BSNS-2510, BSNS-3120"],
+  ["BSNS-4800", "Business Internship", "Business Core", "3", "Hold - strict prerequisite not met", "Yes", "BSNS-3130"],
+  ["BSNS-4910", "Senior Seminar in Business", "Business Core", "3", "Hold - strict prerequisite not met", "No", "BSNS-4500"],
+  ["ECON-2010", "Principles of Macroeconomics", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["ECON-2020", "Principles of Microeconomics", "Business Core", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["BSNS-3130", "Sports Management", "Major", "3", "Ready for Fall 2026", "Yes", "—"],
+  ["COMM-2130", "Writing for the Media", "Major", "3", "Needed - not in Fall 2026 file", "No", "—"],
+  ["BSNS-4360", "Sponsorship and Sales", "Major", "3", "Hold - strict prerequisite not met", "No", "BSNS-3130"],
+  ["BSNS-4560", "Game Day Experience Management", "Major", "3", "Hold - strict prerequisite not met", "No", "BSNS-3130"],
+  ["SPRL-3300", "Management of Sports Facilities and Events", "Major", "3", "Needed - not in Fall 2026 file", "No", "—"],
+  ["COMM-2140", "Producing Multimedia Content", "Major", "3", "Hold - strict prerequisite not met", "No", "COMM-2130"],
+];
+
+const BUSINESS_SECTIONS = [
+  ["145009", "ACCT-2010", "01", "Principles of Accounting I (23)", "MWF", "08:00AM", "08:50AM", "3", "In Person"],
+  ["144865", "ACCT-2020", "01", "Principles of Accounting II (23)", "MWF", "01:00PM", "01:50PM", "3", "In Person"],
+  ["144860", "ACCT-2010", "01", "Intermediate Accounting I (23)", "MWF", "08:00AM", "08:50AM", "3", "In Person"],
+  ["144960", "ACCT-3500", "01", "Accounting Information Systems (23)", "MWF", "11:00AM", "11:50AM", "3", "In Person"],
+  ["145039", "BSNS-1050", "01", "Business as a Profession (23)", "R", "09:30AM", "10:50AM", "3", "In Person"],
+  ["145039", "BSNS-1050", "02", "Business as a Profession (23)", "T", "09:30AM", "10:50AM", "3", "In Person"],
+  ["144843", "BSNS-2310_23", "01", "Business Analytics (23)", "MWF", "02:00PM", "02:50PM", "3", "In Person"],
+  ["145069", "BSNS-2450_23", "01", "Data Analysis and Decision Making for Business (2…", "TR", "01:00PM", "02:15PM", "3", "In Person"],
+  ["144873", "BSNS-2510", "01", "Principles of Finance (23)", "MWF", "08:00AM", "08:50AM", "3", "In Person"],
+  ["145098", "BSNS-2550", "01", "Business Communications (25)", "TR", "08:00AM", "09:15AM", "3", "In Person"],
+  ["144876", "BSNS-2710", "01", "Principles of Management (23)", "MWF", "10:00AM", "10:50AM", "3", "In Person"],
+  ["144990", "BSNS-2810", "01", "Principles of Marketing (23)", "MWF", "09:00AM", "09:50AM", "3", "In Person"],
+  ["144999", "BSNS-3100", "01", "Opportunity Identification and Feasibility (23)", "MWF", "01:00PM", "01:50PM", "3", "In Person"],
+  ["144958", "BSNS-3120", "01", "Global Business (23)", "MWF", "10:00AM", "10:50AM", "3", "In Person"],
+  ["145031", "BSNS-3130", "01", "Sports Marketing (23)", "TR", "08:00AM", "09:15AM", "3", "In Person"],
+  ["145033", "BSNS-3150", "OE", "Financial Planning (23)", "", "", "", "3", "Asynchronous Online"],
+];
+
+const RC_AU_ROWS = [
+  ["RC1 - Written Communication", "6", "6", "Met / In Progress", "7", "ENGL-1110, ENGL-1120"],
+  ["RC2 - Speaking and Listening", "6", "3", "Met / In Progress", "5", "COMM-1000"],
+  ["RC3 - Quantitative Reasoning", "8", "0", "Still Needed", "8", "None"],
+  ["RC4 - Scientific Ways of Knowing", "8", "0", "Still Needed", "5", "None"],
+  ["RC5 - Social and Behavioral Ways of Knowing", "12", "0", "Still Needed", "10", "None"],
+  ["RC6 - Humanistic and Artistic Ways of Knowing", "12", "3", "Met / In Progress", "8", "HIST-2110"],
+  ["AU1 - Understanding College", "1", "1", "Met / In Progress", "0", "LART-1050"],
+  ["AU2 - Biblical Literacy", "3", "0", "Still Needed", "4", "None"],
+  ["AU3 - Christian Ways of Knowing", "3", "0", "Still Needed", "4", "None"],
+  ["AU4 - Personal Wellness", "3", "0", "Still Needed", "7", "None"],
+  ["AU5 - Civil Discourse and Conflict Transformation", "3", "0", "Still Needed", "10", "None"],
+  ["AU6 - Global Ways of Knowing", "4", "0", "Still Needed", "8", "None"],
+];
+
+function optionCredits(option) {
+  return option.mwf.concat(option.tr).reduce((sum, r) => sum + Number(r.credits || 0), 0);
 }
 
-function parseCsv(text) {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean);
-  if (!lines.length) return [];
-  const split = (line) =>
-    line.match(/("[^"]*"|[^,]+)/g)?.map((x) => x.replace(/^"|"$/g, "").trim()) || [];
-  const headers = split(lines[0]).map((h) => h.toLowerCase());
-  return lines.slice(1).map((line) => {
-    const values = split(line);
-    const row = {};
-    headers.forEach((h, i) => {
-      row[h] = values[i] ?? "";
-    });
-    return row;
-  });
-}
-
-function minutes(t) {
-  const [h, m] = String(t || "0:00").split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-
-function normalizeDays(raw = "") {
-  const v = String(raw).toUpperCase().replace(/\s+/g, "");
-  if (["TR", "TTH", "T/R", "TTHR"].includes(v)) return "TR";
-  if (["MWF", "M/W/F", "MONWEDFRI"].includes(v)) return "MWF";
-  if (["MW", "M/W"].includes(v)) return "MW";
-  return v || "TBA";
-}
-
-function sharesDayPattern(a, b) {
-  return normalizeDays(a.days) === normalizeDays(b.days);
-}
-
-function overlaps(a, b) {
-  if (!sharesDayPattern(a, b)) return false;
-  return minutes(a.start) < minutes(b.end) && minutes(b.start) < minutes(a.end);
-}
-
-function completedSet(transcript) {
-  return new Set(
-    transcript
-      .filter((r) => {
-        const status = String(r.status || "").toLowerCase();
-        const grade = String(r.grade || "").toUpperCase();
-        return status.includes("completed") || status.includes("transfer") || /^[ABCDFP]/.test(grade);
-      })
-      .map((r) => normalizeCourseCode(r.course || r.code || r.class || ""))
-      .filter(Boolean)
-  );
-}
-
-function buildRequirementStatus(transcript) {
-  const done = completedSet(transcript);
-  return MAJOR_REQUIREMENTS.map((req) => {
-    if (done.has(req.code)) return { ...req, status: "Completed" };
-    const prereqsMet = (req.prereqs || []).every((p) => done.has(p));
-    return { ...req, status: prereqsMet ? "Ready" : "Locked" };
-  });
-}
-
-function buildCategoryStatus(transcript) {
-  const done = completedSet(transcript);
-  return DEFAULT_RC_AU.map((item) => ({
-    ...item,
-    limit: CATEGORY_LIMITS[item.category],
-    status: done.has(item.code) ? "Met" : "Needed",
-  }));
-}
-
-function getCourseType(courseCode) {
-  const req = MAJOR_REQUIREMENTS.find((r) => r.code === courseCode);
-  if (req) return req.track;
-  if (DEFAULT_RC_AU.some((r) => r.code === courseCode)) return "Liberal Arts";
-  return "Other";
-}
-
-function scoreSchedule(courses, targetCredits) {
-  const credits = courses.reduce((sum, c) => sum + Number(c.credits || 0), 0);
-  const mwfCount = courses.filter((c) => normalizeDays(c.days) === "MWF").length;
-  const trCount = courses.filter((c) => normalizeDays(c.days) === "TR").length;
-  const balanced =
-    [2, 3].includes(mwfCount) && [2, 3].includes(trCount)
-      ? 8
-      : [1, 4].includes(mwfCount) || [1, 4].includes(trCount)
-        ? -2
-        : 0;
-  const heavyPenalty =
-    Math.max(
-      0,
-      courses.filter((c) => NUMBERS_HEAVY.has(c.course)).length - 2,
-    ) * 4;
-  const majorCoreCount = courses.filter((c) => getCourseType(c.course) !== "Liberal Arts").length;
-  const laCount = courses.filter((c) => getCourseType(c.course) === "Liberal Arts").length;
-  const creditFit = credits > 15 ? -100 : -Math.abs(targetCredits - credits) * 2;
-  return majorCoreCount * 4 + laCount * 2 + balanced + creditFit - heavyPenalty;
-}
-
-function makeExplanation(courses, label) {
-  const reasons = [];
-  const has3130 = courses.some((c) => c.course === "BSNS 3130");
-  const laCourses = courses.filter((c) => getCourseType(c.course) === "Liberal Arts");
-  const heavyCount = courses.filter((c) => NUMBERS_HEAVY.has(c.course)).length;
-  const mwfCount = courses.filter((c) => normalizeDays(c.days) === "MWF").length;
-  const trCount = courses.filter((c) => normalizeDays(c.days) === "TR").length;
-
-  if (has3130) reasons.push("Includes BSNS 3130 to keep the sports management sequence moving.");
-  if (laCourses.length)
-    reasons.push(
-      `Includes ${laCourses.length} Liberal Arts course${laCourses.length > 1 ? "s" : ""} to move Raven Core / AU Experience requirements.`,
-    );
-  if ([2, 3].includes(mwfCount) && [2, 3].includes(trCount))
-    reasons.push("Keeps a balanced MWF / TTh split when possible.");
-  if (heavyCount <= 2) reasons.push("Avoids an overly numbers-heavy term when possible.");
-  if (label === "Option 1") reasons.push("Built as 3 core/major + 2 Liberal Arts when a valid fall schedule exists.");
-  if (label === "Option 2") reasons.push("Built as 4 core/major + 1 Liberal Arts when a valid fall schedule exists.");
-  if (label === "Option 3") reasons.push("Built as all core/major when a valid fall schedule exists.");
-  return reasons;
-}
-
-function buildOptions(transcript, fallCourses, creditTarget = 15) {
-  const done = completedSet(transcript);
-  const reqStatus = buildRequirementStatus(transcript);
-  const unmetMajorCore = reqStatus.filter((r) => r.status === "Ready");
-  const unmetLA = DEFAULT_RC_AU.filter((r) => !done.has(r.code));
-
-  const normalizedFall = fallCourses
-    .map((c) => ({
-      ...c,
-      course: normalizeCourseCode(c.course),
-      days: normalizeDays(c.days),
-      credits: Number(c.credits || 0),
-    }))
-    .filter((c) => c.course && c.days !== "TBA");
-
-  const readyMajorCoreSections = normalizedFall.filter((c) => unmetMajorCore.some((u) => u.code === c.course));
-  const readyLASections = normalizedFall.filter((c) => unmetLA.some((u) => u.code === c.course));
-
-  function candidateSort(a, b, preferLA = false) {
-    const aHeavy = NUMBERS_HEAVY.has(a.course) ? 1 : 0;
-    const bHeavy = NUMBERS_HEAVY.has(b.course) ? 1 : 0;
-    if (aHeavy !== bHeavy) return aHeavy - bHeavy;
-    if (preferLA) {
-      const aIndex = DEFAULT_RC_AU.findIndex((x) => x.code === a.course);
-      const bIndex = DEFAULT_RC_AU.findIndex((x) => x.code === b.course);
-      if (aIndex !== bIndex) return aIndex - bIndex;
-    }
-    return minutes(a.start) - minutes(b.start);
-  }
-
-  const corePool = [...readyMajorCoreSections].sort((a, b) => candidateSort(a, b, false));
-  const laPool = [...readyLASections].sort((a, b) => candidateSort(a, b, true));
-
-  function buildSingleOption(optionName, targetCoreMajor, targetLA) {
-    const selected = [];
-
-    const addFromPool = (pool, neededCount, type) => {
-      for (const section of pool) {
-        const typeCount = selected.filter((s) => {
-          if (type === "CoreMajor") {
-            return getCourseType(s.course) !== "Liberal Arts";
-          }
-          return getCourseType(s.course) === type;
-        }).length;
-        if (typeCount >= neededCount) continue;
-        if (selected.some((s) => s.course === section.course)) continue;
-        if (selected.some((s) => overlaps(s, section))) continue;
-        const heavyCount = selected.filter((s) => NUMBERS_HEAVY.has(s.course)).length;
-        if (NUMBERS_HEAVY.has(section.course) && heavyCount >= 2) continue;
-        if (selected.reduce((sum, s) => sum + Number(s.credits || 0), 0) + Number(section.credits || 0) > 15)
-          continue;
-        selected.push({ ...section, type: getCourseType(section.course) });
-      }
-    };
-
-    addFromPool(corePool, targetCoreMajor, "CoreMajor");
-    addFromPool(laPool, targetLA, "Liberal Arts");
-
-    if (optionName === "Option 2" || optionName === "Option 3") {
-      addFromPool(corePool, targetCoreMajor, "CoreMajor");
-    }
-    if (optionName === "Option 1") {
-      addFromPool(laPool, targetLA, "Liberal Arts");
-    }
-
-    const credits = selected.reduce((sum, c) => sum + Number(c.credits || 0), 0);
-    const grouped = {
-      MWF: selected
-        .filter((c) => normalizeDays(c.days) === "MWF")
-        .sort((a, b) => minutes(a.start) - minutes(b.start)),
-      TR: selected
-        .filter((c) => normalizeDays(c.days) === "TR")
-        .sort((a, b) => minutes(a.start) - minutes(b.start)),
-      OTHER: selected
-        .filter((c) => !["MWF", "TR"].includes(normalizeDays(c.days)))
-        .sort((a, b) => minutes(a.start) - minutes(b.start)),
-    };
-
-    let notes = "";
-    if (optionName === "Option 1") notes = "3 core/major + 2 Liberal Arts when possible.";
-    if (optionName === "Option 2") notes = "4 core/major + 1 Liberal Arts when possible.";
-    if (optionName === "Option 3") notes = "All core/major when possible.";
-
-    return {
-      name: optionName,
-      totalCredits: credits,
-      grouped,
-      courses: selected,
-      notes,
-      score: scoreSchedule(selected, creditTarget),
-      reasons: makeExplanation(selected, optionName),
-    };
-  }
-
-  return [
-    buildSingleOption("Option 1", 3, 2),
-    buildSingleOption("Option 2", 4, 1),
-    buildSingleOption("Option 3", 5, 0),
-  ];
-}
-
-function StatCard({ title, value, icon: Icon }) {
+function classTable(rows) {
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <CardContent className="p-5 flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">{title}</p>
-          <p className="text-2xl font-semibold mt-1">{value}</p>
-        </div>
-        <div className="p-3 rounded-2xl bg-slate-100">
-          <Icon className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function StatusBadge({ value }) {
-  if (value === "Completed" || value === "Met") return <Badge className="rounded-full">{value}</Badge>;
-  if (value === "Ready" || value === "Needed") return <Badge variant="secondary" className="rounded-full">{value}</Badge>;
-  return (
-    <Badge variant="destructive" className="rounded-full">
-      {value}
-    </Badge>
-  );
-}
-
-function ScheduleTable({ courses }) {
-  if (!courses.length) return <div className="text-sm text-slate-500">No classes in this group.</div>;
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-left">
-          <tr>
-            <th className="px-3 py-2">Course</th>
-            <th className="px-3 py-2">Section</th>
-            <th className="px-3 py-2">Class #</th>
-            <th className="px-3 py-2">Days</th>
-            <th className="px-3 py-2">Time</th>
-            <th className="px-3 py-2">Credits</th>
+    <table className="sheet-table">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Description</th>
+          <th>Section</th>
+          <th>Class #</th>
+          <th>Days</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Credits</th>
+          <th>Category / LA Tag</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, idx) => (
+          <tr key={`${r.course}-${idx}`}>
+            <td>{r.course}</td>
+            <td>{r.description}</td>
+            <td>{r.section}</td>
+            <td>{r.classNo}</td>
+            <td>{r.days}</td>
+            <td>{r.start}</td>
+            <td>{r.end}</td>
+            <td>{r.credits}</td>
+            <td>{r.tag}</td>
           </tr>
-        </thead>
-        <tbody>
-          {courses.map((c, i) => (
-            <tr key={`${c.course}-${c.section}-${i}`} className="border-t">
-              <td className="px-3 py-2">
-                <div className="font-medium">{c.course}</div>
-                <div className="text-slate-500 text-xs">{c.title}</div>
-              </td>
-              <td className="px-3 py-2">{c.section}</td>
-              <td className="px-3 py-2">{c.classNumber}</td>
-              <td className="px-3 py-2">{c.days}</td>
-              <td className="px-3 py-2">
-                {c.start}-{c.end}
-              </td>
-              <td className="px-3 py-2">{c.credits}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
-export default function StudentSchedulerDashboard() {
-  const [major, setMajor] = useState("Sports Management");
-  const [creditTarget, setCreditTarget] = useState("15");
-  const [studentName, setStudentName] = useState("Walker");
-  const [transcriptRows, setTranscriptRows] = useState(SAMPLE_TRANSCRIPT);
-  const [fallRows, setFallRows] = useState(SAMPLE_FALL);
-  const [built, setBuilt] = useState(false);
+function SectionTitle({ children }) {
+  return <div className="section-title">{children}</div>;
+}
 
-  const requirementStatus = useMemo(() => buildRequirementStatus(transcriptRows), [transcriptRows]);
-  const categoryStatus = useMemo(() => buildCategoryStatus(transcriptRows), [transcriptRows]);
-  const schedules = useMemo(
-    () =>
-      built
-        ? buildOptions(transcriptRows, fallRows, Number(creditTarget))
-        : buildOptions(SAMPLE_TRANSCRIPT, SAMPLE_FALL, 15),
-    [transcriptRows, fallRows, creditTarget, built],
-  );
+function BlockTitle({ children }) {
+  return <div className="block-title">{children}</div>;
+}
 
-  const completedMajor = requirementStatus.filter((r) => r.status === "Completed").length;
-  const remainingMajor = requirementStatus.filter((r) => r.status !== "Completed").length;
-  const rcMet = categoryStatus.filter((r) => r.status === "Met").length;
+function exportOptionCsv(option) {
+  const rows = [
+    [option.title],
+    [],
+    ["MWF Classes"],
+    ["Course", "Description", "Section", "Class #", "Days", "Start", "End", "Credits", "Category / LA Tag"],
+    ...option.mwf.map((r) => [r.course, r.description, r.section, r.classNo, r.days, r.start, r.end, r.credits, r.tag]),
+    [],
+    ["T/Th Classes"],
+    ["Course", "Description", "Section", "Class #", "Days", "Start", "End", "Credits", "Category / LA Tag"],
+    ...option.tr.map((r) => [r.course, r.description, r.section, r.classNo, r.days, r.start, r.end, r.credits, r.tag]),
+    [],
+    ["Total Credits", optionCredits(option)],
+    [],
+    ["Why this option was chosen"],
+    ...option.why.map((w) => [w]),
+  ];
+  const csv = rows
+    .map((r) => r.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${option.title.replace(/\s+/g, "_")}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-  async function handleUpload(event, type) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    const rows = parseCsv(text);
-
-    if (type === "transcript") {
-      const normalized = rows
-        .map((r) => ({
-          course: normalizeCourseCode(r.course || r["course code"] || r.code || r.class || r.subject || ""),
-          status: r.status || r.result || r["course status"] || "Completed",
-          grade: r.grade || r["final grade"] || "",
-        }))
-        .filter((r) => r.course);
-      setTranscriptRows(normalized);
-    }
-
-    if (type === "fall") {
-      const normalized = rows
-        .map((r) => ({
-          course: normalizeCourseCode(r.course || r["course code"] || r.code || r.subject || ""),
-          title: r.title || r.description || r["course title"] || "",
-          section: r.section || r.sec || "",
-          classNumber: r["class #"] || r["class number"] || r.crn || r["class nbr"] || "",
-          days: normalizeDays(r.days || r.meeting || r["meeting pattern"] || ""),
-          start: r.start || r["start time"] || "08:00",
-          end: r.end || r["end time"] || "09:15",
-          credits: Number(r.credits || r.cr || r.hours || 3),
-        }))
-        .filter((r) => r.course);
-      setFallRows(normalized);
-    }
-  }
-
-  function handleBuild() {
-    setBuilt(true);
-  }
-
-  function exportOption(option) {
-    const rows = [
-      [option.name],
-      ["Total Credits", option.totalCredits],
-      [],
-      ["MWF Classes"],
-      ["Course", "Title", "Section", "Class #", "Days", "Start", "End", "Credits"],
-      ...option.grouped.MWF.map((c) => [c.course, c.title, c.section, c.classNumber, c.days, c.start, c.end, c.credits]),
-      [],
-      ["T/Th Classes"],
-      ["Course", "Title", "Section", "Class #", "Days", "Start", "End", "Credits"],
-      ...option.grouped.TR.map((c) => [c.course, c.title, c.section, c.classNumber, c.days, c.start, c.end, c.credits]),
-    ];
-    const csv = rows
-      .map((r) => r.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${studentName || "student"}_${option.name.replace(/\s+/g, "_")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+export default function App() {
+  const [selected, setSelected] = useState(0);
+  const current = useMemo(() => OPTIONS[selected], [selected]);
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr] items-start">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 rounded-2xl bg-white shadow-sm">
-                <GraduationCap className="h-6 w-6" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Student Scheduler Dashboard</h1>
-                <p className="text-slate-600 mt-1">
-                  Upload a transcript and fall schedule file to generate advisor-ready fall schedule options.
-                </p>
-              </div>
-            </div>
-          </div>
-          <Card className="rounded-3xl shadow-sm">
-            <CardHeader>
-              <CardTitle>Build Schedule</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Student Name</Label>
-                <Input value={studentName} onChange={(e) => setStudentName(e.target.value)} className="mt-2 rounded-xl" />
-              </div>
-              <div>
-                <Label>Transcript CSV</Label>
-                <div className="mt-2 flex items-center gap-3">
-                  <Input type="file" accept=".csv" onChange={(e) => handleUpload(e, "transcript")} className="rounded-xl" />
-                  <Upload className="h-4 w-4 text-slate-500" />
-                </div>
-              </div>
-              <div>
-                <Label>Fall Classes CSV</Label>
-                <div className="mt-2 flex items-center gap-3">
-                  <Input type="file" accept=".csv" onChange={(e) => handleUpload(e, "fall")} className="rounded-xl" />
-                  <FileSpreadsheet className="h-4 w-4 text-slate-500" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Major</Label>
-                  <Select value={major} onValueChange={setMajor}>
-                    <SelectTrigger className="mt-2 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Sports Management">Sports Management</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Credit Target</Label>
-                  <Select value={creditTarget} onValueChange={setCreditTarget}>
-                    <SelectTrigger className="mt-2 rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">12</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-full rounded-xl gap-2" onClick={handleBuild}>
-                <Sparkles className="h-4 w-4" /> Build Schedule
-              </Button>
-            </CardContent>
-          </Card>
+    <div className="sheet-page">
+      <div className="sheet-wrap">
+        <div className="header-row">Sports Management V5 — Fall 2026 Only</div>
+
+        <div className="meta-grid">
+          <div>Student file</div>
+          <div>{SUMMARY_META.studentFile}</div>
+          <div>Business fall file</div>
+          <div>{SUMMARY_META.businessFallFile}</div>
+          <div>Liberal arts fall file</div>
+          <div>{SUMMARY_META.laFallFile}</div>
+          <div>Fall scope</div>
+          <div>{SUMMARY_META.fallScope}</div>
+          <div>Completed / current transcript rows counted</div>
+          <div>{SUMMARY_META.transcriptCount}</div>
+          <div>Open business sections loaded</div>
+          <div>{SUMMARY_META.businessSections}</div>
+          <div>Approved LA fall sections loaded</div>
+          <div>{SUMMARY_META.approvedLaSections}</div>
+          <div>Credit rule</div>
+          <div>{SUMMARY_META.creditRule}</div>
+          <div>Schedule rule</div>
+          <div>{SUMMARY_META.scheduleRule}</div>
+          <div>Strict prereq scope</div>
+          <div>{SUMMARY_META.strictScope}</div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <StatCard title="Student" value={studentName} icon={GraduationCap} />
-          <StatCard title="Completed Major/Core" value={completedMajor} icon={CheckCircle2} />
-          <StatCard title="Remaining Major/Core" value={remainingMajor} icon={AlertCircle} />
-          <StatCard title="RC / AU Met" value={rcMet} icon={CalendarDays} />
+        <SectionTitle>Recommended Fall 2026 Schedule Credits</SectionTitle>
+        <table className="sheet-table credits-table">
+          <tbody>
+            {SUMMARY_CREDITS.map((row) => (
+              <tr key={row.label}>
+                <td>{row.label}</td>
+                <td>{row.credits}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="option-tabs">
+          {OPTIONS.map((opt, idx) => (
+            <button
+              key={opt.title}
+              className={idx === selected ? "opt-tab active" : "opt-tab"}
+              onClick={() => setSelected(idx)}
+              type="button"
+            >
+              {opt.title}
+            </button>
+          ))}
+          <button className="export-btn" type="button" onClick={() => exportOptionCsv(current)}>
+            Export This Option
+          </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[.95fr_1.05fr]">
-          <Card className="rounded-3xl shadow-sm">
-            <CardHeader>
-              <CardTitle>Requirement Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="major">
-                <TabsList className="mb-4 rounded-xl">
-                  <TabsTrigger value="major">Major / Core</TabsTrigger>
-                  <TabsTrigger value="la">Raven Core / AU Experience</TabsTrigger>
-                </TabsList>
-                <TabsContent value="major" className="space-y-3">
-                  {requirementStatus.map((req) => (
-                    <div key={req.code} className="flex items-start justify-between gap-3 rounded-2xl border p-3">
-                      <div>
-                        <div className="font-medium">{req.code}</div>
-                        <div className="text-sm text-slate-500">{req.title}</div>
-                        <div className="text-xs text-slate-400 mt-1">
-                          {req.track}
-                          {req.prereqs?.length ? ` • prereq: ${req.prereqs.join(", ")}` : ""}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {req.status === "Locked" ? <Lock className="h-4 w-4 text-slate-400" /> : null}
-                        <StatusBadge value={req.status} />
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-                <TabsContent value="la" className="space-y-3">
-                  {categoryStatus.map((req) => (
-                    <div key={req.code} className="flex items-start justify-between gap-3 rounded-2xl border p-3">
-                      <div>
-                        <div className="font-medium">
-                          {req.category}: {req.code}
-                        </div>
-                        <div className="text-sm text-slate-500">{req.title}</div>
-                        <div className="text-xs text-slate-400 mt-1">Max hours: {req.limit}</div>
-                      </div>
-                      <StatusBadge value={req.status} />
-                    </div>
-                  ))}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+        <SectionTitle>{current.title}</SectionTitle>
+        <BlockTitle>MWF Classes</BlockTitle>
+        {classTable(current.mwf)}
 
-          <Card className="rounded-3xl shadow-sm">
-            <CardHeader>
-              <CardTitle>Schedule Options</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="0">
-                <TabsList className="mb-4 rounded-xl">
-                  {schedules.map((opt, i) => (
-                    <TabsTrigger key={opt.name} value={String(i)}>
-                      {opt.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                {schedules.map((opt, i) => (
-                  <TabsContent key={opt.name} value={String(i)} className="space-y-5">
-                    <div className="rounded-2xl bg-slate-50 p-4 border flex items-start justify-between gap-4">
-                      <div>
-                        <div className="font-medium">{opt.name}</div>
-                        <div className="text-sm text-slate-600 mt-1">{opt.notes}</div>
-                        <div className="text-sm font-medium mt-3">Total Credits: {opt.totalCredits}</div>
-                      </div>
-                      <Button variant="outline" className="rounded-xl gap-2" onClick={() => exportOption(opt)}>
-                        <Download className="h-4 w-4" /> Export
-                      </Button>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-medium mb-2">MWF Classes</h3>
-                        <ScheduleTable courses={opt.grouped.MWF} />
-                      </div>
-                      <div>
-                        <h3 className="font-medium mb-2">T/Th Classes</h3>
-                        <ScheduleTable courses={opt.grouped.TR} />
-                      </div>
-                      {opt.grouped.OTHER.length > 0 && (
-                        <div>
-                          <h3 className="font-medium mb-2">Other Meeting Patterns</h3>
-                          <ScheduleTable courses={opt.grouped.OTHER} />
-                        </div>
-                      )}
-                    </div>
-                    <Card className="rounded-2xl border-dashed shadow-none">
-                      <CardContent className="p-4 text-sm text-slate-600 space-y-1">
-                        {opt.reasons.map((reason, idx) => (
-                          <div key={idx}>• {reason}</div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+        <BlockTitle>T/Th Classes</BlockTitle>
+        {classTable(current.tr)}
+
+        <div className="total-row">
+          <span>Total Credits</span>
+          <span>{optionCredits(current)}</span>
+        </div>
+
+        <BlockTitle>Why this option was chosen</BlockTitle>
+        <ul className="why-list">
+          {current.why.map((w, idx) => (
+            <li key={idx}>{w}</li>
+          ))}
+        </ul>
+
+        <SectionTitle>Aiden Transcript Used in V5</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Credits</th>
+              <th>Status</th>
+              <th>Letter Grade</th>
+              <th>Credits</th>
+              <th>Status</th>
+              <th>Campus</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TRANSCRIPT_ROWS.map((r, idx) => (
+              <tr key={idx}>
+                {r.map((c, i) => (
+                  <td key={i}>{c}</td>
                 ))}
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <SectionTitle>Configured V5 Strict Prerequisites</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Requires</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {STRICT_PREREQS.map((r, idx) => (
+              <tr key={idx}>
+                <td>{r[0]}</td>
+                <td>{r[1]}</td>
+                <td>{r[2]}</td>
+              </tr>
+            ))}
+            <tr>
+              <td>Note</td>
+              <td colSpan={2} className="note-cell">
+                These rules are planner-grade strict rules configured for V5, not a full registrar prerequisite catalog.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <SectionTitle>Requirement Status — Fall 2026</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Requirement</th>
+              <th>Category</th>
+              <th>Credits</th>
+              <th>Status</th>
+              <th>Open in Fall</th>
+              <th>Strict Prereqs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {REQUIREMENT_STATUS_ROWS.map((r, idx) => (
+              <tr key={idx}>
+                {r.map((c, i) => (
+                  <td key={i}>{c}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <SectionTitle>Open Falls School of Business Sections — Fall 2026</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Class #</th>
+              <th>Course</th>
+              <th>Section</th>
+              <th>Description</th>
+              <th>Days</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Credits</th>
+              <th>Instruction Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {BUSINESS_SECTIONS.map((r, idx) => (
+              <tr key={idx}>
+                {r.map((c, i) => (
+                  <td key={i}>{c}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <SectionTitle>Raven Core / AU Experience Status for Aiden</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Max Hours</th>
+              <th>Walker Hours Counted</th>
+              <th>Status</th>
+              <th>Approved Fall 2026 Options</th>
+              <th>Counted Courses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {RC_AU_ROWS.map((r, idx) => (
+              <tr key={idx}>
+                {r.map((c, i) => (
+                  <td key={i}>{c}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
