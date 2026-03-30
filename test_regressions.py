@@ -1023,6 +1023,57 @@ class ProgramYearRegressionTests(unittest.TestCase):
         self.assertTrue(any("HIST-3480" in lbl for lbl in labels))
         self.assertGreaterEqual(len(rows), 21)
 
+    def test_sport_recreational_leadership_2022_definition_matches_uploaded_advising_sheet(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+
+        req = get_non_fsb_requirements("sport_recreational_leadership", "2022-23")
+        self.assertIsInstance(req, dict)
+        self.assertEqual(req.get("total_credits"), 52)
+
+        required = set(req.get("required", []))
+        for course in (
+            "ACCT-2010",
+            "ATRG-1530",
+            "BSNS-2710",
+            "BSNS-2810",
+            "EXSC-2580",
+            "PEHS-1450",
+            "PEHS-3340",
+            "PEHS-3410",
+            "PETE-1300",
+            "PETE-2250",
+            "PETE-3720",
+            "PETE-4900",
+            "SPRL-1350",
+            "SPRL-2450",
+            "SPRL-2550",
+            "SPRL-3150",
+            "SPRL-3250",
+            "SPRL-3300",
+            "SPRL-4850",
+        ):
+            self.assertIn(course, required)
+
+        notes = req.get("notes", "")
+        self.assertIn("EXSC-2140", notes)
+        self.assertIn("MATH-1300", notes)
+        self.assertIn("MATH-1400", notes)
+        self.assertIn("ACCT-2010", notes)
+
+    def test_sport_recreational_leadership_2022_builds_required_rows(self):
+        from requirements.non_fsb_programs import get_non_fsb_requirements
+        from engines import sport_marketing as sm_mod
+
+        req = get_non_fsb_requirements("sport_recreational_leadership", "2022-23")
+        self.assertIsInstance(req, dict)
+        rows = main._build_major_rows(req, [], sm_mod)
+
+        labels = [r.get("label", "") for r in rows]
+        self.assertTrue(any("SPRL-3250" in lbl for lbl in labels))
+        self.assertTrue(any("PETE-4900" in lbl for lbl in labels))
+        self.assertTrue(any("BSNS-2810" in lbl for lbl in labels))
+        self.assertGreaterEqual(len(rows), 19)
+
     def test_engineering_management_2022_structure_matches_uploaded_advising_sheet(self):
         from requirements.fsb_majors import get_major_requirements
 
