@@ -317,6 +317,124 @@ const RC_AU_ROWS = [
   ["AU6 - Global Ways of Knowing", "4", "0", "Still Needed", "8", "None"],
 ];
 
+function normalizeHeader(v) {
+  return String(v || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === "," && !inQuotes) {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function parseCsv(text) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length < 2) return [];
+  const headers = parseCsvLine(lines[0]).map(normalizeHeader);
+  return lines.slice(1).map((line) => {
+    const values = parseCsvLine(line);
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx] ?? "";
+    });
+    return row;
+  });
+}
+
+function pick(row, keys) {
+  for (const key of keys) {
+    const val = row[normalizeHeader(key)] ?? row[key] ?? "";
+    if (String(val).trim()) return String(val).trim();
+  }
+  return "";
+}
+
+function normalizeCourse(value) {
+  return String(value || "")
+    .toUpperCase()
+    .trim()
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "-");
+}
+
+function normalizeTime(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const compact = raw.toUpperCase().replace(/\s+/g, "");
+  if (/^\d{1,2}:\d{2}(AM|PM)$/.test(compact)) {
+    const [t, suffix] = [compact.slice(0, -2), compact.slice(-2)];
+    const [h, m] = t.split(":");
+    return `${String(Number(h)).padStart(2, "0")}:${m}${suffix}`;
+  }
+  if (/^\d{1,2}:\d{2}$/.test(compact)) {
+    const [h, m] = compact.split(":");
+    return `${String(Number(h)).padStart(2, "0")}:${m}`;
+  }
+  return compact;
+}
+
+function toTranscriptRows(rows) {
+  return rows
+    .map((r) => {
+      const course = normalizeCourse(
+        pick(r, ["course", "course code", "class", "code", "subject", "course id"]),
+      );
+      const name = pick(r, ["course name", "name", "title", "description"]);
+      const credits = pick(r, ["credits", "credit hours", "hours", "cr"]) || "3";
+      const status = pick(r, ["status", "course status", "result"]) || "In Progress";
+      const grade = pick(r, ["letter grade", "grade", "final grade"]);
+      const campus = pick(r, ["campus", "location", "delivery"]);
+      if (!course && !name) return null;
+      return [course, name, credits, status, grade, credits, status, campus];
+    })
+    .filter(Boolean);
+}
+
+function toSectionRows(rows) {
+  return rows
+    .map((r) => {
+      const classNo = pick(r, ["class #", "class number", "class nbr", "crn"]);
+      const course = normalizeCourse(pick(r, ["course", "course code", "subject", "class"]));
+      const section = pick(r, ["section", "sec"]);
+      const desc = pick(r, ["description", "course title", "title", "name"]);
+      const days = pick(r, ["days", "meeting pattern", "meeting"]);
+      const start = normalizeTime(pick(r, ["start", "start time"]));
+      const end = normalizeTime(pick(r, ["end", "end time"]));
+      const credits = pick(r, ["credits", "cr", "hours"]) || "3";
+      const mode = pick(r, ["instruction mode", "mode", "delivery"]) || "In Person";
+      if (!classNo && !course && !desc) return null;
+      return [classNo, course, section, desc, days, start, end, credits, mode];
+    })
+    .filter(Boolean);
+}
+
 function optionCredits(option) {
   return option.mwf.concat(option.tr).reduce((sum, r) => sum + Number(r.credits || 0), 0);
 }
@@ -395,28 +513,116 @@ function exportOptionCsv(option) {
 
 export default function App() {
   const [selected, setSelected] = useState(0);
+  const [studentFileName, setStudentFileName] = useState(SUMMARY_META.studentFile);
+  const [businessFileName, setBusinessFileName] = useState(SUMMARY_META.businessFallFile);
+  const [laFileName, setLaFileName] = useState(SUMMARY_META.laFallFile);
+  const [transcriptRows, setTranscriptRows] = useState(TRANSCRIPT_ROWS);
+  const [businessRows, setBusinessRows] = useState(BUSINESS_SECTIONS);
+  const [laRows, setLaRows] = useState([]);
+  const [businessUploaded, setBusinessUploaded] = useState(false);
+  const [laUploaded, setLaUploaded] = useState(false);
+  const [uploadState, setUploadState] = useState({ type: "", message: "" });
   const current = useMemo(() => OPTIONS[selected], [selected]);
+  const transcriptCount = useMemo(
+    () =>
+      transcriptRows.filter((r) => {
+        const status = String(r[3] || "").toLowerCase();
+        const grade = String(r[4] || "").toUpperCase();
+        return (
+          status.includes("completed") ||
+          status.includes("in progress") ||
+          status.includes("current") ||
+          status.includes("transfer") ||
+          !!grade
+        );
+      }).length,
+    [transcriptRows],
+  );
+  const openBusinessCount = businessUploaded ? businessRows.length : SUMMARY_META.businessSections;
+  const approvedLaCount = laUploaded ? laRows.length : SUMMARY_META.approvedLaSections;
+
+  async function handleUpload(kind, event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = parseCsv(text);
+      if (!parsed.length) {
+        throw new Error("No data rows found. Please include a header row and at least one data row.");
+      }
+
+      if (kind === "student") {
+        const normalized = toTranscriptRows(parsed);
+        if (!normalized.length) throw new Error("Could not map transcript columns. Check Course/Status headers.");
+        setTranscriptRows(normalized);
+        setStudentFileName(file.name);
+      }
+      if (kind === "business") {
+        const normalized = toSectionRows(parsed);
+        if (!normalized.length) throw new Error("Could not map business section columns from this CSV.");
+        setBusinessRows(normalized);
+        setBusinessFileName(file.name);
+        setBusinessUploaded(true);
+      }
+      if (kind === "la") {
+        const normalized = toSectionRows(parsed);
+        if (!normalized.length) throw new Error("Could not map liberal arts section columns from this CSV.");
+        setLaRows(normalized);
+        setLaFileName(file.name);
+        setLaUploaded(true);
+      }
+      setUploadState({
+        type: "ok",
+        message: `${file.name} loaded successfully (${parsed.length} rows).`,
+      });
+    } catch (err) {
+      setUploadState({
+        type: "error",
+        message: `Upload failed for ${file.name}: ${err.message}`,
+      });
+    }
+  }
 
   return (
     <div className="sheet-page">
       <div className="sheet-wrap">
+        <div className="upload-panel">
+          <div className="upload-grid">
+            <label>
+              Student file (.csv)
+              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("student", e)} />
+            </label>
+            <label>
+              Business fall file (.csv)
+              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("business", e)} />
+            </label>
+            <label>
+              Liberal arts fall file (.csv)
+              <input type="file" accept=".csv,text/csv" onChange={(e) => handleUpload("la", e)} />
+            </label>
+          </div>
+          <div className={uploadState.type === "error" ? "upload-state error" : "upload-state"}>
+            {uploadState.message || "Select CSV files to replace the sample report data."}
+          </div>
+        </div>
+
         <div className="header-row">Sports Management V5 — Fall 2026 Only</div>
 
         <div className="meta-grid">
           <div>Student file</div>
-          <div>{SUMMARY_META.studentFile}</div>
+          <div>{studentFileName}</div>
           <div>Business fall file</div>
-          <div>{SUMMARY_META.businessFallFile}</div>
+          <div>{businessFileName}</div>
           <div>Liberal arts fall file</div>
-          <div>{SUMMARY_META.laFallFile}</div>
+          <div>{laFileName}</div>
           <div>Fall scope</div>
           <div>{SUMMARY_META.fallScope}</div>
           <div>Completed / current transcript rows counted</div>
-          <div>{SUMMARY_META.transcriptCount}</div>
+          <div>{transcriptCount}</div>
           <div>Open business sections loaded</div>
-          <div>{SUMMARY_META.businessSections}</div>
+          <div>{openBusinessCount}</div>
           <div>Approved LA fall sections loaded</div>
-          <div>{SUMMARY_META.approvedLaSections}</div>
+          <div>{approvedLaCount}</div>
           <div>Credit rule</div>
           <div>{SUMMARY_META.creditRule}</div>
           <div>Schedule rule</div>
@@ -487,7 +693,7 @@ export default function App() {
             </tr>
           </thead>
           <tbody>
-            {TRANSCRIPT_ROWS.map((r, idx) => (
+            {transcriptRows.map((r, idx) => (
               <tr key={idx}>
                 {r.map((c, i) => (
                   <td key={i}>{c}</td>
@@ -563,13 +769,45 @@ export default function App() {
             </tr>
           </thead>
           <tbody>
-            {BUSINESS_SECTIONS.map((r, idx) => (
+            {businessRows.map((r, idx) => (
               <tr key={idx}>
                 {r.map((c, i) => (
                   <td key={i}>{c}</td>
                 ))}
               </tr>
             ))}
+          </tbody>
+        </table>
+
+        <SectionTitle>Approved Liberal Arts Sections — Fall 2026</SectionTitle>
+        <table className="sheet-table">
+          <thead>
+            <tr>
+              <th>Class #</th>
+              <th>Course</th>
+              <th>Section</th>
+              <th>Description</th>
+              <th>Days</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Credits</th>
+              <th>Instruction Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {laRows.length ? (
+              laRows.map((r, idx) => (
+                <tr key={idx}>
+                  {r.map((c, i) => (
+                    <td key={i}>{c}</td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={9}>Upload a Liberal Arts fall CSV to populate this section.</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
