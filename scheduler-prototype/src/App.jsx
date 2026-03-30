@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import "./App.css";
 
 const BLUE = "#1f4e78";
@@ -764,33 +765,199 @@ function BlockTitle({ children }) {
   return <div className="block-title">{children}</div>;
 }
 
-function exportOptionCsv(option) {
-  const rows = [
-    [option.title],
+function safeSheetName(rawName) {
+  const cleaned = String(rawName || "Sheet")
+    .replace(/[\\/?*[\]:]/g, "_")
+    .slice(0, 31)
+    .trim();
+  return cleaned || "Sheet";
+}
+
+function exportWorkbookXlsx({
+  studentFileName,
+  businessFileName,
+  laFileName,
+  transcriptCount,
+  openBusinessCount,
+  approvedLaCount,
+  summaryCredits,
+  options,
+  transcriptRows,
+  businessRows,
+  laRows,
+}) {
+  const wb = XLSX.utils.book_new();
+
+  const summaryRows = [
+    ["Sports Management V5 — Fall 2026 Only"],
     [],
-    ["MWF Classes"],
-    ["Course", "Description", "Section", "Class #", "Days", "Start", "End", "Credits", "Category / LA Tag"],
-    ...option.mwf.map((r) => [r.course, r.description, r.section, r.classNo, r.days, r.start, r.end, r.credits, r.tag]),
+    ["Student file", studentFileName],
+    ["Business fall file", businessFileName],
+    ["Liberal arts fall file", laFileName],
+    ["Fall scope", SUMMARY_META.fallScope],
+    ["Completed / current transcript rows counted", transcriptCount],
+    ["Open business sections loaded", openBusinessCount],
+    ["Approved LA fall sections loaded", approvedLaCount],
+    ["Credit rule", SUMMARY_META.creditRule],
+    ["Schedule rule", SUMMARY_META.scheduleRule],
+    ["Strict prereq scope", SUMMARY_META.strictScope],
     [],
-    ["T/Th Classes"],
-    ["Course", "Description", "Section", "Class #", "Days", "Start", "End", "Credits", "Category / LA Tag"],
-    ...option.tr.map((r) => [r.course, r.description, r.section, r.classNo, r.days, r.start, r.end, r.credits, r.tag]),
-    [],
-    ["Total Credits", optionCredits(option)],
-    [],
-    ["Why this option was chosen"],
-    ...option.why.map((w) => [w]),
+    ["Recommended Fall 2026 Schedule Credits"],
+    ["Option", "Credits"],
+    ...summaryCredits.map((r) => [r.label, r.credits]),
   ];
-  const csv = rows
-    .map((r) => r.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${option.title.replace(/\s+/g, "_")}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(summaryRows),
+    safeSheetName("Summary"),
+  );
+
+  options.forEach((opt, idx) => {
+    const rows = [
+      [opt.title],
+      ["Total Credits", optionCredits(opt)],
+      [],
+      ["MWF Classes"],
+      [
+        "Course",
+        "Description",
+        "Section",
+        "Class #",
+        "Days",
+        "Start",
+        "End",
+        "Credits",
+        "Category / LA Tag",
+      ],
+      ...opt.mwf.map((r) => [
+        r.course,
+        r.description,
+        r.section,
+        r.classNo,
+        r.days,
+        r.start,
+        r.end,
+        r.credits,
+        r.tag,
+      ]),
+      [],
+      ["T/Th Classes"],
+      [
+        "Course",
+        "Description",
+        "Section",
+        "Class #",
+        "Days",
+        "Start",
+        "End",
+        "Credits",
+        "Category / LA Tag",
+      ],
+      ...opt.tr.map((r) => [
+        r.course,
+        r.description,
+        r.section,
+        r.classNo,
+        r.days,
+        r.start,
+        r.end,
+        r.credits,
+        r.tag,
+      ]),
+      [],
+      ["Why this option was chosen"],
+      ...opt.why.map((w) => [w]),
+    ];
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(rows),
+      safeSheetName(`Option ${idx + 1}`),
+    );
+  });
+
+  const transcriptSheet = [
+    [
+      "Course Code",
+      "Course Name",
+      "Credits",
+      "Status",
+      "Letter Grade",
+      "Credits",
+      "Status",
+      "Campus",
+    ],
+    ...transcriptRows,
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(transcriptSheet),
+    safeSheetName("Transcript"),
+  );
+
+  const strictSheet = [
+    ["Course", "Requires", "Note"],
+    ...STRICT_PREREQS,
+    [],
+    [
+      "Note",
+      "",
+      "These rules are planner-grade strict rules configured for V5, not a full registrar prerequisite catalog.",
+    ],
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(strictSheet),
+    safeSheetName("Strict_Prereqs"),
+  );
+
+  const requirementSheet = [
+    ["Course", "Requirement", "Category", "Credits", "Status", "Open in Fall", "Strict Prereqs"],
+    ...REQUIREMENT_STATUS_ROWS,
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(requirementSheet),
+    safeSheetName("Requirement_Status"),
+  );
+
+  const businessSheet = [
+    ["Class #", "Course", "Section", "Description", "Days", "Start", "End", "Credits", "Instruction Mode"],
+    ...businessRows,
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(businessSheet),
+    safeSheetName("Business_Sections"),
+  );
+
+  const laSheet = [
+    ["Class #", "Course", "Section", "Description", "Days", "Start", "End", "Credits", "Instruction Mode"],
+    ...(laRows.length ? laRows : [["", "", "", "No uploaded liberal arts sections", "", "", "", "", ""]]),
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(laSheet),
+    safeSheetName("Liberal_Arts_Sections"),
+  );
+
+  const rcSheet = [
+    [
+      "Category",
+      "Max Hours",
+      "Walker Hours Counted",
+      "Status",
+      "Approved Fall 2026 Options",
+      "Counted Courses",
+    ],
+    ...RC_AU_ROWS,
+  ];
+  XLSX.utils.book_append_sheet(
+    wb,
+    XLSX.utils.aoa_to_sheet(rcSheet),
+    safeSheetName("RC_AU_Status"),
+  );
+
+  XLSX.writeFile(wb, "scheduler_full_report.xlsx");
 }
 
 export default function App() {
@@ -804,7 +971,12 @@ export default function App() {
   const [businessUploaded, setBusinessUploaded] = useState(false);
   const [laUploaded, setLaUploaded] = useState(false);
   const [uploadState, setUploadState] = useState({ type: "", message: "" });
-  const current = useMemo(() => OPTIONS[selected], [selected]);
+  const generatedOptions = useMemo(
+    () => buildOptionsFromUploads(transcriptRows, businessRows, laRows),
+    [transcriptRows, businessRows, laRows],
+  );
+  const safeSelected = Math.min(selected, Math.max(0, generatedOptions.length - 1));
+  const current = generatedOptions[safeSelected] || OPTIONS[0];
   const transcriptCount = useMemo(
     () =>
       transcriptRows.filter((r) => {
@@ -822,6 +994,14 @@ export default function App() {
   );
   const openBusinessCount = businessUploaded ? businessRows.length : SUMMARY_META.businessSections;
   const approvedLaCount = laUploaded ? laRows.length : SUMMARY_META.approvedLaSections;
+  const summaryCredits = useMemo(
+    () =>
+      generatedOptions.map((opt, idx) => ({
+        label: SUMMARY_CREDITS[idx]?.label || opt.title,
+        credits: optionCredits(opt),
+      })),
+    [generatedOptions],
+  );
 
   async function handleUpload(kind, event) {
     const file = event.target.files?.[0];
@@ -935,7 +1115,7 @@ export default function App() {
         <SectionTitle>Recommended Fall 2026 Schedule Credits</SectionTitle>
         <table className="sheet-table credits-table">
           <tbody>
-            {SUMMARY_CREDITS.map((row) => (
+            {summaryCredits.map((row) => (
               <tr key={row.label}>
                 <td>{row.label}</td>
                 <td>{row.credits}</td>
@@ -945,18 +1125,36 @@ export default function App() {
         </table>
 
         <div className="option-tabs">
-          {OPTIONS.map((opt, idx) => (
+          {generatedOptions.map((opt, idx) => (
             <button
               key={opt.title}
-              className={idx === selected ? "opt-tab active" : "opt-tab"}
+              className={idx === safeSelected ? "opt-tab active" : "opt-tab"}
               onClick={() => setSelected(idx)}
               type="button"
             >
               {opt.title}
             </button>
           ))}
-          <button className="export-btn" type="button" onClick={() => exportOptionCsv(current)}>
-            Export This Option
+          <button
+            className="export-btn"
+            type="button"
+            onClick={() =>
+              exportWorkbookXlsx({
+                studentFileName,
+                businessFileName,
+                laFileName,
+                transcriptCount,
+                openBusinessCount,
+                approvedLaCount,
+                summaryCredits,
+                options: generatedOptions,
+                transcriptRows,
+                businessRows,
+                laRows,
+              })
+            }
+          >
+            Export Workbook (.xlsx)
           </button>
         </div>
 
