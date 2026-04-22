@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selah — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --au-gold:   #D4A017;
+    --au-dark:   #1A1208;
+    --au-cream:  #FAF6EF;
+    --au-warm:   #F0E8D8;
+    --au-border: #D9CDB8;
+    --au-text:   #2C2416;
+    --au-muted:  #8C7B5E;
+    --success:   #2D6A4F;
+    --warn:      #B45309;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--selah-cream);
+    color: var(--selah-text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--selah-black);
+    padding: 0 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    border-bottom: 3px solid var(--selah-red);
+  }
+  .header-brand { display: flex; align-items: center; gap: 1rem; }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: var(--selah-red); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; color: var(--selah-black); font-weight: 700;
+  }
+  .header-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: #fff; }
+  .header-title span { color: var(--selah-red); }
+  .header-nav a {
+    color: #C8B99A; text-decoration: none; font-size: 0.85rem;
+    font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s;
+  }
+  .header-nav a:hover { color: var(--selah-red); }
+  main { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; color: var(--selah-black);
+    margin-bottom: 1.5rem;
+  }
+  h2 span { color: var(--selah-red); }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--selah-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(26,18,8,0.05);
+  }
+  .stat-label {
+    font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--selah-muted);
+    font-weight: 600; margin-bottom: 0.5rem;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; color: var(--selah-black); line-height: 1;
+  }
+  .stat-value.gold { color: var(--selah-red); }
+  .stat-value.warn { color: var(--warn); }
+
+  /* Progress bar */
+  .progress-section {
+    background: #fff;
+    border: 1px solid var(--selah-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(26,18,8,0.05);
+  }
+  .progress-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0.8rem;
+  }
+  .progress-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--selah-muted); font-weight: 600; }
+  .progress-pct { font-size: 0.9rem; font-weight: 600; color: var(--selah-text); }
+  .progress-track {
+    height: 10px; background: var(--selah-warm);
+    border-radius: 99px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--selah-red), #E8A83A);
+    width: {{PCT}}%;
+    transition: width 0.8s ease;
+  }
+
+  /* Table */
+  .table-card {
+    background: #fff;
+    border: 1px solid var(--selah-border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(26,18,8,0.05);
+  }
+  .table-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--selah-border);
+    font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--selah-muted); font-weight: 600;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; padding: 0.7rem 1.5rem;
+    font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--selah-muted);
+    font-weight: 600; background: var(--selah-warm);
+    border-bottom: 1px solid var(--selah-border);
+  }
+  td {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid #F0EBE0;
+    color: var(--selah-text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--selah-cream); }
+  td:first-child { color: var(--selah-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .badge-mgmt { background: #EEF2FF; color: #3730A3; }
+  .badge-sm   { background: #ECFDF5; color: #065F46; }
+
+  footer {
+    text-align: center; padding: 1.2rem;
+    font-size: 0.78rem; color: var(--selah-muted);
+    border-top: 1px solid var(--selah-border); background: var(--selah-warm);
+    margin-top: 2rem;
+  }
+  footer a { color: var(--selah-red); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="header-logo">S</div>
+    <div class="header-title">Selah &nbsp;·&nbsp; <span>Academic Solutions</span></div>
+  </div>
+  <nav class="header-nav">
+    <a href="/">← Generate Audit</a>
+  </nav>
+</header>
+
+<main>
+  <h2>Usage <span>Overview</span></h2>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Audits Generated</div>
+      <div class="stat-value gold">{{TOTAL}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Remaining Pulls</div>
+      <div class="stat-value {{REMAINING_CLASS}}">{{REMAINING}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Annual Limit</div>
+      <div class="stat-value">{{MAX}}</div>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-label">Annual Pull Usage</span>
+      <span class="progress-pct">{{PCT}}% used</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">Recent Audits (last 10)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Student</th>
+          <th>Major</th>
+          <th>Catalog Year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ROWS}}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<footer>
+  Powered by <a href="https://indycollab.com" target="_blank">Indy Collab, LLC</a> &nbsp;·&nbsp;
+  Selah Academic Solutions &nbsp;·&nbsp; Audit Engine v2
+</footer>
+
+</body>
+</html>

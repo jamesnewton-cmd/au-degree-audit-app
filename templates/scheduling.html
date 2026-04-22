@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AU Advisor Scheduling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon: #6b0f1a;
+    --orange: #ff720d;
+    --black: #191918;
+    --cream: #fbf5ef;
+    --cream2: #f4ede4;
+    --border: #ddd5c8;
+    --text: #191918;
+    --muted: #6b5e52;
+    --success: #2d6a4f;
+    --error: #9b2335;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--black);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 68px;
+    border-bottom: 3px solid var(--orange);
+  }
+  .header-brand {
+    font-family: "Playfair Display", serif;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  .header-brand span { color: var(--orange); }
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .header-nav a {
+    color: #c8b99a;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .header-nav a:hover { color: var(--orange); }
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2.1rem 1rem;
+  }
+  .card {
+    width: 100%;
+    max-width: 760px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(25, 25, 24, 0.09);
+    overflow: hidden;
+  }
+  .card-head {
+    background: var(--black);
+    border-top: 3px solid var(--orange);
+    padding: 1.5rem 1.8rem;
+  }
+  .card-head h1 {
+    color: #fff;
+    font-family: "Playfair Display", serif;
+    font-size: 1.45rem;
+    margin-bottom: 0.2rem;
+  }
+  .card-head p { color: #a89880; font-size: 0.85rem; }
+  .body { padding: 1.5rem 1.8rem 1.7rem; }
+  .section-title {
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    margin: 1.2rem 0 0.5rem;
+  }
+  .field { margin-bottom: 1rem; }
+  label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  input[type="file"], input[type="number"] {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.92rem;
+    background: var(--cream);
+  }
+  .hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+    line-height: 1.3;
+  }
+  .template-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: var(--cream2);
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .template-box code {
+    font-size: 0.75rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.08rem 0.3rem;
+  }
+  .btn {
+    width: 100%;
+    margin-top: 1rem;
+    border: none;
+    border-radius: 9px;
+    padding: 0.85rem 1rem;
+    background: var(--maroon);
+    color: #fff;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn:hover { background: #500c14; }
+  .btn[disabled] { opacity: 0.7; cursor: not-allowed; }
+  #status {
+    margin-top: 1rem;
+    border-radius: 8px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.84rem;
+    display: none;
+  }
+  #status.ok {
+    display: block;
+    background: #ebf7ef;
+    border: 1px solid #bfdcc7;
+    color: var(--success);
+  }
+  #status.error {
+    display: block;
+    background: #fff1f3;
+    border: 1px solid #f2c6cd;
+    color: var(--error);
+  }
+  #summary {
+    margin-top: 0.75rem;
+    font-size: 0.84rem;
+    color: var(--text);
+    display: none;
+  }
+  .link-muted {
+    color: var(--maroon);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .link-muted:hover { color: var(--orange); }
+  #pwOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(25, 25, 24, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+  }
+  #pwOverlay.hidden { display: none; }
+  .pw-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 380px;
+    border-top: 4px solid var(--orange);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+  .pw-card h2 {
+    font-family: "Playfair Display", serif;
+    font-size: 1.25rem;
+    margin-bottom: 0.3rem;
+    text-align: center;
+  }
+  .pw-card p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .pw-card input[type="email"], .pw-card input[type="text"] {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    padding: 0.72rem 0.85rem;
+    margin-bottom: 0.8rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.92rem;
+    background: var(--cream);
+  }
+  .pw-error {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin-bottom: 0.7rem;
+    display: none;
+  }
+  .btn-pw {
+    width: 100%;
+    border: none;
+    border-radius: 7px;
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.78rem;
+    cursor: pointer;
+  }
+  .btn-pw:hover { background: #500c14; }
+</style>
+</head>
+<body>
+<div id="pwOverlay">
+  <div class="pw-card">
+    <h2>Advisor Scheduling Login</h2>
+    <p>Use your <strong>@anderson.edu</strong> email to continue.</p>
+    <input id="authEmailInput" type="email" placeholder="you@anderson.edu" autocomplete="email">
+    <input id="authCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" style="display:none;">
+    <div class="pw-error" id="pwError">Unable to sign in.</div>
+    <button class="btn-pw" id="requestCodeBtn">Send verification code</button>
+    <button class="btn-pw" id="verifyCodeBtn" style="display:none; margin-top:0.5rem;">Verify and continue</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-brand">Selah · <span>Academic Solutions</span></div>
+  <nav class="header-nav">
+    <a href="/">Scheduling Home</a>
+  </nav>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-head">
+      <h1>Professor / Advisor Scheduling</h1>
+      <p>Upload class listings + student requests (Excel) and generate student schedules.</p>
+    </div>
+    <div class="body">
+      <div class="template-box">
+        <div><strong>Class listing workbook</strong> should include at least: <code>Course Code</code>, and optionally
+          <code>Section</code>, <code>Course Title</code>, <code>Instructor</code>, <code>Capacity</code>,
+          <code>Days</code>, <code>Start Time</code>, <code>End Time</code> or <code>Meeting Time</code>.</div>
+        <div style="margin-top:0.45rem;"><strong>Student requests workbook</strong> should include <code>Student ID</code>,
+          <code>Student Name</code>, and either <code>Requested Courses</code> or columns like <code>Request 1</code>,
+          <code>Request 2</code>, etc.</div>
+      </div>
+
+      <form id="schedForm">
+        <div class="section-title">Input Files</div>
+        <div class="field">
+          <label>Class Listings (.xlsx)</label>
+          <input id="classListings" name="class_listings" type="file" accept=".xlsx" required>
+          <div class="hint">One row per section. Times are used to prevent class-time conflicts for each student.</div>
+        </div>
+        <div class="field">
+          <label>Student Requests (.xlsx)</label>
+          <input id="studentRequests" name="student_requests" type="file" accept=".xlsx" required>
+          <div class="hint">Request order is treated as priority during scheduling.</div>
+        </div>
+
+        <div class="section-title">Scheduling Controls</div>
+        <div class="field">
+          <label>Max Courses per Student</label>
+          <input id="maxCourses" name="max_courses_per_student" type="number" min="1" max="10" value="5">
+        </div>
+
+        <button class="btn" id="generateBtn" type="submit">Generate Scheduling Workbook</button>
+      </form>
+
+      <div id="status"></div>
+      <div id="summary"></div>
+      <div class="hint" style="margin-top:0.9rem;">
+        This is a standalone scheduling app for advisor/professor use.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SESSION_TOKEN_KEY = "audit:session_token";
+const SESSION_EMAIL_KEY = "audit:session_email";
+let SESSION_TOKEN = sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
+let SESSION_EMAIL = sessionStorage.getItem(SESSION_EMAIL_KEY) || "";
+
+const overlay = document.getElementById("pwOverlay");
+const pwError = document.getElementById("pwError");
+const authEmailInput = document.getElementById("authEmailInput");
+const authCodeInput = document.getElementById("authCodeInput");
+const requestCodeBtn = document.getElementById("requestCodeBtn");
+const verifyCodeBtn = document.getElementById("verifyCodeBtn");
+
+function showAuthError(msg) {
+  pwError.textContent = msg;
+  pwError.style.display = "block";
+}
+
+function clearAuthError() {
+  pwError.style.display = "none";
+}
+
+function normalizeAndersonEmail(raw) {
+  const value = (raw || "").trim().toLowerCase();
+  if (!value || !value.includes("@") || !value.endsWith("@anderson.edu")) return "";
+  return value;
+}
+
+function withAuthHeaders(extra = {}) {
+  const headers = { ...extra };
+  if (SESSION_TOKEN) headers.Authorization = `Bearer ${SESSION_TOKEN}`;
+  return headers;
+}
+
+function setAuthState(email, token) {
+  SESSION_EMAIL = email || "";
+  SESSION_TOKEN = token || "";
+  sessionStorage.setItem(SESSION_EMAIL_KEY, SESSION_EMAIL);
+  sessionStorage.setItem(SESSION_TOKEN_KEY, SESSION_TOKEN);
+  overlay.classList.add("hidden");
+  clearAuthError();
+}
+
+function clearAuthState(showOverlay = true) {
+  SESSION_TOKEN = "";
+  SESSION_EMAIL = "";
+  sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  sessionStorage.removeItem(SESSION_EMAIL_KEY);
+  authCodeInput.value = "";
+  authCodeInput.style.display = "none";
+  verifyCodeBtn.style.display = "none";
+  requestCodeBtn.style.display = "";
+  if (showOverlay) overlay.classList.remove("hidden");
+}
+
+async function ensureSession() {
+  if (!SESSION_TOKEN) {
+    clearAuthState(true);
+    setTimeout(() => authEmailInput.focus(), 100);
+    return;
+  }
+  try {
+    const res = await fetch("/auth/me", { headers: withAuthHeaders() });
+    if (!res.ok) {
+      clearAuthState(true);
+      setTimeout(() => authEmailInput.focus(), 100);
+      return;
+    }
+    const payload = await res.json();
+    SESSION_EMAIL = payload.email || SESSION_EMAIL;
+    sessionStorage.setItem(SESSION_EMAIL_KEY, SESSION_EMAIL);
+    overlay.classList.add("hidden");
+  } catch (err) {
+    clearAuthState(true);
+    showAuthError("Connection error. Please try again.");
+  }
+}
+
+async function requestVerificationCode() {
+  clearAuthError();
+  const email = normalizeAndersonEmail(authEmailInput.value);
+  if (!email) {
+    showAuthError("Please use your @anderson.edu email.");
+    authEmailInput.focus();
+    return;
+  }
+  try {
+    const res = await fetch("/auth/request-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showAuthError(payload.detail || "Unable to send verification code.");
+      return;
+    }
+    authCodeInput.style.display = "";
+    verifyCodeBtn.style.display = "";
+    authCodeInput.focus();
+  } catch (err) {
+    showAuthError("Connection error. Please try again.");
+  }
+}
+
+async function verifyCodeAndLogin() {
+  clearAuthError();
+  const email = normalizeAndersonEmail(authEmailInput.value);
+  const code = (authCodeInput.value || "").replace(/\D/g, "");
+  if (!email) {
+    showAuthError("Please use your @anderson.edu email.");
+    authEmailInput.focus();
+    return;
+  }
+  if (code.length < 6) {
+    showAuthError("Enter the 6-digit verification code.");
+    authCodeInput.focus();
+    return;
+  }
+  try {
+    const res = await fetch("/auth/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showAuthError(payload.detail || "Invalid verification code.");
+      return;
+    }
+    setAuthState(payload.email || email, payload.access_token || "");
+  } catch (err) {
+    showAuthError("Connection error. Please try again.");
+  }
+}
+
+requestCodeBtn.addEventListener("click", requestVerificationCode);
+verifyCodeBtn.addEventListener("click", verifyCodeAndLogin);
+authEmailInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") requestVerificationCode();
+});
+authCodeInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") verifyCodeAndLogin();
+});
+
+const form = document.getElementById("schedForm");
+const btn = document.getElementById("generateBtn");
+const statusEl = document.getElementById("status");
+const summaryEl = document.getElementById("summary");
+
+function setStatus(message, isError = false) {
+  statusEl.textContent = message;
+  statusEl.className = isError ? "error" : "ok";
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  statusEl.style.display = "none";
+  summaryEl.style.display = "none";
+  if (!SESSION_TOKEN) {
+    setStatus("Please sign in first.", true);
+    return;
+  }
+
+  const classFile = document.getElementById("classListings").files[0];
+  const requestFile = document.getElementById("studentRequests").files[0];
+  if (!classFile || !requestFile) {
+    setStatus("Please upload both Excel files.", true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Generating...";
+  try {
+    const body = new FormData();
+    body.set("class_listings", classFile);
+    body.set("student_requests", requestFile);
+    body.set("max_courses_per_student", String(document.getElementById("maxCourses").value || "5"));
+
+    const res = await fetch("/schedule/generate", {
+      method: "POST",
+      body,
+      headers: withAuthHeaders(),
+    });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      setStatus(payload.detail || "Unable to generate schedules.", true);
+      if (res.status === 401) {
+        clearAuthState(true);
+      }
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "student_schedules.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    const students = res.headers.get("X-Scheduling-Students") || "0";
+    const assignments = res.headers.get("X-Scheduling-Assignments") || "0";
+    const unscheduled = res.headers.get("X-Scheduling-Unscheduled") || "0";
+    setStatus("Scheduling workbook generated and downloaded.");
+    summaryEl.style.display = "block";
+    summaryEl.textContent = `Students: ${students} · Assigned courses: ${assignments} · Unscheduled requests: ${unscheduled}`;
+  } catch (err) {
+    setStatus("Connection error while generating schedules.", true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generate Scheduling Workbook";
+  }
+});
+
+ensureSession();
+</script>
+</body>
+</html>
