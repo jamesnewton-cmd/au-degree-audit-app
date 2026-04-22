@@ -211,21 +211,8 @@ def verify(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_security),
 ):
-    _cleanup_auth_state()
-    token = ""
-    if credentials and credentials.scheme.lower() == "bearer":
-        token = credentials.credentials
-    if not token:
-        token = request.cookies.get("audit_session", "")
-    if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    session = AUTH_SESSIONS.get(token)
-    if not session:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    if session["expires_at"] <= _now_utc():
-        AUTH_SESSIONS.pop(token, None)
-        raise HTTPException(status_code=401, detail="Session expired")
-    return session["email"]
+    # Auth disabled — open access per registrar request
+    return "open"
 
 
 @app.post("/auth/request-code")
@@ -1203,7 +1190,7 @@ async def generate(
                     major_label,
                     tmp_pdf,
                     filename,
-                    sender_email=user,
+                    sender_email=advisor_email or SMTP_FROM or "audit@anderson.edu",
                 )
             except Exception as email_err:
                 print(f"Email send failed: {email_err}")
