@@ -1,0 +1,203 @@
+# Anderson University Degree Audit System
+**Powered by Indy Collab, LLC**
+
+---
+
+## Overview
+A web application that accepts a student transcript CSV and returns a graduation audit PDF. Built for Anderson University Falls School of Business.
+
+- **Majors supported:** Management, Sport Marketing
+- **Catalog years:** 2022-23 through 2025-26
+- **Pull limit:** 1,000 audits/year (tracked automatically)
+- **Auth:** Password-protected (HTTP Basic Auth)
+
+---
+
+## Project Structure
+```
+audit_app/
+├── main.py                  # FastAPI backend
+├── requirements.txt         # Python dependencies
+├── render.yaml              # Render.com deployment config
+├── templates/
+│   ├── index.html           # Upload form UI
+│   └── dashboard.html       # Usage dashboard
+├── engines/
+│   ├── management.py        # Management major audit engine
+│   └── sport_marketing.py   # Sport Marketing audit engine
+└── logs/
+    └── audit_log.json       # Auto-created, tracks all pulls
+```
+
+---
+
+## Local Development
+
+```bash
+# Install dependencies
+python3 -m pip install -r requirements.txt
+
+# Run locally
+python3 -m uvicorn main:app --reload
+
+# Open in browser
+http://localhost:8000
+```
+
+### Regression checks (recommended before push/deploy)
+
+```bash
+# Run compile checks + targeted regression suite
+make check
+```
+
+This now verifies:
+- Python module syntax/compilation
+- Program/year availability validation (FSB + non-FSB)
+- Overlap handling consistency (`engineering_management`)
+- Auth-protected utility route expectations
+- `/programs/all/{year}` response shape used by the frontend
+
+### Known-good QA transcript pack (content/data sanity)
+
+Run canned transcript fixtures through `/generate` and verify expected outcomes:
+
+```bash
+make qa BASE_URL="http://127.0.0.1:8000" AUDIT_PASSWORD="your-password"
+```
+
+This runs a mixed FSB/non-FSB fixture set and checks:
+- valid program/year combos generate PDFs (`200`)
+- intentionally invalid combos return validation errors (`400`)
+- report artifacts are written under `qa/reports/` and generated PDFs under `qa/output/`
+
+Default password for local dev: `ravens2025`
+**Change this before deploying.**
+
+---
+
+## Stop Indentation Errors Before They Reach GitHub/Render
+
+This project includes auto-format and syntax guardrails:
+
+- `pyproject.toml` configures Black
+- `.pre-commit-config.yaml` runs Python AST checks + formatting hooks
+- `Makefile` provides one-command checks
+
+### One-time setup
+
+```bash
+python3 -m pip install black pre-commit
+python3 -m pre_commit install
+```
+
+### Everyday workflow (recommended)
+
+```bash
+# format code consistently (fixes indentation style issues)
+make fmt
+
+# fail fast if Python syntax/indentation is broken
+make check
+```
+
+If `make check` fails, fix the reported file before committing/pushing.
+
+---
+
+## Deployment on Render.com (Recommended — Free Tier)
+
+1. **Create a Render account** at render.com
+2. **Push this folder to a GitHub repo** (private recommended)
+3. In Render dashboard → **New Web Service** → connect your repo
+4. Render auto-detects `render.yaml` and configures everything
+5. In Render **Environment Variables**, set:
+   - `AUDIT_PASSWORD` → your chosen password (share with AU staff)
+   - `MAX_PULLS` → `1000`
+6. Deploy — Render gives you a URL like `au-degree-audit.onrender.com`
+7. Point `audits.indycollab.com` to that URL via a CNAME in your DNS settings
+
+**Cost:** Free tier on Render is sufficient for 1,000 pulls/year.
+Note: Free tier spins down after 15 min of inactivity (first request takes ~30s to wake).
+Upgrade to Starter ($7/mo) for always-on if AU prefers instant response.
+
+---
+
+## Render Deploy Smoke Checks (Go / No-Go)
+
+After each Render deploy, run this from repo root:
+
+```bash
+python3 render_smoke_check.py "https://<your-service>.onrender.com" "<AUDIT_PASSWORD>"
+```
+
+What it verifies:
+- Protected endpoints reject unauthenticated requests (`401`)
+- Authenticated `/status` and `/programs/all/{year}` return valid payloads
+- Catalog-year FSB naming sanity (e.g., `Sports Management` in 2025-26)
+- One valid `/generate` request returns a PDF (`200`)
+- One invalid major/year request returns `400`
+
+If all checks pass, result is:
+- `OVERALL RESULT: PASS`
+
+Use this merge rule:
+- **PASS** => PR can be marked ready and merged
+- **FAIL** => do not merge; fix issues and redeploy
+
+Shortcut via Makefile:
+
+```bash
+make render-smoke RENDER_URL="https://<your-service>.onrender.com" AUDIT_PASSWORD="<AUDIT_PASSWORD>"
+```
+
+---
+
+## Adding a New Major
+
+1. Copy `engines/management.py` as a starting point
+2. Rename and update the requirement lists, elective options, and LA rows
+3. Save as `engines/your_major_name.py`
+4. Add entry to `MAJORS` dict in `main.py`:
+   ```python
+   "your_major_key": {"label": "Your Major Label", "engine": "your_major_name"},
+   ```
+5. Add `<option>` to the major dropdown in `templates/index.html`
+6. Redeploy
+
+---
+
+## Adding a New Catalog Year
+
+1. Update `CATALOG_YEARS` list in `main.py`
+2. Add `<option>` to the catalog year dropdown in `templates/index.html`
+3. Redeploy
+
+---
+
+## Monitoring Usage
+
+- Visit `/dashboard` (password-protected) to see pull count and recent audits
+- `audit_log.json` in the `/logs` directory stores full history
+- At 1,000 pulls the system blocks new requests with a clear error message
+
+---
+
+## Annual Renewal (per MOA)
+
+When the university renews at $3,000/year:
+1. Reset the log: delete or archive `logs/audit_log.json`
+2. The counter resets to 0 automatically
+
+---
+
+## Security Notes
+
+- Never commit `AUDIT_PASSWORD` to git — set it only in Render environment variables
+- The `/logs` disk is persistent on Render (survives redeploys)
+- All audit generation happens server-side; no student data is stored beyond the log entry (name, major, catalog year, timestamp)
+
+---
+
+## Support
+James Newton — Indy Collab, LLC

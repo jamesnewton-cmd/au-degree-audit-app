@@ -1,0 +1,115 @@
+LIBERAL_ARTS = {
+    "F1": {
+        "label": "Understanding College",
+        "courses": ["LART-1050"],
+        "hours": 1
+    },
+
+    "F2": {
+        "label": "Civil Discourse & Critical Reasoning",
+        "courses": [
+            "MUED-1000","PHIL-2000","PHIL-2120","POSC-2020",
+            "ENGL-3190","HIST-2300","SPED-2400","LART-1100"
+        ],
+        "hours": (2,4)  # range
+    },
+
+    "F3": {
+        "label": "Written Communication",
+        "courses": ["ENGL-1100","ENGL-1110","ENGL-1120"],
+        "rules": [
+            "must_take_ENGL_1120",
+            "must_take_writing_sequence"
+        ]
+    },
+
+    "F4": {
+        "label": "Speaking and Listening",
+        "courses": ["COMM-1000"],
+        "extra": "requires_SI_course"
+    },
+
+    "F5": {
+        "label": "Quantitative Reasoning",
+        "courses": [
+            "MATH-1100","MATH-1250","MATH-1300","MATH-1400",
+            "MATH-2010","MATH-2120","PSYC-2440"
+        ],
+        "hours": 3
+    },
+
+    "F6": {
+        "label": "Biblical Literacy",
+        "courses": ["BIBL-2000"],
+        "hours": 3
+    },
+
+    "F7": {
+        "label": "Personal Wellness",
+        "courses": ["PEHS-1000"],
+        "hours": 2
+    },
+
+    # ─────────────── WAYS OF KNOWING ───────────────
+
+    "W1": {
+        "label": "Christian Ways of Knowing",
+        "courses": ["BIBL-3410","RLGN-3010","PHIL-3250"],
+        "hours": 3
+    },
+
+    "W2": {
+        "label": "Scientific Ways of Knowing",
+        "courses": ["EXSC-2140","PHYS-1000","CHEM-1000"],
+        "hours": 4
+    },
+
+    "W3": {
+        "label": "Civic Ways of Knowing",
+        "courses": ["HIST-2030","HIST-2110","POSC-2100"],
+        "hours": 3
+    },
+
+    "W4": {
+        "label": "Aesthetic Ways of Knowing",
+        "courses": ["MUSC-2110","ARTS-1210","THEA-2350"],
+        "hours": 3
+    },
+
+    "W5": {
+        "label": "Social & Behavioral Ways of Knowing",
+        "courses": ["EDUC-2110","PSYC-2000","SOCI-2010"],
+        "hours": 3
+    },
+
+    "W6": {
+        "label": "Modern Languages",
+        "courses": ["SPAN-1010","SPAN-1020","SPAN-2010"],
+        "hours": 4
+    },
+
+    "W7": {
+        "label": "Global/Intercultural",
+        "courses": ["MUSC-2330","BSNS-3120","COMM-3050"],
+        "hours": 3
+    },
+
+    "W8": {
+        "label": "Experiential Learning",
+        "type": "activity",
+        "note": "fulfilled by internship, practicum, or capstone"
+    },
+
+    # ─────────────── ADVANCED ───────────────
+
+    "WI": {
+        "label": "Writing Intensive",
+        "required": 2,
+        "rules": ["1_upper_division_required"]
+    },
+
+    "SI": {
+        "label": "Speaking Intensive",
+        "required": 1
+    }
+}
