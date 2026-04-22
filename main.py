@@ -14,13 +14,10 @@ Environment variables:
 
 import os
 import tempfile
-import secrets
 from pathlib import Path
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.staticfiles import StaticFiles
 
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -39,21 +36,7 @@ app = FastAPI(
     version="3.0.0",
 )
 
-security = HTTPBasic()
-AUDIT_PASSWORD = os.environ.get("AUDIT_PASSWORD", "audit2024")
-AUDIT_USER = os.environ.get("AUDIT_USER", "registrar")
 
-
-def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_user = secrets.compare_digest(credentials.username, AUDIT_USER)
-    correct_pass = secrets.compare_digest(credentials.password, AUDIT_PASSWORD)
-    if not (correct_user and correct_pass):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -157,7 +140,7 @@ def health():
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(username: str = Depends(verify_credentials)):
+def index():
     return HTMLResponse(content=_upload_form_html(), status_code=200)
 
 
@@ -168,7 +151,6 @@ async def generate(
     student_id: str = Form(""),
     major: str = Form(...),
     catalog_year: str = Form("2022-23"),
-    username: str = Depends(verify_credentials),
 ):
     """
     Run a graduation audit and return a PDF.
