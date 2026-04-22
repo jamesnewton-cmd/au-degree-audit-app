@@ -83,17 +83,17 @@ def _priority(course: dict) -> int:
     s = course.get("status", "")
     if s == "grade posted" and g == "T":
         return 0   # Transfer credit — highest priority
-    if s == "grade posted" and g not in ("", "W", "DRP", "NC", "F"):
+    if s == "grade posted" and g not in ("", "W", "WF", "DRP", "NC", "F"):
         return 1   # Completed with passing grade
     if s == "current":
         return 2   # In progress
     if s == "scheduled":
         return 3   # Scheduled
-    if s == "grade posted" and g == "F":
+    if s == "grade posted" and g in ("F", "WF"):
         return 4   # Failed
     if s == "grade posted" and g == "NC":
         return 5   # No credit
-    if s == "dropped" or g in ("DRP", "W"):
+    if s == "dropped" or g in ("DRP", "W", "WF"):
         return 6   # Dropped
     return 7
 

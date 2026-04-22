@@ -313,7 +313,7 @@ def audit(courses, minor_key=None):
             if _norm_code(c["raw"]) in major_codes:
                 mgpa_hrs += c["cr"]
                 mqp += c["cr"] * pts
-        if done(c) and g not in ("", "W", "DRP", "NC", "F"):
+        if done(c) and g not in ("", "W", "WF", "DRP", "NC", "F"):
             earned += c["cr"]
         if ip(c):
             ip_hrs += c["cr"]

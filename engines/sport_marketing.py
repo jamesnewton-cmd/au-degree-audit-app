@@ -458,7 +458,7 @@ def _int(v):
 
 
 def done(c):
-    return c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "DRP", "NC")
+    return c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "WF", "DRP", "NC")
 
 
 def ip(c):
@@ -474,7 +474,7 @@ def xfer(c):
 
 
 def drop(c):
-    return c["grade"].upper() in ("DRP", "W") or c["status"] == "dropped"
+    return c["grade"].upper() in ("DRP", "W", "WF") or c["status"] == "dropped"
 
 
 def best(courses, codes):
@@ -482,7 +482,7 @@ def best(courses, codes):
     found = [c for c in courses if c["code"] in norms and not drop(c)]
     # Prefer done records that aren't F (e.g. transfer T beats original F)
     for f in found:
-        if done(f) and f["grade"].upper() != "F":
+        if done(f) and f["grade"].upper() not in ("F", "WF"):
             return f
     for f in found:
         if done(f):
@@ -1648,10 +1648,38 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                 synthetic["name"] = "First-Year Seminar (Honors exempt — HNRS-2110)"
             courses = courses + [synthetic]
             cm["LART_1050"] = synthetic
-        # Non-Honors students without LART-1050: leave as missing (Not Satisfied)
+        else:
+            # Non-Honors students without LART-1050 on transcript are EXEMPT
+            # Registrar rule: if LART-1050 is not on the CSV, the student is exempt
+            synthetic_exempt = {
+                "code": "LART_1050",
+                "raw": "LART-1050",
+                "name": "First-Year Seminar (exempt — not on transcript)",
+                "cr": 0,
+                "status": "grade posted",
+                "grade": "T",
+                "reg_date": "",
+            }
+            courses = courses + [synthetic_exempt]
+            cm["LART_1050"] = synthetic_exempt
 
     def find_any(code_list):
         return best(courses, [norm(c.replace(" ", "_").replace("-", "_")) for c in code_list])
+
+    def find_any_or_prefix(code_list, prefix_list=None):
+        """Like find_any but also matches transfer courses by dept prefix if exact match fails."""
+        result = find_any(code_list)
+        if result is not None:
+            return result
+        if prefix_list:
+            for c in courses:
+                if drop(c):
+                    continue
+                code = c.get("code", "")
+                for pfx in prefix_list:
+                    if code.startswith(pfx) and (done(c) or ip(c) or sched(c)):
+                        return c
+        return None
 
     def make_row(area, course_col, req_txt, dcr, c, s):
         if course_col is None and c is not None:
@@ -1799,6 +1827,8 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         la.append(make_row("F7", None, fw["F7"]["label"], f7_dcr, f7_c, status_of(f7_c)))
 
         # W1, W2, W3, W5, W6, W7
+        # Science dept prefixes for W2 transfer course matching
+        _W2_SCIENCE_PREFIXES = ["BIOL_", "CHEM_", "PHYS_", "ENSU_", "ENVS_", "EXSC_"]
         for wkey in ["W1", "W2", "W3", "W5", "W6", "W7"]:
             wdef = fw.get(wkey, {})
             w_opts = wdef.get("courses", {}).get(yr, [])
@@ -1810,7 +1840,12 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                 w_opts = [o for o in w_opts if "HNRS" not in o.upper() or "2110" not in o]
             # Check MAP exceptions for this area
             mapped = map_by_area.get(wkey, [])
-            w_c = find_any(w_opts + mapped) if mapped else find_any(w_opts)
+            all_opts = w_opts + mapped
+            # W2: also match transfer science courses by dept prefix
+            if wkey == "W2":
+                w_c = find_any_or_prefix(all_opts, _W2_SCIENCE_PREFIXES)
+            else:
+                w_c = find_any(all_opts) if all_opts else find_any(w_opts)
             la.append(make_row(wkey, None, wdef.get("label", wkey), w_dcr, w_c, status_of(w_c)))
 
         # W4 — check integrative (3hr AE), then AP+AX courses
@@ -1824,7 +1859,9 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
             w4_all = w4_ae + w4_ap + w4_ax
         else:
             w4_all = w4_year_data
-        w4_c = find_any(w4_all + map_by_area.get("W4", []))
+        # W4: also match transfer art courses — ART_ prefix = transfer alias for ARTS_
+        _W4_ART_PREFIXES = ["ART_", "ARTS_", "ARTH_", "MUSC_", "THEA_", "DANC_", "MUPF_"]
+        w4_c = find_any_or_prefix(w4_all + map_by_area.get("W4", []), _W4_ART_PREFIXES)
         la.append(
             make_row(
                 "W4",

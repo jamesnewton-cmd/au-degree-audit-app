@@ -213,7 +213,7 @@ def padded(*extra):
 
 # ── COURSE HELPERS ────────────────────────────────────────────────────────────
 def done(c):
-    return c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "DRP", "NC")
+    return c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "WF", "DRP", "NC")
 
 
 def ip(c):
@@ -229,7 +229,7 @@ def xfer(c):
 
 
 def drop(c):
-    return c["grade"].upper() in ("DRP", "W") or c["status"] == "dropped"
+    return c["grade"].upper() in ("DRP", "W", "WF") or c["status"] == "dropped"
 
 
 def status_para(s):
