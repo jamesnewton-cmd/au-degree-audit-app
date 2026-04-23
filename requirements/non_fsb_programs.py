@@ -1734,7 +1734,46 @@ HISTORY_POLS = {
     "public_history": {
         "2022-23": {
             "name": "Public History",
-            "total_credits": 59,
+            "total_credits": 60,
+            # ── History Major (36 cr) ────────────────────────────────────────
+            "required_foundational": ["HIST-2000", "HIST-2300", "HIST-2350"],
+            "required_capstone": ["HIST-4930", "HIST-4800"],
+            "foundational_west_choose": {
+                "credits": 3,
+                "min_courses": 1,
+                "choose_from": ["HIST-2030", "HIST-2040"],
+            },
+            "foundational_us_choose": {
+                "credits": 3,
+                "min_courses": 1,
+                "choose_from": ["HIST-2110", "HIST-2120"],
+            },
+            "american_hist_choose": {
+                "credits": 6,
+                "min_courses": 2,
+                "choose_from": [
+                    "HIST-3420", "HIST-3425", "HIST-3440", "HIST-3451",
+                    "HIST-3452", "HIST-3470", "HIST-3510", "HIST-3520",
+                    "HIST-3540", "HIST-3560", "HIST-4030",
+                ],
+            },
+            "european_hist_choose": {
+                "credits": 6,
+                "min_courses": 2,
+                "choose_from": [
+                    "HIST-3100", "HIST-3135", "HIST-3150",
+                    "HIST-3190", "HIST-3220", "HIST-3280",
+                ],
+            },
+            "world_hist_choose": {
+                "credits": 6,
+                "min_courses": 2,
+                "choose_from": [
+                    "HIST-3240", "HIST-3250", "HIST-3260",
+                    "HIST-3300", "HIST-3360", "HIST-3370",
+                ],
+            },
+            # ── Public History Core (24 cr) ──────────────────────────────────
             "required": [
                 "COMM-2240",
                 "ARTH-2000",
@@ -1744,19 +1783,19 @@ HISTORY_POLS = {
             ],
             "dist_groups": [
                 {
-                    "name": "Professional Skills",
+                    "name": "Professional Skills (choose 2)",
                     "credits": 5,
                     "min_courses": 2,
                     "choose_from": ["BSNS-2710", "BSNS-2810", "COMM-3250"],
                 },
                 {
-                    "name": "Media/Communications",
+                    "name": "Media/Communications (choose 1)",
                     "credits": 3,
                     "min_courses": 1,
                     "choose_from": ["COMM-3370", "BSNS-4400"],
                 },
             ],
-            "notes": "History major requirements plus public history core.",
+            "notes": "Includes full History major (36 cr) plus public history core (24 cr). HIST-4700 does not apply toward the major.",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
