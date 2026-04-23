@@ -4399,39 +4399,48 @@ SPORT_REC = {
 PUBLIC_HEALTH = {
     "public_health_ba": {
         "2022-23": {
-            "name": "Public Health",
-            "total_credits": 48,
+            "name": "Public Health (BA)",
+            "total_credits": 37,
+            # Core (31 cr) + B.A. track (6 cr) + elective (2-4 cr) = 37-39 cr major
+            # (total degree = 48-51 cr including LA framework)
             "required": [
-                "PSYC-2000",
-                "BIOL-2040",
-                "PUBH-2040",
-                "BIOL-2070",
-                "MATH-2120",
-                "PUBH-3020",
-                "PUBH-3010",
-                "PSYC-3010",
-                "SOCI-3010",
-                "PUBH-3700",
-                "SOCI-3700",
-                "PUBH-4350",
-                "SOCI-4350",
-                "SOWK-4350",
-                "PUBH-4360",
-                "SOCI-2020",
-                "SOCI-2100",
-                "PUBH-3260",
-                "BIOL-2410",
-                "BIOL-2420",
-                "BIOL-2230",
-                "PUBH-3510",
-                "BIOL-3510",
+                "PSYC-2000",           # 3 cr
+                "BIOL-2070",           # 4 cr
+                "MATH-2120",           # 4 cr
+                "PUBH-3020",           # 3 cr
+                "PUBH-4360",           # 3 cr
+                "SOCI-2020",           # 3 cr  (B.A. track)
+            ],
+            "choose_one": [
+                # PUBH-2040 or BIOL-2040 (Personal & Community Health)
+                {"name": "Personal & Community Health",
+                 "choose_from": ["PUBH-2040", "BIOL-2040"]},
+                # Social Psychology (WI)
+                {"name": "Social Psychology (WI)",
+                 "choose_from": ["PUBH-3010", "SOCI-3010", "PSYC-3010"]},
+                # Introduction to Social Research
+                {"name": "Introduction to Social Research",
+                 "choose_from": ["PUBH-3700", "SOCI-3700"]},
+                # Program Planning and Grant Writing
+                {"name": "Program Planning and Grant Writing",
+                 "choose_from": ["PUBH-4350", "SOCI-4350", "SOWK-4350"]},
+                # Community Health Internship (W8)
+                {"name": "Community Health Internship (W8)",
+                 "choose_from": ["PUBH-4810", "SOCI-4810"]},
+                # B.A. track: Sociology of Health or Family (choose 1)
+                {"name": "Sociology of Health or Family (BA track)",
+                 "choose_from": ["PUBH-3260", "SOCI-3260", "SOCI-2100"]},
             ],
             "elective_groups": [
                 {
-                    "name": "Public health electives",
-                    "credits": 9,
+                    "name": "Selected elective (2-4 cr)",
+                    "credits": 2,
                     "choose_from": [
+                        "BIOL-2010",
                         "BSNS-4400",
+                        "PUBH-3510",
+                        "BIOL-3510",
+                        "CHEM-1000",
                         "COMM-3370",
                         "ECON-2010",
                         "ECON-2020",
@@ -4447,24 +4456,65 @@ PUBLIC_HEALTH = {
                 },
             ],
         },
-        "2023-24": {
-            "name": "Public Health Social/Behavioral (BA)",
-            "total_credits": 47,
-            "required": [
-                "SOCI-2020",
-                "SOCI-2100",
-                "PUBH-4810",
-                "SOCI-4810",
-            ],
-        },
+        "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+        "2025-26": {"same_as": "2022-23"},
     },
     "public_health_bs": {
-        "2023-24": {
-            "name": "Public Health Natural Sciences (BS)",
-            "total_credits": 53,
-            "required": [],
-            "notes": "See advisor for specific course requirements",
+        "2022-23": {
+            "name": "Public Health (BS)",
+            "total_credits": 43,
+            # Core (31 cr) + B.S. track (12 cr) + elective (2-4 cr) = 43-45 cr major
+            "required": [
+                "PSYC-2000",           # 3 cr
+                "BIOL-2070",           # 4 cr
+                "MATH-2120",           # 4 cr
+                "PUBH-3020",           # 3 cr
+                "PUBH-4360",           # 3 cr
+                "BIOL-2410",           # 4 cr  (B.S. track)
+                "BIOL-2420",           # 4 cr  (B.S. track)
+                "BIOL-2230",           # 4 cr  (B.S. track)
+            ],
+            "choose_one": [
+                {"name": "Personal & Community Health",
+                 "choose_from": ["PUBH-2040", "BIOL-2040"]},
+                {"name": "Social Psychology (WI)",
+                 "choose_from": ["PUBH-3010", "SOCI-3010", "PSYC-3010"]},
+                {"name": "Introduction to Social Research",
+                 "choose_from": ["PUBH-3700", "SOCI-3700"]},
+                {"name": "Program Planning and Grant Writing",
+                 "choose_from": ["PUBH-4350", "SOCI-4350", "SOWK-4350"]},
+                {"name": "Community Health Internship (W8)",
+                 "choose_from": ["PUBH-4810", "SOCI-4810"]},
+            ],
+            "elective_groups": [
+                {
+                    "name": "Selected elective (2-4 cr)",
+                    "credits": 2,
+                    "choose_from": [
+                        "BIOL-2010",
+                        "BSNS-4400",
+                        "PUBH-3510",
+                        "BIOL-3510",
+                        "CHEM-1000",
+                        "COMM-3370",
+                        "ECON-2010",
+                        "ECON-2020",
+                        "ECON-3110",
+                        "NURS-1210",
+                        "POSC-2200",
+                        "PSYC-2100",
+                        "PSYC-3450",
+                        "SOCI-3100",
+                        "SOCI-3400",
+                        "SPAN-3101",
+                    ],
+                },
+            ],
         },
+        "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+        "2025-26": {"same_as": "2022-23"},
     },
     "public_health_minor": {
         "2022-23": {
