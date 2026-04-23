@@ -2773,6 +2773,7 @@ MUSIC = {
             "name": "Music Education (BMus)",
             "total_credits": 101,
             "required": [
+                # Music Theory & Literature
                 "MUSC-1010",
                 "MUSC-1020",
                 "MUSC-1030",
@@ -2785,8 +2786,10 @@ MUSIC = {
                 "MUSC-2330",
                 "MUSC-3030",
                 "MUSC-3040",
+                # Keyboard
                 "MUPF-1050",
                 "MUPF-1060",
+                # Music Education Core
                 "MUED-1000",
                 "MUED-1100",
                 "MUED-1200",
@@ -2800,6 +2803,8 @@ MUSIC = {
                 "MUED-3470",
                 "MUED-3480",
                 "MUED-4700",
+                # Secondary Education Requirements
+                "EDUC-2000",  # Teaching as a Profession (orientation, 2 cr)
                 "EDUC-2100",
                 "EDUC-2110",
                 "EDUC-3120",
@@ -2813,21 +2818,26 @@ MUSIC = {
                     "choose_from": ["MUSC-3110", "MUSC-3120", "MUSC-3130"],
                 },
                 {
-                    "name": "Performance area",
+                    "name": "Performance area (Piano)",
                     "credits": 2,
                     "choose_from": ["MUPF-1710", "MUPF-2030", "MUPF-2040"],
                 },
                 {
-                    "name": "Conducting",
+                    "name": "Pedagogy",
                     "credits": 2,
                     "choose_from": ["MUED-3330", "MUED-3350", "MUED-3370"],
                 },
                 {
-                    "name": "Vocal/Instrumental pedagogy",
+                    # Singers need BOTH MUED-2510 AND MUED-2520;
+                    # Instrumentalists need only MUED-3460.
+                    # Engine models as choose-one to flag the slot; registrar
+                    # must verify singers have completed both 2510 and 2520.
+                    "name": "Singer/Instrumentalist track",
                     "credits": 2,
                     "choose_from": ["MUED-2510", "MUED-2520", "MUED-3460"],
+                    "notes": "Singers require BOTH MUED-2510 and MUED-2520; Instrumentalists require only MUED-3460",
                 },
-                {"name": "Student Teaching", "choose_from": ["EDUC-4120", "EDUC-4710"]},
+                {"name": "Classroom Mgmt", "choose_from": ["EDUC-4120", "EDUC-4710"]},
             ],
         },
         "2023-24": {"same_as": "2022-23"},
