@@ -1416,70 +1416,121 @@ EDUCATION = {
     "social_studies_teaching": {
         "2022-23": {
             "name": "Social Studies Teaching",
-            "total_credits": 51,
+            "total_credits": 94,
+            # ── SSE Major Courses (51 cr) ─────────────────────────────────────
             "required": [
+                # Major core
                 "HIST-4700",
-                "ECON-2010",
-                "PSYC-2000",
-                "SOCI-2010",
+                "HIST-2000",   # Global History required
+                "HIST-2110",   # US History I required
+                "HIST-2120",   # US History II required
+                # Government and Citizenship required
+                "POSC-2020",
+                "POSC-2100",
+                "POSC-2580",
+                # Education core (43 cr)
+                "EDUC-2000",
+                "EDUC-2100",
+                "EDUC-2110",
+                "EDUC-2460",
+                "EDUC-2520",
+                "EDUC-2860",
+                "EDUC-3000",
+                "EDUC-3100",
+                "EDUC-3120",
+                "EDUC-4010",
+                "EDUC-4710",
+                "EDUC-4930",
+                "SPED-2400",
+                "ENGL-3590",
             ],
             "dist_groups": [
                 {
-                    "name": "World History",
-                    "credits": 6,
-                    "min_courses": 2,
-                    "choose_from": ["HIST-2110", "HIST-2120"],
-                },
-                {
-                    "name": "US History upper-div",
-                    "credits": 6,
-                    "min_courses": 2,
-                    "choose_from": [
-                        "HIST-3420",
-                        "HIST-3425",
-                        "HIST-3440",
-                        "HIST-3451",
-                        "HIST-3452",
-                        "HIST-3470",
-                        "HIST-3510",
-                        "HIST-3540",
-                        "HIST-4030",
-                    ],
-                },
-                {
-                    "name": "US History survey",
+                    "name": "European History survey (choose 1)",
                     "credits": 3,
                     "min_courses": 1,
                     "choose_from": ["HIST-2030", "HIST-2040"],
                 },
                 {
-                    "name": "US History topics",
-                    "credits": 6,
-                    "min_courses": 2,
+                    "name": "European History upper-div (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
                     "choose_from": [
-                        "HIST-3010",
-                        "HIST-3100",
-                        "HIST-3135",
-                        "HIST-3150",
-                        "HIST-3190",
-                        "HIST-3220",
-                        "HIST-3240",
+                        "HIST-3010", "HIST-3100", "HIST-3110", "HIST-3130",
+                        "HIST-3135", "HIST-3150", "HIST-3190", "HIST-3220", "HIST-3240",
                     ],
                 },
                 {
-                    "name": "Political Science",
+                    "name": "Global History upper-div (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
+                    "choose_from": [
+                        "HIST-3260", "HIST-3280", "HIST-3300",
+                        "HIST-3320", "HIST-3360", "HIST-3370",
+                    ],
+                },
+                {
+                    "name": "Additional European or Global History 3000-level (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
+                    "choose_from": [
+                        "HIST-3010", "HIST-3100", "HIST-3110", "HIST-3130",
+                        "HIST-3135", "HIST-3150", "HIST-3190", "HIST-3220", "HIST-3240",
+                        "HIST-3260", "HIST-3280", "HIST-3300",
+                        "HIST-3320", "HIST-3360", "HIST-3370",
+                    ],
+                },
+                {
+                    "name": "US History upper-div (choose 2)",
+                    "credits": 6,
+                    "min_courses": 2,
+                    "choose_from": [
+                        "HIST-3420", "HIST-3425", "HIST-3440",
+                        "HIST-3451", "HIST-3452", "HIST-3455", "HIST-3470",
+                        "HIST-3510", "HIST-3540", "HIST-4030",
+                    ],
+                },
+                {
+                    "name": "Government and Citizenship elective (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
+                    "choose_from": ["POSC-2120", "POSC-3010"],
+                },
+                {
+                    "name": "Third Field: Economics (choose if declared)",
                     "credits": 9,
                     "min_courses": 3,
                     "choose_from": [
-                        "POSC-2020",
-                        "POSC-2100",
-                        "POSC-2580",
-                        "POSC-2120",
-                        "POSC-3010",
+                        "ECON-2010", "ECON-2020", "ECON-3210", "ECON-3410",
+                    ],
+                },
+                {
+                    "name": "Third Field: Psychology (choose if declared)",
+                    "credits": 11,
+                    "min_courses": 3,
+                    "choose_from": [
+                        "PSYC-2000", "PSYC-2510", "PSYC-3010", "PSYC-3120", "PSYC-4140",
+                    ],
+                },
+                {
+                    "name": "Third Field: Sociology (choose if declared)",
+                    "credits": 9,
+                    "min_courses": 3,
+                    "choose_from": [
+                        "SOCI-2010", "SOCI-2020", "SOCI-2120", "SOCI-2200",
+                        "SOCI-3400", "SOCI-4020",
+                    ],
+                },
+                {
+                    "name": "Third Field: Special Education (choose if declared)",
+                    "credits": 15,
+                    "min_courses": 5,
+                    "choose_from": [
+                        "SPED-2400", "SPED-2500", "SPED-3000", "SPED-3120", "SPED-3500",
                     ],
                 },
             ],
-            "notes": "HIST-2000 required",
+            "notes": "51 SSE cr + 43 Education cr = 94 total. Third field: choose ONE of Economics (9 cr), Psychology (11 cr), Sociology (9 cr), or Special Education (15 cr). HIST-3455 accepted as equivalent to HIST-3451/3452.",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
