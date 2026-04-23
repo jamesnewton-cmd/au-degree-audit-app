@@ -28,7 +28,6 @@ BIOLOGY = {
                 "BIOL-2220",
                 "BIOL-2240",
                 "BIOL-3030",
-                "BIOL-3510",
                 "BIOL-4050",
                 "BIOL-4070",
                 "BIOL-4910",
@@ -36,6 +35,10 @@ BIOLOGY = {
                 "CHEM-2110",
                 "CHEM-2120",
                 "CHEM-2210",
+            ],
+            "choose_one": [
+                {"name": "Bioethics or Integration of Faith and Science", "choose_from": ["BIOL-3510", "BIOL-3920"]},
+                {"name": "Additional CHEM (2120, 2220, or 3100)", "choose_from": ["CHEM-2120", "CHEM-2220", "CHEM-3100"]},
             ],
             "elective_groups": [
                 {
