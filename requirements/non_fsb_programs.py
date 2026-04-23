@@ -958,7 +958,6 @@ CYBERSECURITY = {
                 "CPSC-2180",
                 "CPSC-2300",
                 "MATH-2120",
-                "MATH-2200",
                 "POSC-2030",
                 "POSC-2200",
                 "POSC-2400",
@@ -972,6 +971,7 @@ CYBERSECURITY = {
             ],
             "choose_one": [
                 {"name": "Homeland Security", "choose_from": ["POSC-3350", "CRIM-3350"]},
+                {"name": "Discrete Mathematical Structures", "choose_from": ["MATH-2200", "CPSC-2250"]},
             ],
             "elective_groups": [
                 {
