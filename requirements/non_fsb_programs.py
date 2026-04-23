@@ -1887,59 +1887,98 @@ HISTORY_POLS = {
         "2022-23": {
             "name": "National Security",
             "total_credits": 44,
+            # Foundational (16 cr) + Ethics (3 cr) + Capstone (1 cr) = 20 required cr
             "required": [
-                "POSC-2030",
-                "POSC-2100",
-                "POSC-2200",
-                "POSC-2400",
-                "MATH-2120",
-                "POSC-3300",
-                "POSC-3310",
-                "POSC-3370",
-                "PHIL-3250",
-                "CRIM-2520",
-                "CRIM-3050",
-                "HIST-3220",
-                "HIST-3240",
-                "HIST-3250",
-                "HIST-3300",
-                "HIST-3360",
-                "HIST-3370",
-                "HIST-3510",
-                "HIST-3520",
+                "POSC-2030",   # Intro to National Security Studies (3 cr)
+                "POSC-2100",   # American National Government (3 cr) [W3]
+                "POSC-2200",   # Public Policy (3 cr)
+                "POSC-2400",   # Political Science Research Methods (3 cr) [WI]
+                "MATH-2120",   # Introductory Statistics with Applications (4 cr) [F5]
+                "PHIL-3250",   # Ethics and Morality for Professionals (3 cr) [W1]
+                "POSC-4930",   # Senior Seminar (1 cr)
             ],
-            "choose_one": [
-                {"name": "Homeland Security", "choose_from": ["POSC-3350", "CRIM-3350"]},
-                {"name": "Criminology/Sociology", "choose_from": ["CRIM-2510", "SOCI-2510"]},
+            # National Security Policy Courses: choose 3 of 4 (9 cr)
+            # National Security Electives: choose 5 courses (15 cr)
+            "dist_groups": [
+                {
+                    "name": "National Security Policy Courses",
+                    "credits": 9,
+                    "choose_from": [
+                        "POSC-3300",   # International Security (3 cr)
+                        "POSC-3310",   # Political Violence and Terrorism (3 cr) [WI]
+                        "POSC-3350",   # Homeland Security (3 cr)
+                        "CRIM-3350",   # Homeland Security (cross-listed)
+                        "POSC-3370",   # Intelligence and Security Studies (3 cr) [SI]
+                    ],
+                    "notes": "Choose 3 courses (9 cr) from POSC-3300, POSC-3310, POSC/CRIM-3350, POSC-3370",
+                },
+                {
+                    "name": "National Security Electives",
+                    "credits": 15,
+                    "choose_from": [
+                        "CRIM-2510",   # The Nature of Crime and Social Deviance (4 cr)
+                        "SOCI-2510",   # The Nature of Crime and Social Deviance (cross-listed)
+                        "CRIM-2520",   # Introduction to Criminal Justice (3 cr)
+                        "CRIM-3050",   # Drugs and American Society (3 cr)
+                        "HIST-3220",   # The Age of World Wars, 1900-1950 (3 cr)
+                        "HIST-3240",   # History of Russia and the Soviet Union (3 cr) [W7]
+                        "HIST-3250",   # History of the Cold War (3 cr) [W7]
+                        "HIST-3300",   # Middle East (3 cr) [W7, WI]
+                        "HIST-3360",   # History of Modern Asia (3 cr) [W7]
+                        "HIST-3370",   # General History of Latin America (3 cr) [W7]
+                        "HIST-3510",   # Law, the Constitution and War in American History (3 cr) [WI]
+                        "HIST-3520",   # History of the Vietnam War (3 cr)
+                        "POSC-3212",   # The Presidency (3 cr) [SI]
+                        "POSC-3250",   # Constitutional Law (3 cr)
+                        "POSC-3300",   # International Security (3 cr) [also Policy]
+                        "POSC-3310",   # Political Violence and Terrorism (3 cr) [also Policy]
+                        "POSC-3330",   # American Foreign Policy (3 cr)
+                        "POSC-3350",   # Homeland Security (3 cr) [also Policy]
+                        "CRIM-3350",   # Homeland Security (cross-listed)
+                        "POSC-3360",   # War, Peace, and Security (3 cr)
+                        "POSC-3370",   # Intelligence and Security Studies (3 cr) [also Policy]
+                        "PSYC-3010",   # Social Psychology (4 cr)
+                        "SOCI-3010",   # Social Psychology (cross-listed)
+                    ],
+                    "notes": "Choose 5 courses (15 cr) from approved National Security elective list",
+                },
             ],
         },
         "2023-24": {
             "name": "National Security",
             "total_credits": 44,
+            # Same structure as 2022-23 but POSC-2020 replaces POSC-2030
             "required": [
-                "POSC-2020",
-                "POSC-2100",
-                "POSC-2200",
-                "POSC-2400",
-                "MATH-2120",
-                "POSC-3300",
-                "POSC-3310",
-                "POSC-3370",
-                "PHIL-3250",
-                "CRIM-2520",
-                "CRIM-3050",
-                "HIST-3220",
-                "HIST-3240",
-                "HIST-3250",
-                "HIST-3300",
-                "HIST-3360",
-                "HIST-3370",
-                "HIST-3510",
-                "HIST-3520",
+                "POSC-2020",   # Introduction to World Politics (3 cr) [replaces POSC-2030 in 23-24]
+                "POSC-2100",   # American National Government (3 cr) [W3]
+                "POSC-2200",   # Public Policy (3 cr)
+                "POSC-2400",   # Political Science Research Methods (3 cr) [WI]
+                "MATH-2120",   # Introductory Statistics with Applications (4 cr) [F5]
+                "PHIL-3250",   # Ethics and Morality for Professionals (3 cr) [W1]
+                "POSC-4930",   # Senior Seminar (1 cr)
             ],
-            "choose_one": [
-                {"name": "Homeland Security", "choose_from": ["POSC-3350", "CRIM-3350"]},
-                {"name": "Criminology/Sociology", "choose_from": ["CRIM-2510", "SOCI-2510"]},
+            "dist_groups": [
+                {
+                    "name": "National Security Policy Courses",
+                    "credits": 9,
+                    "choose_from": [
+                        "POSC-3300", "POSC-3310", "POSC-3350", "CRIM-3350", "POSC-3370",
+                    ],
+                    "notes": "Choose 3 courses (9 cr) from POSC-3300, POSC-3310, POSC/CRIM-3350, POSC-3370",
+                },
+                {
+                    "name": "National Security Electives",
+                    "credits": 15,
+                    "choose_from": [
+                        "CRIM-2510", "SOCI-2510", "CRIM-2520", "CRIM-3050",
+                        "HIST-3220", "HIST-3240", "HIST-3250", "HIST-3300",
+                        "HIST-3360", "HIST-3370", "HIST-3510", "HIST-3520",
+                        "POSC-3212", "POSC-3250", "POSC-3300", "POSC-3310",
+                        "POSC-3330", "POSC-3350", "CRIM-3350", "POSC-3360",
+                        "POSC-3370", "PSYC-3010", "SOCI-3010",
+                    ],
+                    "notes": "Choose 5 courses (15 cr) from approved National Security elective list",
+                },
             ],
         },
         "2024-25": {"same_as": "2023-24"},
