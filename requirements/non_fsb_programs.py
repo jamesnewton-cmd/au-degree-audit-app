@@ -2099,9 +2099,19 @@ MINISTRY = {
                 "CMIN-3080",
                 "CMIN-3910",
                 "CMIN-4250",
-                "CMIN-4810",
             ],
-            "notes": "24 hrs departmental core + 19 hrs ministry core",
+            "choose_one": [
+                {"name": "Ministry Internship or Practicum", "choose_from": ["CMIN-4810", "CMIN-4850"]},
+            ],
+            "elective_groups": [
+                {
+                    "name": "Departmental elective",
+                    "credits": 3,
+                    "dept_options": ["BIBL", "RLGN", "CMIN"],
+                    "notes": "3 additional credit hours from BIBL, RLGN, or CMIN dept",
+                },
+            ],
+            "notes": "24 hrs departmental core + 19 hrs ministry core + 3 hrs dept elective",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
