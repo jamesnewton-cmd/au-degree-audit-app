@@ -3224,6 +3224,53 @@ MUSIC = {
 # THEATRE / DANCE
 # ─────────────────────────────────────────────────────────────────────────
 THEATRE_DANCE = {
+    "visual_communication_design": {
+        "2022-23": {
+            "name": "Visual Communication Design",
+            "total_credits": 53,
+            "required": [
+                # Art History (9 cr)
+                "ARTH-3010",   # Ancient to Medieval Art (3)
+                "ARTH-3020",   # Renaissance to Modern Art (3)
+                "ARTH-3030",   # Contemporary Art and Design (3; WI)
+                # Art Foundation (12 cr)
+                "ARTS-2010",   # Introduction to Drawing (3)
+                "ARTS-2011",   # Two-Dimensional Design (3)
+                "ARTS-2060",   # Illustration (3)
+                "ARTS-2100",   # Intro to Graphic Design (3)
+                # Design Core (9 cr)
+                "ARTS-3110",   # Visual Design Studio I (3)
+                "ARTS-3114",   # Visual Design Studio II (3)
+                "ARTS-3310",   # Typography Studio (3)
+                # Advanced Design (9 cr)
+                "ARTS-4114",   # Design for Digital Media (3)
+                "ARTS-4310",   # Design Thinking (3)
+                "ARTS-4420",   # Design Methodology (3)
+                # Capstone (8 cr)
+                "ARTS-4820",   # Internship (2)
+                "ARTS-4930",   # Comprehensive Projects I Preparation (2)
+                "ARTS-4950",   # Comprehensive Projects II (4; SI)
+            ],
+            "dist_groups": [
+                {
+                    "name": "Special Topics / Motion Graphics (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
+                    "choose_from": ["ARTS-4450", "COMM-3160"],
+                },
+                {
+                    "name": "Branding / Social Media (choose 1)",
+                    "credits": 3,
+                    "min_courses": 1,
+                    "choose_from": ["BSNS-3550", "COMM-3370"],
+                },
+            ],
+            "notes": "ARTH-3030 is WI; ARTS-4950 is SI. ARTS-4820 internship is 2 cr on advising sheet.",
+        },
+        "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+        "2025-26": {"same_as": "2022-23"},
+    },
     "theatre_ba": {
         "2022-23": {
             "name": "Theatre (BA)",

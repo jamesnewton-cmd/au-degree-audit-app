@@ -1566,6 +1566,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         "public_relations": ["COMM_4800"],
         "multimedia_journalism_complementary": ["COMM_4800"],
         "visual_communication": ["ARTH_4800"],
+        "visual_communication_design": ["ARTS_4820"],  # Internship is W8 for VCD
         "literary_studies": ["ENGL_4910"],
         "writing": ["ENGL_4910"],
         "english": ["ENGL_4910"],
