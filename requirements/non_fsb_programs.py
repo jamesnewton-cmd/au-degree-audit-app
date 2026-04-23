@@ -4054,7 +4054,6 @@ COMMUNICATION = {
             "total_credits": 52,
             "required": [
                 "COMM-2000",
-                "COMM-2010",
                 "COMM-2020",
                 "COMM-2060",
                 "COMM-2160",
