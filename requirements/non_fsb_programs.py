@@ -1797,10 +1797,19 @@ HISTORY_POLS = {
                     "choose_from": ["POSC-3300", "POSC-3400", "POSC-3510"],
                 },
             ],
-            "notes": "No more than 5 hrs from POSC-2810, 4800, 4810, 4820.",
+            "elective_groups": [
+                {
+                    "name": "Political Science Electives",
+                    "credits": 7,
+                    "dept": "POSC",
+                    "notes": "7 cr from POSC courses; at least 6 cr must be upper-division (3000+). No more than 5 cr from POSC-2810, 4800, 4810, 4820.",
+                },
+            ],
+            "notes": "No more than 5 hrs from POSC-2810, 4800, 4810, 4820 may apply toward major.",
         },
         "2023-24": {"same_as": "2022-23"},
         "2024-25": {"same_as": "2022-23"},
+        "2025-26": {"same_as": "2022-23"},
     },
     "polsci_philosophy_economics": {
         "2022-23": {
