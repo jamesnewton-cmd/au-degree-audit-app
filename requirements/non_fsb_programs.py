@@ -3855,6 +3855,7 @@ ENGINEERING = {
             "name": "Mechatronics Engineering (BS)",
             "total_credits": 83,
             "required": [
+                # Mathematics and Basic Sciences (31 cr)
                 "CHEM-2110",
                 "PHYS-2240",
                 "PHYS-2250",
@@ -3862,6 +3863,7 @@ ENGINEERING = {
                 "MATH-2020",
                 "MATH-3010",
                 "MATH-3100",
+                # Common Engineering Core (21 cr)
                 "ENGR-2001",
                 "ENGR-2002",
                 "ENGR-2003",
@@ -3870,11 +3872,26 @@ ENGINEERING = {
                 "ENGR-2090",
                 "ENGR-2110",
                 "ENGR-2310",
+                "ENGR-4950",  # Senior Design I, 2 cr (WI)
+                "ENGR-4960",  # Senior Design II, 2 cr (WI+SI)
+                # Major Specific Requirements (31 cr)
                 "ENGR-3030",
+                "ENGR-3110",  # Kinematics and Robotics
+                "ENGR-3220",  # Electronics
+                "ENGR-3280",  # Microcontrollers
+                "ENGR-3510",  # Solid Mechanics
+                "ENGR-4020",  # Mechatronics System Design
             ],
             "choose_one": [
                 {"name": "Computing", "choose_from": ["CPSC-2320", "CPSC-2500"]},
-                {"name": "MATH", "choose_from": ["MATH-3020", "MATH-4010", "MATH-2120"]},
+                {"name": "Upper Math", "choose_from": ["MATH-3020", "MATH-4010", "CPSC-2250"]},
+            ],
+            "elective_groups": [
+                {
+                    "name": "MxE Electives (3000+ level CPSC, ENGR, MATH, or PHYS)",
+                    "dept": ["CPSC", "ENGR", "MATH", "PHYS"],
+                    "credits": 3,
+                },
             ],
         },
         "2023-24": {"same_as": "2022-23"},
