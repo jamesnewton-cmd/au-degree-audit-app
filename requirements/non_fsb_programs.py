@@ -3581,8 +3581,9 @@ ENGINEERING = {
     "mechanical_engineering_bs": {
         "2022-23": {
             "name": "Mechanical Engineering (BS)",
-            "total_credits": 83,
+            "total_credits": 84,
             "required": [
+                # Mathematics and Basic Sciences (31 cr)
                 "CHEM-2110",
                 "PHYS-2240",
                 "PHYS-2250",
@@ -3591,17 +3592,30 @@ ENGINEERING = {
                 "MATH-3010",
                 "MATH-3020",
                 "MATH-3100",
+                # Common Engineering Core (21 cr)
                 "ENGR-2001",
                 "ENGR-2002",
                 "ENGR-2003",
                 "ENGR-2010",
                 "ENGR-2030",
-                "ENGR-2070",
                 "ENGR-2090",
                 "ENGR-2110",
                 "ENGR-2310",
+                "ENGR-4950",  # Senior Design I, 2 cr (WI)
+                "ENGR-4960",  # Senior Design II, 2 cr (WI+SI)
+                # Major Specific Requirements (32 cr)
+                "ENGR-2070",
                 "ENGR-3030",
                 "ENGR-3100",
+                "ENGR-3110",  # Kinematics and Robotics, 3 cr
+                "ENGR-3160",  # Vibrations, 2 cr
+                "ENGR-3180",  # Materials and Processes, 3 cr
+                "ENGR-3190",  # Thermodynamics: Cycle Analysis, 2 cr
+                "ENGR-3510",  # Solid Mechanics, 3 cr
+                "ENGR-4100",  # Thermal-Fluids Lab, 2 cr
+                "ENGR-4110",  # Machine Design, 3 cr
+                "ENGR-4130",  # Fluid Mechanics, 3 cr
+                "ENGR-4160",  # Heat and Mass Transfer, 3 cr
             ],
             "choose_one": [
                 {"name": "Computing", "choose_from": ["CPSC-2320", "CPSC-2500"]},
