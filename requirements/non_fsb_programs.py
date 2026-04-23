@@ -3567,7 +3567,11 @@ ENGINEERING = {
         "2022-23": {
             "name": "Electrical Engineering (BS)",
             "total_credits": 84,
+            # ── Common Engineering Core (21 cr) ────────────────────────────
+            # ── Mathematics and Basic Sciences (31 cr) ─────────────────────
+            # ── Major Specific Requirements (32 cr) ────────────────────────
             "required": [
+                # Math & Basic Sciences
                 "CHEM-2110",
                 "PHYS-2240",
                 "PHYS-2250",
@@ -3577,6 +3581,7 @@ ENGINEERING = {
                 "MATH-3020",
                 "MATH-3100",
                 "MATH-4010",
+                # Common Engineering Core
                 "ENGR-2001",
                 "ENGR-2002",
                 "ENGR-2003",
@@ -3585,11 +3590,22 @@ ENGINEERING = {
                 "ENGR-2090",
                 "ENGR-2110",
                 "ENGR-2310",
+                "ENGR-4950",
+                "ENGR-4960",
+                # Major Specific
                 "ENGR-3030",
+                "ENGR-3220",
+                "ENGR-3230",
+                "ENGR-3240",
+                "ENGR-3270",
+                "ENGR-3280",
+                "ENGR-4230",
+                "ENGR-4240",
+                "ENGR-4250",
             ],
             "choose_one": [
-                {"name": "Computing", "choose_from": ["CPSC-2320", "CPSC-2500"]},
-                {"name": "Advanced circuits", "choose_from": ["CPSC-2420"]},
+                {"name": "C++ / Computing", "choose_from": ["CPSC-2320", "CPSC-2500"]},
+                {"name": "Computer Architecture", "choose_from": ["CPSC-2420"]},
             ],
         },
         "2023-24": {
