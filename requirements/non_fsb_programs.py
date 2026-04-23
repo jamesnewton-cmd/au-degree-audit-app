@@ -2711,6 +2711,7 @@ ENGLISH = {
             "required": ["ENGL-4910"],
             "elective_groups": [
                 {
+                    # Section A: 18-25 cr from writing/editing/publishing courses
                     "name": "Writing courses",
                     "credits": 18,
                     "choose_from": [
@@ -2729,23 +2730,42 @@ ENGLISH = {
                     ],
                 },
                 {
-                    "name": "Media/Comm elective",
+                    # Section B: 3-8 cr from any other ENGL 2000+ course (not in Section A)
+                    "name": "ENGL elective (2000+)",
                     "credits": 3,
-                    "choose_from": ["COMM-3220", "COMM-3260"],
+                    "choose_from": [
+                        "ENGL-2220",
+                        "ENGL-2400",
+                        "ENGL-2550",
+                        "ENGL-3050",
+                        "ENGL-3320",
+                        "ENGL-3420",
+                        "ENGL-3500",
+                        "ENGL-3520",
+                        "ENGL-3530",
+                        "ENGL-3540",
+                        "ENGL-3560",
+                        "ENGL-3570",
+                        "ENGL-3580",
+                        "ENGL-4800",
+                        "ENGL-4850",
+                    ],
+                    "notes": "3-8 cr from any ENGL course 2000+ not listed in Section A",
                 },
                 {
+                    # Section C: 1-3 cr Writing Internship (required)
                     "name": "Internship",
-                    "credits": 2,
+                    "credits": 1,
                     "choose_from": ["ENGL-4800"],
-                    "notes": "1-3 hrs writing internship required",
+                    "notes": "1-3 hrs writing internship required; must be approved by dept chair",
                 },
                 {
+                    # Section D: 3-4 cr design/tech
                     "name": "Design/digital elective",
                     "credits": 3,
                     "choose_from": [
                         "ARTS-2100",
                         "ARTS-1250",
-                        "COMM-2240",
                         "CPSC-1100",
                         "CPSC-1200",
                     ],
