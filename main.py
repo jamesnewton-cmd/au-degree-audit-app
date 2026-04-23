@@ -1150,6 +1150,7 @@ async def generate(
             if hasattr(mod, "MAJOR_KEY"):
                 mod.MAJOR_KEY = major
                 mod.CATALOG_YEAR = catalog_year
+                mod.CONCENTRATION = concentration
 
             try:
                 res = mod.audit(raw_courses, minor_key=minor1 or None)

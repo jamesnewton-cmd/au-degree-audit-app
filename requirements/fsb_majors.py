@@ -228,82 +228,142 @@ MARKETING = {
 MANAGEMENT = {
     "2022-23": {
         "name": "Management",
-        "total_credits": 63,
+        "total_credits": 61,
         "uses_business_core": True,
         "required_courses": [
-            {
-                "code": "BSNS 3120",
-                "name": "Global Business",
-                "credits": 3,
-                "also_satisfies": ["W7", "WI"],
-            },
-            {"code": "BSNS 3230", "name": "Human Resource Management", "credits": 3},
-            {"code": "BSNS 4010", "name": "Organizational Behavior", "credits": 3},
-            {"code": "BSNS 4480", "name": "Leadership", "credits": 3, "also_satisfies": ["F4 SI"]},
+            {"code": "BSNS 4010", "name": "Organizational Behavior and Theory", "credits": 3},
+            {"code": "BSNS 4480", "name": "Leadership", "credits": 3, "also_satisfies": ["F4", "SI"]},
+            {"code": "BSNS 4920", "name": "Senior Seminar in Management", "credits": 1, "also_satisfies": ["WI"]},
         ],
-        "choose_one": {
-            "note": "BSNS 3850 or BSNS 4800",
-            "options": [
-                {"code": "BSNS 3850", "name": "Entrepreneurship", "credits": 3},
-                {
-                    "code": "BSNS 4800",
-                    "name": "Business Internship",
-                    "credits": 3,
-                    "also_satisfies": ["W8"],
-                },
-            ],
-        },
-        "electives": {
-            "credits": 6,
-            "choose_from": [
-                "BSNS 3100",
-                "BSNS 3240",
-                "BSNS 3510",
-                "BSNS 4050",
-                "BSNS 4120",
-                "BSNS 4240",
-                "BSNS 4310",
-            ],
+        "choose_one": None,
+        "electives": None,
+        "concentrations": {
+            "Entrepreneurship": {
+                "required": [
+                    {"code": "BSNS 3100", "name": "New Venture Feasibility", "credits": 3},
+                    {"code": "BSNS 4310", "name": "Business Plan Development", "credits": 3},
+                ],
+                "elective_groups": [
+                    {
+                        "label": "Entrepreneurship Elective (3 cr)",
+                        "credits": 3,
+                        "choose_from": [
+                            "BSNS 3120", "BSNS 3240", "BSNS 3400", "BSNS 3440",
+                            "BSNS 3450", "BSNS 4240", "BSNS 4320", "BSNS 4800",
+                        ],
+                    }
+                ],
+            },
+            "Event Planning": {
+                "required": [
+                    {"code": "BSNS 3340", "name": "Managing Effective Events", "credits": 3},
+                    {"code": "BSNS 3860", "name": "Event Planning Practicum", "credits": 2},
+                    {"code": "BSNS 4340", "name": "Event Strategies and Tactics", "credits": 3},
+                    {"code": "COMM 3250", "name": "Event Planning and Management", "credits": 2},
+                ],
+                "elective_groups": [],
+            },
+            "Nonprofit Leadership": {
+                "required": [
+                    {"code": "BSNS 3300", "name": "Introduction to Nonprofit Leadership", "credits": 3},
+                    {"code": "BSNS 4300", "name": "Planning and Fund Development in Nonprofit Organizations", "credits": 3},
+                    {"code": "BSNS 4800", "name": "Business Internship", "credits": 3},
+                ],
+                "elective_groups": [],
+            },
+            "Organizational Management": {
+                "required": [
+                    {"code": "BSNS 3230", "name": "Human Resource Management", "credits": 3},
+                    {"code": "BSNS 3240", "name": "Operations Management", "credits": 3},
+                ],
+                "elective_groups": [
+                    {
+                        "label": "Organizational Management Elective (3 cr)",
+                        "credits": 3,
+                        "choose_from": [
+                            "BSNS 3120", "BSNS 4120", "BSNS 4240", "BSNS 4800",
+                        ],
+                    }
+                ],
+            },
+            "Project Management": {
+                "required": [
+                    {"code": "BSNS 3240", "name": "Operations Management", "credits": 3},
+                    {"code": "BSNS 3510", "name": "Supply Chain Management", "credits": 3},
+                    {"code": "BSNS 4050", "name": "Quality Systems and Control", "credits": 3},
+                ],
+                "elective_groups": [],
+            },
         },
     },
     "2023-24": {
         "name": "Management",
-        "total_credits": 63,
+        "total_credits": 61,
         "uses_business_core": True,
         "required_courses": [
-            {
-                "code": "BSNS 3120",
-                "name": "Global Business",
-                "credits": 3,
-                "also_satisfies": ["W7", "WI"],
-            },
-            {"code": "BSNS 3230", "name": "Human Resource Management", "credits": 3},
-            {"code": "BSNS 4010", "name": "Organizational Behavior", "credits": 3},
-            {"code": "BSNS 4480", "name": "Leadership", "credits": 3, "also_satisfies": ["F4 SI"]},
+            {"code": "BSNS 4010", "name": "Organizational Behavior and Theory", "credits": 3},
+            {"code": "BSNS 4480", "name": "Leadership", "credits": 3, "also_satisfies": ["F4", "SI"]},
+            {"code": "BSNS 4920", "name": "Senior Seminar in Management", "credits": 1, "also_satisfies": ["WI"]},
         ],
-        "choose_one": {
-            "note": "BSNS 3850 or BSNS 4800",
-            "options": [
-                {"code": "BSNS 3850", "name": "Entrepreneurship", "credits": 3},
-                {
-                    "code": "BSNS 4800",
-                    "name": "Business Internship",
-                    "credits": 3,
-                    "also_satisfies": ["W8"],
-                },
-            ],
-        },
-        "electives": {
-            "credits": 6,
-            "choose_from": [
-                "BSNS 3100",
-                "BSNS 3240",
-                "BSNS 3510",
-                "BSNS 4050",
-                "BSNS 4120",
-                "BSNS 4240",
-                "BSNS 4310",
-            ],
+        "choose_one": None,
+        "electives": None,
+        "concentrations": {
+            "Entrepreneurship": {
+                "required": [
+                    {"code": "BSNS 3100", "name": "New Venture Feasibility", "credits": 3},
+                    {"code": "BSNS 4310", "name": "Business Plan Development", "credits": 3},
+                ],
+                "elective_groups": [
+                    {
+                        "label": "Entrepreneurship Elective (3 cr)",
+                        "credits": 3,
+                        "choose_from": [
+                            "BSNS 3120", "BSNS 3240", "BSNS 3400", "BSNS 3440",
+                            "BSNS 3450", "BSNS 4240", "BSNS 4320", "BSNS 4800",
+                        ],
+                    }
+                ],
+            },
+            "Event Planning": {
+                "required": [
+                    {"code": "BSNS 3340", "name": "Managing Effective Events", "credits": 3},
+                    {"code": "BSNS 3860", "name": "Event Planning Practicum", "credits": 2},
+                    {"code": "BSNS 4340", "name": "Event Strategies and Tactics", "credits": 3},
+                    {"code": "COMM 3250", "name": "Event Planning and Management", "credits": 2},
+                ],
+                "elective_groups": [],
+            },
+            "Nonprofit Leadership": {
+                "required": [
+                    {"code": "BSNS 3300", "name": "Introduction to Nonprofit Leadership", "credits": 3},
+                    {"code": "BSNS 4300", "name": "Planning and Fund Development in Nonprofit Organizations", "credits": 3},
+                    {"code": "BSNS 4800", "name": "Business Internship", "credits": 3},
+                ],
+                "elective_groups": [],
+            },
+            "Organizational Management": {
+                "required": [
+                    {"code": "BSNS 3230", "name": "Human Resource Management", "credits": 3},
+                    {"code": "BSNS 3240", "name": "Operations Management", "credits": 3},
+                ],
+                "elective_groups": [
+                    {
+                        "label": "Organizational Management Elective (3 cr)",
+                        "credits": 3,
+                        "choose_from": [
+                            "BSNS 3120", "BSNS 4120", "BSNS 4240", "BSNS 4800",
+                        ],
+                    }
+                ],
+            },
+            "Project Management": {
+                "required": [
+                    {"code": "BSNS 3240", "name": "Operations Management", "credits": 3},
+                    {"code": "BSNS 3510", "name": "Supply Chain Management", "credits": 3},
+                    {"code": "BSNS 4050", "name": "Quality Systems and Control", "credits": 3},
+                ],
+                "elective_groups": [],
+            },
         },
     },
     "2024-25": {

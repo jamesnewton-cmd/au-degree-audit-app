@@ -1353,6 +1353,38 @@ def audit(courses, minor_key=None):
             mr.append({"id": "MAJOR_ELEC", "label": _elec_label, "status": s, "course": c, "dcr": _elec_cr})
             _mr_req_tuples.append(("MAJOR_ELEC", _elec_label, _elec_opts, _elec_cr))
 
+        # Concentration rows for FSB majors that have concentrations
+        _concentration = globals().get("CONCENTRATION", "")
+        if _concentration:
+            _concs = _fsb_reqs.get("concentrations", {})
+            _conc_data = _concs.get(_concentration, {})
+            if _conc_data:
+                # Required courses in concentration
+                for _rc in _conc_data.get("required", []):
+                    _code = _rc.get("code", "").replace(" ", "-")
+                    _name = _rc.get("name", _code)
+                    _cr = _rc.get("credits", 3)
+                    _opts = [_code.replace("-", "_")]
+                    _rid = _code.replace("-", "_")
+                    _label = f"[{_concentration}] {_code} {_name}"
+                    c = find(_opts)
+                    s = status_of(c)
+                    mr.append({"id": _rid, "label": _label, "status": s, "course": c, "dcr": _cr})
+                    _mr_req_tuples.append((_rid, _label, _opts, _cr))
+                # Elective groups in concentration
+                for _eg in _conc_data.get("elective_groups", []):
+                    _eg_label = f"[{_concentration}] {_eg.get('label', 'Elective')}"
+                    _eg_cr = _eg.get("credits", 3)
+                    _eg_opts = [c.replace(" ", "_") for c in _eg.get("choose_from", [])]
+                    c = None
+                    for _ec in _eg_opts:
+                        _candidate = cm.get(_ec)
+                        if _candidate and not drop(_candidate):
+                            c = _candidate
+                            break
+                    s = status_of(c)
+                    mr.append({"id": "CONC_ELEC", "label": _eg_label, "status": s, "course": c, "dcr": _eg_cr})
+                    _mr_req_tuples.append(("CONC_ELEC", _eg_label, _eg_opts, _eg_cr))
     # Electives (none required for Sport Marketing; other majors handled above)
     elecs = []
     elecs_ip = []
