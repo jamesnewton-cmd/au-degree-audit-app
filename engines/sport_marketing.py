@@ -261,6 +261,36 @@ def _canonical_status(status_raw, reg_date_raw):
     return status
 
 
+# ── LAFS area code -> LA framework area key mapping ───────────────────────────
+# LAFS codes (e.g. 'LAFS- 15QR-1631788-MATH-125') indicate transfer courses
+# that satisfy a specific Liberal Arts Framework area. The area code is embedded
+# in the course code: QR=F5, WR=WI, SP=SI, etc.
+_LAFS_AREA_MAP = {
+    "QR": "F5",   # Quantitative Reasoning
+    "WR": "WI",   # Writing Intensive
+    "SP": "SI",   # Speaking Intensive
+    "AW": "W4",   # Aesthetic Ways of Knowing
+    "CW": "W3",   # Christian Ways of Knowing
+    "GW": "W8",   # Global/Intercultural Ways of Knowing
+    "SW": "W2",   # Scientific Ways of Knowing
+    "BW": "W1",   # Biblical/Theological Ways of Knowing
+}
+def _extract_lafs_area(raw_code):
+    """
+    For LAFS-style transfer codes, extract the LA framework area key.
+    e.g. 'LAFS- 15QR-1631788-MATH-125' -> 'F5'
+    Returns None if not a LAFS code or area not recognized.
+    """
+    code_upper = (raw_code or "").strip().upper()
+    if not code_upper.startswith("LAFS"):
+        return None
+    import re as _re
+    m = _re.search(r"LAFS[- ]+\d*([A-Z]+)-", code_upper)
+    if m:
+        return _LAFS_AREA_MAP.get(m.group(1))
+    return None
+
+
 def parse_csv(path):
     rows = []
 
@@ -283,8 +313,7 @@ def parse_csv(path):
             if status_raw == "not started":
                 continue
 
-            rows.append(
-                {
+            _row = {
                     "code": norm(resolved),
                     "raw": resolved.upper(),
                     "name": r.get("Course Name", "").strip(),
@@ -293,6 +322,12 @@ def parse_csv(path):
                     "grade": grade_raw,
                     "reg_date": r.get("Registration Date", "").strip(),
                 }
+            # Annotate LAFS transfer codes with their LA area for map_by_area lookup
+            _lafs_area = _extract_lafs_area(raw_code)
+            if _lafs_area:
+                _row["__map_area__"] = _lafs_area
+                _row["__map_taken_code__"] = _row["code"]
+            rows.append(_row
             )
 
     seen = {}
