@@ -1229,7 +1229,22 @@ def audit(courses, minor_key=None):
                 c = None
                 s = "Not Satisfied"
         else:
-            c = find(opts) if opts else None
+            # For W2 and W7, supplement the hardcoded opts with the full
+            # framework course list from liberal_arts_requirements.py so that
+            # any qualifying course (including transfer equivalents) is recognized.
+            _effective_opts = list(opts) if opts else []
+            if area in ("W2", "W7"):
+                try:
+                    from requirements.liberal_arts_requirements import LA_OLD_FRAMEWORK as _fw
+                    _cy = globals().get("CATALOG_YEAR", "2022-23")
+                    _extra = _fw.get(area, {}).get("courses", {}).get(_cy, [])
+                    for _eo in _extra:
+                        _eo_norm = _eo.replace(" ", "_").replace("-", "_").upper()
+                        if _eo_norm not in [o.upper() for o in _effective_opts]:
+                            _effective_opts.append(_eo)
+                except Exception:
+                    pass
+            c = find(_effective_opts) if _effective_opts else None
             # Allow MAP: TAKEN = AREA overrides for LA rows.
             if map_by_area.get(area):
                 mapped = find(map_by_area.get(area, []))
@@ -1267,46 +1282,88 @@ def audit(courses, minor_key=None):
         s = status_of(c)
         bc.append({"id": rid, "label": label, "opts": opts, "status": s, "course": c, "dcr": dcr})
 
-    # Mgmt required
+    # Major-specific required rows — dynamic for all FSB majors
     mr = []
-    for rid, label, opts, dcr in SMKT_REQ:
-        if rid == "BSNS_PRAC":
-            c4 = cm.get("BSNS_4800")
-            c3 = cm.get("BSNS_3850")
-            if c4 and done(c4):
-                c = c4
-            elif c3 and done(c3):
-                c = c3
-            elif c4 and ip(c4):
-                c = c4
-            elif c3 and ip(c3):
-                c = c3
-            elif c4 and sched(c4):
-                c = c4
-            elif c3 and sched(c3):
-                c = c3
+    _major_key = globals().get("MAJOR_KEY", "sport_marketing")
+    _catalog_year = globals().get("CATALOG_YEAR", "2022-23")
+    _mr_req_tuples = []
+    if _major_key in ("sport_marketing", ""):
+        # Legacy Sport Marketing path
+        for rid, label, opts, dcr in SMKT_REQ:
+            if rid == "BSNS_PRAC":
+                c4 = cm.get("BSNS_4800")
+                c3 = cm.get("BSNS_3850")
+                if c4 and done(c4):
+                    c = c4
+                elif c3 and done(c3):
+                    c = c3
+                elif c4 and ip(c4):
+                    c = c4
+                elif c3 and ip(c3):
+                    c = c3
+                elif c4 and sched(c4):
+                    c = c4
+                elif c3 and sched(c3):
+                    c = c3
+                else:
+                    c = None
             else:
-                c = None
-        else:
-            c = find(opts)
-        if map_by_area.get(rid):
-            mapped = find(map_by_area.get(rid, []))
-            if mapped:
-                c = mapped
-        s = status_of(c)
-        mr.append({"id": rid, "label": label, "status": s, "course": c, "dcr": dcr})
+                c = find(opts)
+            if map_by_area.get(rid):
+                mapped = find(map_by_area.get(rid, []))
+                if mapped:
+                    c = mapped
+            s = status_of(c)
+            mr.append({"id": rid, "label": label, "status": s, "course": c, "dcr": dcr})
+            _mr_req_tuples.append((rid, label, opts, dcr))
+    else:
+        # Dynamic path for all other FSB majors (Finance, Accounting, Management, etc.)
+        import importlib as _importlib
+        _fsb_mod = _importlib.import_module("requirements.fsb_majors")
+        _fsb_reqs = _fsb_mod.get_major_requirements(_major_key, _catalog_year) or {}
+        for _rc in _fsb_reqs.get("required_courses", []):
+            _code = _rc.get("code", "").replace(" ", "-")
+            _name = _rc.get("name", _code)
+            _cr = _rc.get("credits", 3)
+            _opts = [_code.replace("-", "_")]
+            _rid = _code.replace("-", "_")
+            _label = f"{_code} {_name}"
+            c = find(_opts)
+            if map_by_area.get(_rid):
+                mapped = find(map_by_area.get(_rid, []))
+                if mapped:
+                    c = mapped
+            s = status_of(c)
+            mr.append({"id": _rid, "label": _label, "status": s, "course": c, "dcr": _cr})
+            _mr_req_tuples.append((_rid, _label, _opts, _cr))
+        # Elective block
+        _elec = _fsb_reqs.get("elective")
+        if _elec:
+            _elec_cr = _elec.get("credits", 3)
+            _elec_opts = [c.replace(" ", "_") for c in _elec.get("choose_from", [])]
+            _elec_names = " / ".join(c.replace(" ", "-") for c in _elec.get("choose_from", []))
+            _elec_label = f"Major Elective — {_elec_names} ({_elec_cr} cr)"
+            c = None
+            for _ec in _elec_opts:
+                _candidate = cm.get(_ec)
+                if _candidate and not drop(_candidate):
+                    c = _candidate
+                    break
+            s = status_of(c)
+            mr.append({"id": "MAJOR_ELEC", "label": _elec_label, "status": s, "course": c, "dcr": _elec_cr})
+            _mr_req_tuples.append(("MAJOR_ELEC", _elec_label, _elec_opts, _elec_cr))
 
-    # Electives (none required for Sport Marketing)
+    # Electives (none required for Sport Marketing; other majors handled above)
     elecs = []
     elecs_ip = []
     ehrs = 0
     ehrs_ip = 0
 
-    # GPA
+    # GPA — use the actual major's course codes
     major_codes = set()
     for _, _, opts, _ in BUS_CORE:
         major_codes.update([norm(o) for o in opts])
-    for _, _, opts, _ in SMKT_REQ:
+    for _, _, opts, _dcr in _mr_req_tuples:
         major_codes.update([norm(o) for o in opts])
 
     op, oh, mp, mh, qp = 0.0, 0, 0.0, 0, 0.0
