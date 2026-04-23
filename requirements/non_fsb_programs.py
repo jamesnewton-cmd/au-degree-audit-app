@@ -453,13 +453,15 @@ CS = {
                 "CPSC-2430",
                 "CPSC-2500",
                 "ENGR-2200",
-                "MATH-2200",
                 "CPSC-3380",
                 "CPSC-3410",
                 "CPSC-4420",
                 "CPSC-4430",
                 "CPSC-4950",
                 "CPSC-4960",
+            ],
+            "choose_one": [
+                {"name": "Discrete Mathematical Structures", "choose_from": ["MATH-2200", "CPSC-2250"]},
             ],
             "elective_groups": [
                 {
@@ -468,6 +470,13 @@ CS = {
                     "dept": "CPSC",
                     "min_level": 2000,
                     "notes": "6 hrs from CPSC/ENGR-2000 and above",
+                },
+                {
+                    "name": "Math elective",
+                    "credits": 3,
+                    "dept": "MATH",
+                    "min_level": 1300,
+                    "notes": "3-4 hrs from MATH 1300 or above",
                 },
             ],
         },
