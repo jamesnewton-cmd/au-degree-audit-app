@@ -2099,10 +2099,9 @@ MINISTRY = {
                 "CMIN-3080",
                 "CMIN-3910",
                 "CMIN-4250",
+                "CMIN-4810",
             ],
-            "choose_one": [
-                {"name": "Ministry Internship or Practicum", "choose_from": ["CMIN-4810", "CMIN-4850"]},
-            ],
+            # CMIN-4810 is the only catalog-listed internship course; CMIN-4850 not in 2022-23 catalog
             "elective_groups": [
                 {
                     "name": "Departmental elective",
