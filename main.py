@@ -701,6 +701,25 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
             }
         )
 
+    # -- Pass 4: choose_one groups (cross-listed / either-or courses) --
+    # Each entry: {name: str, choose_from: [course_id, ...]}
+    # Produces one row satisfied if ANY listed course is on the transcript.
+    choose_one_groups = prog_reqs.get("choose_one", [])
+    for group in choose_one_groups:
+        group_name = group.get("name", "Choose one")
+        choose_from = group.get("choose_from", [])
+        if not choose_from:
+            continue
+        c = _find_course(choose_from)
+        rows.append({
+            "id": _norm_code(group_name),
+            "label": " or ".join(choose_from) + " (" + group_name + ")",
+            "status": _status_of_c(c),
+            "course": c,
+            "dcr": 3,
+            "note": "",
+        })
+
     # Apply concentration courses if one was selected
     if concentration and isinstance(prog_reqs.get("concentrations"), dict):
         conc_data = prog_reqs["concentrations"].get(concentration)
