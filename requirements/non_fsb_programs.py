@@ -977,8 +977,9 @@ CYBERSECURITY = {
                 {
                     "name": "CS/Policy elective",
                     "credits": 3,
-                    "choose_from": ["CPSC-2000", "CRIM-2520", "POSC-3310", "POSC-3250"],
-                    "notes": "From CPSC-2000+, CRIM-2520, POSC-3310, or POSC-3250",
+                    "choose_from": ["CRIM-2520", "POSC-3310", "POSC-3250"],
+                    "dept": "CPSC",
+                    "notes": "Any CPSC 2000+ course, or CRIM-2520, POSC-3310, POSC-3250",
                 },
             ],
         },
