@@ -1072,7 +1072,11 @@ def _compute_gpa(raw_courses, major_codes_set):
 # ── SINGLE UNIFIED GENERATE ENDPOINT ─────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return HTMLResponse(open("templates/index.html").read())
+    resp = HTMLResponse(open("templates/index.html").read())
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -1094,7 +1098,11 @@ def dashboard(user=Depends(verify)):
     html = html.replace("{{ROWS}}", rows or "<tr><td colspan='4'>No audits yet</td></tr>")
     pct = min(100, round(log["total"] / MAX_PULLS * 100))
     html = html.replace("{{PCT}}", str(pct))
-    return HTMLResponse(html)
+    resp = HTMLResponse(html)
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.post("/generate")
