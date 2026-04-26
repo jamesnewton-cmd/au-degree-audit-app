@@ -481,6 +481,32 @@
     margin-bottom: 1.1rem; margin-top: 0.5rem;
   }
 
+  /* CSV INPUT TABS */
+  .csv-tabs { display: flex; gap: 0; margin-bottom: 0; }
+  .csv-tab {
+    flex: 1; padding: 0.45rem 0.75rem; font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
+    border: 1.5px solid var(--border); background: var(--cream2); color: var(--muted);
+    transition: all 0.15s; text-align: center;
+  }
+  .csv-tab:first-child { border-radius: 7px 0 0 0; border-right: none; }
+  .csv-tab:last-child  { border-radius: 0 7px 0 0; }
+  .csv-tab.active { background: var(--cream); color: var(--maroon); border-bottom-color: var(--cream); z-index: 1; }
+  .csv-tab-panel {
+    border: 1.5px solid var(--border); border-radius: 0 0 7px 7px;
+    background: var(--cream); padding: 0.6rem 0.75rem;
+    margin-top: -1px;
+  }
+  .csv-paste-area {
+    width: 100%; min-height: 90px;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid var(--border); border-radius: 6px;
+    font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.78rem;
+    color: var(--text); background: #fff;
+    resize: vertical; line-height: 1.45;
+  }
+  .csv-paste-area:focus { outline: none; border-color: var(--orange); }
+
   /* FILE DROP */
   .file-drop {
     border: 2px dashed var(--border); border-radius: 8px;
@@ -821,15 +847,25 @@
         <!-- TRANSCRIPT (single) -->
         <div class="section-label">Transcript</div>
         <div class="field">
-          <label>Upload CSV</label>
-          <div class="file-drop" id="fileDrop">
-            <input type="file" name="transcript" accept=".csv" id="fileInput">
-            <span class="file-icon">📄</span>
-            <div class="file-drop-text">
-              <strong>Click to upload</strong> or drag & drop<br>
-              CSV export from student information system
+          <label>CSV Input</label>
+          <div class="csv-tabs">
+            <button type="button" class="csv-tab active" id="tabUpload" onclick="switchCsvTab('upload')">Upload File</button>
+            <button type="button" class="csv-tab" id="tabPaste" onclick="switchCsvTab('paste')">Paste CSV</button>
+          </div>
+          <div class="csv-tab-panel" id="panelUpload">
+            <div class="file-drop" id="fileDrop">
+              <input type="file" name="transcript" accept=".csv" id="fileInput">
+              <span class="file-icon">📄</span>
+              <div class="file-drop-text">
+                <strong>Click to upload</strong> or drag & drop<br>
+                CSV export from student information system
+              </div>
+              <div class="file-name" id="fileName"></div>
             </div>
-            <div class="file-name" id="fileName"></div>
+          </div>
+          <div class="csv-tab-panel" id="panelPaste" style="display:none;">
+            <textarea id="csvPasteInput" class="csv-paste-area" placeholder="Paste CSV content here…" rows="5" autocomplete="off" spellcheck="false"></textarea>
+            <div id="pasteFileName" style="font-size:0.78rem;color:var(--success);margin-top:0.3rem;display:none;"></div>
           </div>
         </div>
         <div class="name-suggest" id="recentCsvHints" style="display:none;">
@@ -1567,6 +1603,15 @@ drop.addEventListener('drop', ev => {
   }
 });
 
+// ── CSV Tab switcher ─────────────────────────────────────────────────────────
+function switchCsvTab(tab) {
+  const isUpload = tab === 'upload';
+  document.getElementById('tabUpload').classList.toggle('active', isUpload);
+  document.getElementById('tabPaste').classList.toggle('active', !isUpload);
+  document.getElementById('panelUpload').style.display = isUpload ? '' : 'none';
+  document.getElementById('panelPaste').style.display = isUpload ? 'none' : '';
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -1681,6 +1726,29 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     btnText.textContent = 'Generate Audit';
     if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
     return;
+  }
+
+  // Handle paste-in CSV: convert to a File and set on the form
+  const isPasteMode = document.getElementById('tabPaste').classList.contains('active');
+  if (isPasteMode) {
+    const pasteText = (document.getElementById('csvPasteInput').value || '').trim();
+    if (!pasteText) {
+      toast('Please paste CSV content before generating.', true);
+      btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit';
+      if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
+      return;
+    }
+    const pasteFile = new File([pasteText], 'pasted_transcript.csv', { type: 'text/csv' });
+    const dt = new DataTransfer();
+    dt.items.add(pasteFile);
+    document.getElementById('fileInput').files = dt.files;
+  } else {
+    if (!document.getElementById('fileInput').files[0]) {
+      toast('Please upload a CSV file before generating.', true);
+      btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit';
+      if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
+      return;
+    }
   }
 
   const form = new FormData(e.target);
