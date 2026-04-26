@@ -9,6 +9,7 @@ All majors share: parse_csv, apply_exceptions, build_la_rows_for_non_fsb, pdf_te
 """
 
 import os, io, csv, json, datetime, tempfile, importlib.util, smtplib
+import openpyxl
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
@@ -1123,7 +1124,19 @@ async def generate(
     if log["total"] >= MAX_PULLS:
         raise HTTPException(429, "Annual pull limit reached. Contact Indy Collab to renew.")
 
-    csv_bytes = await transcript.read()
+    raw_bytes = await transcript.read()
+    filename = (transcript.filename or "").lower()
+    if filename.endswith(".xlsx") or filename.endswith(".xls"):
+        # Convert Excel to CSV in-memory
+        wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), data_only=True)
+        ws = wb.active
+        csv_buf = io.StringIO()
+        writer = csv.writer(csv_buf)
+        for row in ws.iter_rows(values_only=True):
+            writer.writerow(['' if v is None else str(v) for v in row])
+        csv_bytes = csv_buf.getvalue().encode('utf-8')
+    else:
+        csv_bytes = raw_bytes
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
         tmp_in.write(csv_bytes)
         tmp_csv = tmp_in.name
