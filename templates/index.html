@@ -484,12 +484,12 @@
   /* FILE DROP */
   .file-drop {
     border: 2px dashed var(--border); border-radius: 8px;
-    padding: 1.6rem 1rem; text-align: center; cursor: pointer;
+    padding: 0.75rem 1rem; text-align: center; cursor: pointer;
     transition: all 0.2s; background: var(--cream); position: relative;
   }
   .file-drop:hover, .file-drop.dragover { border-color: var(--orange); background: #fff8f2; }
   .file-drop input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .file-icon { font-size: 1.8rem; margin-bottom: 0.4rem; display: block; }
+  .file-icon { font-size: 1.4rem; margin-bottom: 0.2rem; display: block; }
   .file-drop-text { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
   .file-drop-text strong { color: var(--maroon); font-weight: 600; }
   .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: var(--success); font-weight: 500; display: none; }
@@ -574,7 +574,7 @@
     .ac-dropdown { max-height: 180px; }
 
     /* File drop zone */
-    .file-drop { padding: 1.2rem 0.75rem; }
+    .file-drop { padding: 0.6rem 0.75rem; }
     .file-drop-text { font-size: 0.8rem; }
 
     /* Batch drop zone */
@@ -671,10 +671,13 @@
             Mode
             <span id="modeLabel">Single Student</span>
           </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="batchToggle">
-            <span class="toggle-slider"></span>
-          </label>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="batchToggle">
+              <span class="toggle-slider"></span>
+            </label>
+            <span id="modeLabelRight" style="font-size:0.82rem;font-weight:600;color:var(--muted);">Batch</span>
+          </div>
         </div>
 
         <!-- STUDENT INFO (single mode) -->
@@ -829,6 +832,14 @@
             <div class="file-name" id="fileName"></div>
           </div>
         </div>
+        <div class="name-suggest" id="recentCsvHints" style="display:none;">
+          <div class="name-suggest-title">Recent CSVs</div>
+          <div class="name-suggest-list" id="recentCsvList"></div>
+        </div>
+        <button type="submit" class="btn-generate" id="submitBtnTop">
+          <div class="spinner" id="spinnerTop"></div>
+          <span id="btnTextTop">Generate Audit</span>
+        </button>
         </div><!-- end singleMode -->
 
         <!-- BATCH MODE -->
@@ -876,8 +887,8 @@
         <div id="exceptionsSection">
         <div class="section-label">Advisor Exceptions <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
         <div class="field context-card">
-          <div class="context-copy tight">One line per rule. Advisor-only overrides for substitutions, area mapping, waivers, and enrollment status.</div>
-          <textarea name="exceptions" id="exceptionsInput" rows="7" class="context-textarea" placeholder="SUB: REQUIRED-COURSE = TAKEN-COURSE&#10;MAP: TAKEN-COURSE = REQUIREMENT-AREA&#10;WAIVE: COURSE&#10;STATUS: COURSE = current|currently enrolled|scheduled|satisfied" autocomplete="off"></textarea>
+          <div class="context-copy tight" style="font-size:0.68rem;">One rule per line — overrides for substitutions, mapping, waivers, and status.</div>
+          <textarea name="exceptions" id="exceptionsInput" rows="4" class="context-textarea" placeholder="" autocomplete="off"></textarea>
           <div class="context-rules-inline">
             <strong>SUB</strong>: required=taken &nbsp;•&nbsp; <strong>MAP</strong>: taken=area &nbsp;•&nbsp; <strong>WAIVE</strong>: course<br>
             <strong>STATUS</strong>: course = current | currently enrolled | scheduled | satisfied
@@ -936,6 +947,7 @@ const SESSION_EMAIL_KEY = 'audit:session_email';
 const LAST_STUDENTS_KEY = 'audit:last_students';
 const LAST_MAJORS_KEY = 'audit:last_majors';
 const LAST_MINORS_KEY = 'audit:last_minors';
+const LAST_CSVS_KEY = 'audit:last_csvs';
 
 let SESSION_TOKEN = sessionStorage.getItem(SESSION_TOKEN_KEY) || '';
 let SESSION_EMAIL = sessionStorage.getItem(SESSION_EMAIL_KEY) || '';
@@ -1113,6 +1125,61 @@ function rememberStudentName(first, last) {
   localStorage.setItem(LAST_STUDENTS_KEY, JSON.stringify(next));
 }
 
+function getRecentCsvs() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LAST_CSVS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function rememberRecentCsv(csvName) {
+  const name = (csvName || '').trim();
+  if (!name) return;
+  const merged = [name].concat(getRecentCsvs());
+  const next = [];
+  const seen = new Set();
+  for (const item of merged) {
+    const itemKey = (item || '').trim().toLowerCase();
+    if (!itemKey || seen.has(itemKey)) continue;
+    seen.add(itemKey);
+    next.push(item);
+    if (next.length === 5) break;
+  }
+  localStorage.setItem(LAST_CSVS_KEY, JSON.stringify(next));
+}
+
+function renderRecentCsvHints() {
+  const box = document.getElementById('recentCsvHints');
+  const list = document.getElementById('recentCsvList');
+  const recent = getRecentCsvs();
+  if (!recent.length) {
+    box.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+  list.innerHTML = recent
+    .map(name => `<button type="button" class="name-suggest-item" data-csv="${name}">${name}</button>`)
+    .join('');
+  box.style.display = '';
+  list.querySelectorAll('.name-suggest-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const csvName = btn.dataset.csv;
+      const fi = document.getElementById('fileInput');
+      const fn = document.getElementById('fileName');
+      const dummyFile = new File([''], csvName, { type: 'text/csv' });
+      const dt = new DataTransfer();
+      dt.items.add(dummyFile);
+      fi.files = dt.files;
+      fn.textContent = `\u2713 ${csvName}`;
+      fn.style.display = 'block';
+      rememberRecentCsv(csvName);
+      renderRecentCsvHints();
+    });
+  });
+}
+
 function getRecentPrograms(storeKey) {
   try {
     const parsed = JSON.parse(localStorage.getItem(storeKey) || '[]');
@@ -1283,7 +1350,7 @@ function resetRepeatableProgramFields() {
 
 function init() {
   const defaultYear = document.getElementById('year2022');
-  if (defaultYear && !document.querySelector('input[name="catalog_year"]:checked')) {
+  if (defaultYear) {
     defaultYear.checked = true;
   }
   loadStatus();
@@ -1297,6 +1364,7 @@ function init() {
   renderRecentNameHints();
   renderRecentProgramHints('major');
   renderRecentProgramHints('minor');
+  renderRecentCsvHints();
 }
 
 // ── Programs ──────────────────────────────────────────────────────────────────
@@ -1480,6 +1548,8 @@ fileInput.addEventListener('change', () => {
   if (fileInput.files[0]) {
     fileName.textContent = `✓ ${fileInput.files[0].name}`;
     fileName.style.display = 'block';
+    rememberRecentCsv(fileInput.files[0].name);
+    renderRecentCsvHints();
   }
 });
 ['dragover', 'dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('dragover'); }));
@@ -1492,6 +1562,8 @@ drop.addEventListener('drop', ev => {
     fileInput.files = dt.files;
     fileName.textContent = `✓ ${f.name}`;
     fileName.style.display = 'block';
+    rememberRecentCsv(f.name);
+    renderRecentCsvHints();
   }
 });
 
@@ -1510,6 +1582,8 @@ batchToggle.addEventListener('change', () => {
   document.getElementById('singleMode').style.display = isBatch ? 'none' : 'block';
   document.getElementById('batchMode').style.display = isBatch ? 'block' : 'none';
   document.getElementById('modeLabel').textContent = isBatch ? 'Batch Upload' : 'Single Student';
+  document.getElementById('modeLabel').style.color = isBatch ? 'var(--muted)' : 'var(--text)';
+  document.getElementById('modeLabelRight').style.color = isBatch ? 'var(--text)' : 'var(--muted)';
   document.getElementById('fileInput').required = !isBatch;
   document.getElementById('firstName').required = !isBatch;
   document.getElementById('lastName').required = !isBatch;
@@ -1543,8 +1617,12 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
   const btn = document.getElementById('submitBtn');
   const spinner = document.getElementById('spinner');
   const btnText = document.getElementById('btnText');
+  const btnTop = document.getElementById('submitBtnTop');
+  const spinnerTop = document.getElementById('spinnerTop');
+  const btnTextTop = document.getElementById('btnTextTop');
   btn.disabled = true;
   spinner.style.display = 'block';
+  if (btnTop) { btnTop.disabled = true; spinnerTop.style.display = 'block'; }
 
   if (isBatch) {
     const batchMajor = document.getElementById('batchMajorVal').value;
@@ -1555,6 +1633,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     if (!batchFilesEl.files.length) { toast('Please upload at least one CSV file.', true); btn.disabled = false; spinner.style.display = 'none'; return; }
     const files = Array.from(batchFilesEl.files);
     btnText.textContent = `Processing 0 of ${files.length}…`;
+    if (btnTop) btnTextTop.textContent = `Processing 0 of ${files.length}…`;
     const JSZip = await loadJSZip();
     const zip = new JSZip();
     let done = 0;
@@ -1588,16 +1667,19 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     btn.disabled = false;
     spinner.style.display = 'none';
     btnText.textContent = 'Generate Audit';
+    if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
     return;
   }
 
   btnText.textContent = 'Generating…';
+  if (btnTop) btnTextTop.textContent = 'Generating…';
   const major1 = document.getElementById('major1Val').value;
   if (!major1) {
     toast('Please select a primary major.', true);
     btn.disabled = false;
     spinner.style.display = 'none';
     btnText.textContent = 'Generate Audit';
+    if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
     return;
   }
 
@@ -1666,6 +1748,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     renderRecentNameHints();
     renderRecentProgramHints('major');
     renderRecentProgramHints('minor');
+    renderRecentCsvHints();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
     toast('Network error. Please try again.', true);
@@ -1673,6 +1756,7 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     btn.disabled = false;
     spinner.style.display = 'none';
     btnText.textContent = 'Generate Audit';
+    if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
   }
 });
 
