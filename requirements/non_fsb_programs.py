@@ -2984,7 +2984,6 @@ MUSIC = {
                 "MUED-3480",
                 "MUED-4700",
                 # Secondary Education Requirements
-                "EDUC-2000",  # Teaching as a Profession (orientation, 2 cr)
                 "EDUC-2100",
                 "EDUC-2110",
                 "EDUC-3120",
@@ -3585,6 +3584,8 @@ THEATRE_DANCE = {
             "notes": "Select one track concentration: Performance, Business, Pedagogy, or Science.",
         },
         "2023-24": {"same_as": "2022-23"},
+        "2024-25": {"same_as": "2022-23"},
+        "2025-26": {"same_as": "2022-23"},
     },
     "dance_minor": {
         "2022-23": {

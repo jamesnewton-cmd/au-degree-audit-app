@@ -357,6 +357,26 @@ def parse_csv(path):
         if k not in seen or priority(c) < priority(seen[k]):
             seen[k] = c
 
+    # Apply institutional blanket exceptions automatically
+    # ENGR-3100 -> ENGR-3140 AND ENGR-3150
+    if "ENGR_3140" in seen and "ENGR_3150" in seen and "ENGR_3100" not in seen:
+        seen["ENGR_3100"] = {
+            "code": "ENGR_3100", "raw": "ENGR-3100", "name": "Mechanics Lab (Subbed by 3140+3150)",
+            "cr": 2, "status": "grade posted", "grade": "CR", "reg_date": "WAIVER"
+        }
+    # ENGR-4100 -> ENGR-4140 AND ENGR-4320
+    if "ENGR_4140" in seen and "ENGR_4320" in seen and "ENGR_4100" not in seen:
+        seen["ENGR_4100"] = {
+            "code": "ENGR_4100", "raw": "ENGR-4100", "name": "Thermal-Fluids Lab (Subbed by 4140+4320)",
+            "cr": 2, "status": "grade posted", "grade": "CR", "reg_date": "WAIVER"
+        }
+    # CPSC-2320 -> ENGR-2200
+    if "ENGR_2200" in seen and "CPSC_2320" not in seen:
+        seen["CPSC_2320"] = {
+            "code": "CPSC_2320", "raw": "CPSC-2320", "name": "C++ Programming (Subbed by ENGR-2200)",
+            "cr": 1, "status": seen["ENGR_2200"]["status"], "grade": seen["ENGR_2200"]["grade"], "reg_date": "WAIVER"
+        }
+
     return list(seen.values())
 
 
@@ -1673,7 +1693,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         "musical_theatre_ba": ["MUPF_1170", "MUPF_4910"],
         "worship_arts_ba": ["MUSC_3800"],
         "music_ba": ["MUBS_4800", "BSNS_4810"],
-        "music_education_bmus": ["MUSC_4950", "MUSC_4955"],
+        "music_education_bmus": ["MUSC_4950", "MUSC_4955", "EDUC_4010"],
         "songwriting": ["MUBS_4500"],
         "dance_major": ["DANC_4800", "DANC_4910"],
         "dance_complementary": ["DANC_4800", "DANC_4910"],
@@ -1946,7 +1966,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         # F4
         f4_req = fw["F4"].get("required_courses", ["COMM 1000"])
         f4_opts = [c for c in f4_req if "COMM" in c] or ["COMM 1000"]
-        f4_c = find_any(f4_opts)
+        f4_c = find_any_or_ip_or_sched(f4_opts + map_by_area.get("F4", []))
         la.append(make_row("F4", None, fw["F4"]["label"], 3, f4_c, status_of(f4_c)))
 
         # F5

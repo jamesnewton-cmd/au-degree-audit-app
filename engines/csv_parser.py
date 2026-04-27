@@ -161,6 +161,23 @@ def parse_csv(path: str) -> dict:
         if k not in best or _priority(c) < _priority(best[k]):
             best[k] = c
 
+    # Apply institutional blanket exceptions automatically
+    if "ENGR_3140" in best and "ENGR_3150" in best and "ENGR_3100" not in best:
+        best["ENGR_3100"] = {
+            "code": "ENGR_3100", "raw": "ENGR-3100", "name": "Mechanics Lab (Subbed by 3140+3150)",
+            "cr": 2, "status": "grade posted", "grade": "CR"
+        }
+    if "ENGR_4140" in best and "ENGR_4320" in best and "ENGR_4100" not in best:
+        best["ENGR_4100"] = {
+            "code": "ENGR_4100", "raw": "ENGR-4100", "name": "Thermal-Fluids Lab (Subbed by 4140+4320)",
+            "cr": 2, "status": "grade posted", "grade": "CR"
+        }
+    if "ENGR_2200" in best and "CPSC_2320" not in best:
+        best["CPSC_2320"] = {
+            "code": "CPSC_2320", "raw": "CPSC-2320", "name": "C++ Programming (Subbed by ENGR-2200)",
+            "cr": 1, "status": best["ENGR_2200"]["status"], "grade": best["ENGR_2200"]["grade"]
+        }
+
     return best
 
 

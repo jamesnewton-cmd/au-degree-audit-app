@@ -12,7 +12,7 @@ Usage: python3 run_tests.py
 import importlib.util, sys, re, traceback, ast as ast_mod
 from collections import defaultdict
 
-sys.path.insert(0, "/home/claude")
+sys.path.insert(0, "/home/ubuntu/au-original-restored")
 
 PASS = "✓"
 FAIL = "✗"
@@ -46,9 +46,9 @@ print("=" * 60)
 print("\n[LOAD] Importing modules...")
 
 try:
-    sm = load("/home/claude/sport_marketing.py", "sport_marketing")
-    nfp = load("/home/claude/non_fsb_programs.py", "nfp")
-    helpers = load("/home/claude/audit_helpers.py", "audit_helpers")
+    sm = load("/home/ubuntu/au-original-restored/engines/sport_marketing.py", "sport_marketing")
+    nfp = load("/home/ubuntu/au-original-restored/requirements/non_fsb_programs.py", "nfp")
+    helpers = load("/home/ubuntu/au-original-restored/audit_helpers.py", "audit_helpers")
     print(f"  {PASS} sport_marketing.py")
     print(f"  {PASS} non_fsb_programs.py  ({len(nfp.ALL_NON_FSB_PROGRAMS)} programs)")
     print(f"  {PASS} audit_helpers.py (extracted from main_unified.py)")
@@ -88,7 +88,7 @@ class DupeKeyChecker(ast_mod.NodeVisitor):
 
 for fname in ["main_unified.py", "non_fsb_programs.py", "sport_marketing.py", "pdf_template.py"]:
     try:
-        with open(f"/home/claude/{fname}") as f:
+        with open(f"/home/ubuntu/au-original-restored/requirements/{fname}") if "programs" in fname else open(f"/home/ubuntu/au-original-restored/engines/{fname}") as f:
             src = f.read()
         chk = DupeKeyChecker()
         chk.visit(ast_mod.parse(src))
@@ -529,7 +529,7 @@ check(
 # ── [8] LA requirements ───────────────────────────────────────────────────────
 print("\n[8] LA REQUIREMENTS — framework and course lists")
 try:
-    la = load("/home/claude/liberal_arts_requirements.py", "la")
+    la = load("/home/ubuntu/au-original-restored/requirements/liberal_arts_requirements.py", "la")
     req_la = la.get_la_requirements("2022-23")
     check(isinstance(req_la, dict), "LA requirements load for 2022-23")
     check(all(k in req_la for k in ["F1", "W8", "WI", "SI"]), "LA has F1, W8, WI, SI keys")
