@@ -862,7 +862,7 @@ LA_ROWS = [
     (
         "SI",
         None,
-        "SI BSNS-3210 Speaking Intensive — 1 course required from approved SI list | Found: 1",
+        "SI Speaking Intensive — 1 course required from approved SI list",
         [
             "BSNS_3210",
             "BSNS_4480",
