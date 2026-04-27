@@ -390,8 +390,11 @@ def apply_exceptions(courses, exceptions_text):
       WAIVE: PEHS-1000              → mark PEHS-1000 as satisfied (waived, 0 cr)
       STATUS: BSNS-4560 = current   → override a course's status (current/scheduled/satisfied)
     """
-    courses = list(courses)
-    cm = {c["code"]: c for c in courses}
+    if isinstance(courses, dict):
+        courses = list(courses.values())
+    else:
+        courses = list(courses)
+    cm = {c["code"]: c for c in courses if isinstance(c, dict) and "code" in c}
 
     for raw_line in exceptions_text.splitlines():
         line = raw_line.strip()
