@@ -96,7 +96,7 @@ class NonFSBAuditEngine:
 
     def _normalize_id(self, course_id: str) -> str:
         """Normalize course ID for matching: 'BIOL2210' → 'BIOL 2210'."""
-        m = re.match(r"([A-Za-z]+)\s*(\d+)", course_id.strip())
+        m = re.match(r"([A-Za-z]+)[\s_-]*(\d+)", course_id.strip())
         if m:
             return f"{m.group(1).upper()} {m.group(2)}"
         return course_id.strip().upper()
@@ -232,28 +232,57 @@ class NonFSBAuditEngine:
             if key.startswith("choose_one") or key == "choose_one":
                 options = req[key]
                 if isinstance(options, list):
-                    satisfied = any(self._normalize_id(c) in completed for c in options)
-                    in_prog = (
-                        any(self._normalize_id(c) in in_progress for c in options)
-                        if not satisfied
-                        else False
-                    )
-                    status = "Satisfied" if satisfied else ("In Progress" if in_prog else "Not Met")
-                    used = next(
-                        (
-                            self._normalize_id(c)
-                            for c in options
-                            if self._normalize_id(c) in completed
-                        ),
-                        None,
-                    )
-                    results.append(
-                        RequirementStatus(
-                            label=f"One of: {', '.join(options[:3])}{'...' if len(options)>3 else ''}",
-                            status=status,
-                            course_used=used,
+                    # Handle lists of dicts (e.g. {"name": "Biochemistry I", "choose_from": ["BIOL-4210", "CHEM-4210"]})
+                    if options and isinstance(options[0], dict):
+                        for opt_dict in options:
+                            name = opt_dict.get("name", "Choose One")
+                            choose_from = opt_dict.get("choose_from", [])
+                            satisfied = any(self._normalize_id(c) in completed for c in choose_from)
+                            in_prog = (
+                                any(self._normalize_id(c) in in_progress for c in choose_from)
+                                if not satisfied
+                                else False
+                            )
+                            status = "Satisfied" if satisfied else ("In Progress" if in_prog else "Not Met")
+                            used = next(
+                                (
+                                    self._normalize_id(c)
+                                    for c in choose_from
+                                    if self._normalize_id(c) in completed
+                                ),
+                                None,
+                            )
+                            results.append(
+                                RequirementStatus(
+                                    label=name,
+                                    status=status,
+                                    course_used=used,
+                                    notes="Missing: " + ", ".join(choose_from) if status == "Not Met" else ""
+                                )
+                            )
+                    else:
+                        satisfied = any(self._normalize_id(c) in completed for c in options)
+                        in_prog = (
+                            any(self._normalize_id(c) in in_progress for c in options)
+                            if not satisfied
+                            else False
                         )
-                    )
+                        status = "Satisfied" if satisfied else ("In Progress" if in_prog else "Not Met")
+                        used = next(
+                            (
+                                self._normalize_id(c)
+                                for c in options
+                                if self._normalize_id(c) in completed
+                            ),
+                            None,
+                        )
+                        results.append(
+                            RequirementStatus(
+                                label=f"Choose One: {', '.join(options)}",
+                                status=status,
+                                course_used=used,
+                            )
+                        )
 
         # ── Distribution groups (e.g. Political Science American Politics / International) ──
         dist_groups = req.get("dist_groups", [])
