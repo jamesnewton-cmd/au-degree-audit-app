@@ -846,11 +846,7 @@
         <!-- TRANSCRIPT (single) -->
         <div class="section-label">Transcript</div>
         <div class="field">
-          <label>CSV Input</label>
-          <div class="csv-tabs">
-            <button type="button" class="csv-tab active" id="tabUpload" onclick="switchCsvTab('upload')">Upload File</button>
-            <button type="button" class="csv-tab" id="tabPaste" onclick="switchCsvTab('paste')">Paste CSV</button>
-          </div>
+          <label>Transcript File</label>
           <div class="csv-tab-panel" id="panelUpload">
             <div class="file-drop" id="fileDrop">
               <input type="file" name="transcript" accept=".csv,.xlsx,.xls" id="fileInput">
@@ -862,10 +858,7 @@
               <div class="file-name" id="fileName"></div>
             </div>
           </div>
-          <div class="csv-tab-panel" id="panelPaste" style="display:none;">
-            <textarea id="csvPasteInput" class="csv-paste-area" placeholder="Paste CSV content here…" rows="5" autocomplete="off" spellcheck="false"></textarea>
-            <div id="pasteFileName" style="font-size:0.78rem;color:var(--success);margin-top:0.3rem;display:none;"></div>
-          </div>
+
         </div>
         <div class="name-suggest" id="recentCsvHints" style="display:none;">
           <div class="name-suggest-title">Recent CSVs</div>
@@ -1602,14 +1595,7 @@ drop.addEventListener('drop', ev => {
   }
 });
 
-// ── CSV Tab switcher ─────────────────────────────────────────────────────────
-function switchCsvTab(tab) {
-  const isUpload = tab === 'upload';
-  document.getElementById('tabUpload').classList.toggle('active', isUpload);
-  document.getElementById('tabPaste').classList.toggle('active', !isUpload);
-  document.getElementById('panelUpload').style.display = isUpload ? '' : 'none';
-  document.getElementById('panelPaste').style.display = isUpload ? 'none' : '';
-}
+
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, isError = false) {
@@ -1727,27 +1713,12 @@ document.getElementById('auditForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  // Handle paste-in CSV: convert to a File and set on the form
-  const isPasteMode = document.getElementById('tabPaste').classList.contains('active');
-  if (isPasteMode) {
-    const pasteText = (document.getElementById('csvPasteInput').value || '').trim();
-    if (!pasteText) {
-      toast('Please paste CSV content before generating.', true);
-      btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit';
-      if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
-      return;
-    }
-    const pasteFile = new File([pasteText], 'pasted_transcript.csv', { type: 'text/csv' });
-    const dt = new DataTransfer();
-    dt.items.add(pasteFile);
-    document.getElementById('fileInput').files = dt.files;
-  } else {
-    if (!document.getElementById('fileInput').files[0]) {
-      toast('Please upload a CSV file before generating.', true);
-      btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit';
-      if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
-      return;
-    }
+  // Validate file upload
+  if (!document.getElementById('fileInput').files[0]) {
+    toast('Please upload a CSV file before generating.', true);
+    btn.disabled = false; spinner.style.display = 'none'; btnText.textContent = 'Generate Audit';
+    if (btnTop) { btnTop.disabled = false; spinnerTop.style.display = 'none'; btnTextTop.textContent = 'Generate Audit'; }
+    return;
   }
 
   const form = new FormData(e.target);
