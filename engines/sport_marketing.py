@@ -1791,6 +1791,25 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
     def find_any(code_list):
         return best(courses, [norm(c.replace(" ", "_").replace("-", "_")) for c in code_list])
 
+    def find_any_or_ip_or_sched(code_list):
+        """Like find_any but also considers in-progress and scheduled courses."""
+        norms = [norm(x) for x in code_list]
+        found = [c for c in courses if c["code"] in norms and not drop(c)]
+        # Prefer done records that aren\\'t F (e.g. transfer T beats original F)
+        for f in found:
+            if done(f) and f["grade"].upper() not in ("F", "WF"):
+                return f
+        for f in found:
+            if done(f):
+                return f
+        for f in found:
+            if ip(f):
+                return f
+        for f in found:
+            if sched(f):
+                return f
+        return None
+
     def find_any_or_prefix(code_list, prefix_list=None):
         """Like find_any but also matches transfer courses by dept prefix if exact match fails."""
         result = find_any(code_list)
@@ -2055,7 +2074,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                 "SPAN_3010",
                 "ENGL_2500",
             ]
-        wi_c1 = find_any(wi_opts + map_by_area.get("WI", []))
+        wi_c1 = find_any_or_ip_or_sched(wi_opts + map_by_area.get("WI", []))
         la.append(
             make_row(
                 "WI",
@@ -2070,7 +2089,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         wi_c2 = None
         for opt in wi_opts:
             candidate = cm.get(norm(opt.replace(" ", "_")))
-            if candidate and (done(candidate) or ip(candidate)):
+            if candidate and (done(candidate) or ip(candidate) or sched(candidate)):
                 if candidate["raw"].upper().replace("-", "_") != wi_c1_code:
                     wi_c2 = candidate
                     break
@@ -2104,7 +2123,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                 "PSYC_3200",
                 "SPAN_3020",
             ]
-        si_c = find_any(si_opts + map_by_area.get("SI", []))
+        si_c = find_any_or_ip_or_sched(si_opts + map_by_area.get("SI", []))
         la.append(
             make_row(
                 "SI",
