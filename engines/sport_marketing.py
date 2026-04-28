@@ -2277,8 +2277,11 @@ def eligible_to_walk(res):
     programs_ok = True
     for row in program_rows:
         status = (row.get("status") or "").lower()
-        if status not in {"satisfied", "current", "scheduled"}:
+        label = row.get("label") or row.get("name") or row.get("course") or ""
+        print(f"WALK PROG ROW: {label} | status: {status}")
+        if status not in {"satisfied", "current", "scheduled", "optional"}:
             programs_ok = False
+            print(f"WALK PROG BLOCKED BY: {label} | status: {status}")
             break
 
     # --- Hours + GPA ---

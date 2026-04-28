@@ -381,7 +381,7 @@ def build(res, student_name, major_label, out, exceptions=""):
     bc_ok_proj = all(
         r["status"] in ("Satisfied", "Current", "Scheduled") for r in res.get("bc", [])
     )
-    mr_ok_proj = all(r["status"] in ("Satisfied", "Current", "Scheduled") for r in res["mr"])
+    mr_ok_proj = all(r["status"] in ("Satisfied", "Current", "Scheduled", "Optional") for r in res["mr"])
     prog_ok = prog_ok or (bc_ok_proj and mr_ok_proj and elec_ok)
 
     proj120 = proj >= 120
