@@ -3003,7 +3003,7 @@ MUSIC = {
                 {
                     "name": "Performance area (Piano)",
                     "credits": 2,
-                    "choose_from": ["MUPF-1710", "MUPF-2030", "MUPF-2040"],
+                    "choose_from": ["MUPF-1710", "MUPF-2030", "MUPF-2040", "MUPF-2710", "MUPF-3710", "MUPF-4710"],
                 },
                 {
                     "name": "Pedagogy",
