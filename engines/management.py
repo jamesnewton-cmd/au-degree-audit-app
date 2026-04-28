@@ -1391,7 +1391,7 @@ def build(res, student_name, major_label, out):
 
     ap_cw = [CW * 0.38, CW * 0.62]
 
-    def ap_section(title, items, bar_color=GOLD_BAR):
+    def ap_section(title, items, bar_color=GOLD_BAR, icon="✗", label_style="ap_x"):
         bar_sty = P["ap_bar_gold"] if bar_color == GOLD_BAR else P["ap_bar_blue"]
         bar = Table([[Paragraph(title, bar_sty)]], colWidths=[CW])
         bar.setStyle(
@@ -1460,7 +1460,7 @@ def build(res, student_name, major_label, out):
             row = Table(
                 [
                     [
-                        Paragraph(f"\u2717{label}", P["ap_x"]),
+                        Paragraph(f"{icon}{label}", P[label_style]),
                         Paragraph(action, P["ap_rec"]),
                     ]
                 ],
@@ -1604,12 +1604,12 @@ def build(res, student_name, major_label, out):
             )
         )
 
-    ap_section("Liberal Arts — Current", la_cur, GOLD_BAR)
-    ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR)
+    ap_section("Liberal Arts — Current", la_cur, GOLD_BAR, icon="✓", label_style="sat")
+    ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR, icon="✓", label_style="sat")
     ap_section("Liberal Arts — Missing", la_miss, GOLD_BAR)
     ap_section("Advanced Competency — WI", wi_items, GOLD_BAR)
-    ap_section("Major — Current", maj_cur, BLUE_BAR)
-    ap_section("Major — Scheduled", maj_sched, BLUE_BAR)
+    ap_section("Major — Current", maj_cur, BLUE_BAR, icon="✓", label_style="sat")
+    ap_section("Major — Scheduled", maj_sched, BLUE_BAR, icon="✓", label_style="sat")
     ap_section("Major — Missing", maj_miss, BLUE_BAR)
     ap_section("Credit Hours", credit_items, BLUE_BAR)
 

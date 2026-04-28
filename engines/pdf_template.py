@@ -1144,7 +1144,7 @@ def build(res, student_name, major_label, out, exceptions=""):
 
     ap_cw = [CW * 0.38, CW * 0.62]
 
-    def ap_section(title, items, bar_color=GOLD_BAR):
+    def ap_section(title, items, bar_color=GOLD_BAR, icon="\u2717", label_style="ap_x"):
         bar_sty = P["ap_bar_gold"] if bar_color == GOLD_BAR else P["ap_bar_blue"]
         bar = Table([[Paragraph(title, bar_sty)]], colWidths=[CW])
         bar.setStyle(
@@ -1208,7 +1208,7 @@ def build(res, student_name, major_label, out, exceptions=""):
             row = Table(
                 [
                     [
-                        Paragraph(f"\u2717{label}", P["ap_x"]),
+                        Paragraph(f"{icon}{label}", P[label_style]),
                         Paragraph(action, P["ap_rec"]),
                     ]
                 ],
@@ -1366,13 +1366,13 @@ def build(res, student_name, major_label, out, exceptions=""):
                     )
                 )
 
-    ap_section("Liberal Arts — Currently Enrolled", la_cur, GOLD_BAR)
-    ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR)
+    ap_section("Liberal Arts — Currently Enrolled", la_cur, GOLD_BAR, icon="✓", label_style="sat")
+    ap_section("Liberal Arts — Scheduled", la_sched, GOLD_BAR, icon="\u2713", label_style="sat")
     ap_section("Liberal Arts — Missing", la_miss, GOLD_BAR)
     # WI is already represented in Liberal Arts/major progress; remove standalone
     # Advanced Competency section to avoid duplicate messaging.
-    ap_section("Major — Currently Enrolled", maj_cur, BLUE_BAR)
-    ap_section("Major — Scheduled", maj_sched, BLUE_BAR)
+    ap_section("Major — Currently Enrolled", maj_cur, BLUE_BAR, icon="✓", label_style="sat")
+    ap_section("Major — Scheduled", maj_sched, BLUE_BAR, icon="\u2713", label_style="sat")
     ap_section("Major — Missing", maj_miss, BLUE_BAR)
     ap_section("Elective Classes", credit_items, BLUE_BAR)
 
@@ -1429,8 +1429,8 @@ def build(res, student_name, major_label, out, exceptions=""):
                         )
                     )
         mn = res.get("minor_name", "Minor")
-        ap_section(f"Minor — Currently Enrolled ({mn})", minor_cur, GOLD_BAR)
-        ap_section(f"Minor — Scheduled ({mn})", minor_sched, GOLD_BAR)
+        ap_section(f"Minor — Currently Enrolled ({mn})", minor_cur, GOLD_BAR, icon="✓", label_style="sat")
+        ap_section(f"Minor — Scheduled ({mn})", minor_sched, GOLD_BAR, icon="✓", label_style="sat")
         ap_section(f"Minor — Missing ({mn})", minor_miss, GOLD_BAR)
 
     # ── ELECTIVES action plan section ─────────────────────────────────────────
@@ -1460,8 +1460,8 @@ def build(res, student_name, major_label, out, exceptions=""):
             (f"{still_needed} hrs still needed", f"Enroll in approved elective: {opt_str}")
         )
     if elec_required_hrs > 0:
-        ap_section("Electives — Currently Enrolled", elec_cur, GOLD_BAR)
-        ap_section("Electives — Scheduled", elec_sched, GOLD_BAR)
+        ap_section("Electives — Currently Enrolled", elec_cur, GOLD_BAR, icon="✓", label_style="sat")
+        ap_section("Electives — Scheduled", elec_sched, GOLD_BAR, icon="✓", label_style="sat")
         ap_section("Electives — Missing", elec_miss, GOLD_BAR)
 
     story.append(Spacer(1, 4))
