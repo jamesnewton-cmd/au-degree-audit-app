@@ -2971,8 +2971,8 @@ MUSIC = {
                 "MUSC-3030",
                 "MUSC-3040",
                 # Keyboard
-                "MUPF-1050",
-                "MUPF-1060",
+                ("MUPF-1050", "MUPF-2710", "MUPF-3710", "MUPF-4710"),
+                ("MUPF-1060", "MUPF-2710", "MUPF-3710", "MUPF-4710"),
                 # Music Education Core
                 "MUED-1000",
                 "MUED-1100",
