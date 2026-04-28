@@ -4711,6 +4711,7 @@ COMMUNICATION = {
                         "COMM-3050",
                         "COMM-3160",
                         "COMM-3260",
+                        "COMM-3600",
                         "COMM-4120",
                         "COMM-4900",
                         "ENGL-3140",

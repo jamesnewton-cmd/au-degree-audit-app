@@ -330,6 +330,24 @@ def parse_csv(path):
             rows.append(_row
             )
 
+    # Courses that are repeatable for credit — all instances are kept and credits summed
+    REPEATABLE_COURSES = {
+        "COMM_2860",  # CMA practicum (4 hrs total)
+        "COMM_4800",  # CMA internship (1-4 hrs)
+        "THEA_2890",  # Theatre practicum (repeatable)
+        "HIST_4800",  # Public History internship
+        "COMM_4810",  # Communication internship variants
+        "COMM_4820",
+    }
+    # For repeatable courses, accumulate all completed instances
+    repeat_totals = {}  # code -> {cr: total, best_record: dict}
+    for c in rows:
+        k = c["code"]
+        if k in REPEATABLE_COURSES and c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "DRP", "NC", "F"):
+            if k not in repeat_totals:
+                repeat_totals[k] = {"cr": 0, "best": c}
+            repeat_totals[k]["cr"] += c["cr"]
+
     seen = {}
 
     def priority(c):
@@ -356,6 +374,12 @@ def parse_csv(path):
         k = c["code"]
         if k not in seen or priority(c) < priority(seen[k]):
             seen[k] = c
+
+    # Apply summed credits for repeatable courses
+    for k, data in repeat_totals.items():
+        if k in seen:
+            seen[k] = dict(data["best"])
+            seen[k]["cr"] = data["cr"]
 
     # Apply institutional blanket exceptions automatically
     # ENGR-3100 -> ENGR-3140 AND ENGR-3150
@@ -2133,7 +2157,6 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
         # Fallback list if not in framework
         if not si_opts:
             si_opts = [
-                "COMM_1000",
                 "COMM_2000",
                 "COMM_2130",
                 "COMM_2140",
