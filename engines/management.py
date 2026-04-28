@@ -273,6 +273,10 @@ def best(courses, codes):
     for f in found:
         if ip(f):
             return f
+    # Scheduled courses satisfy requirements pending final grade
+    for f in found:
+        if sched(f):
+            return f
     return found[0] if found else None
 
 
@@ -287,6 +291,8 @@ def cmap(courses):
             if done(c) and not done(e):
                 m[k] = c
             elif ip(c) and not done(e) and not ip(e):
+                m[k] = c
+            elif sched(c) and not done(e) and not ip(e) and not sched(e):
                 m[k] = c
     return m
 
@@ -731,7 +737,7 @@ def audit(courses):
     for c in courses:
         if drop(c):
             continue
-        if ip(c):
+        if ip(c) or sched(c):
             ip_hrs += c["cr"]
             continue
         if not done(c):
