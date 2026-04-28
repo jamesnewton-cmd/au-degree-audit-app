@@ -2038,31 +2038,61 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
             else:
                 w_c = find_any(all_opts) if all_opts else find_any(w_opts)
             la.append(make_row(wkey, None, wdef.get("label", wkey), w_dcr, w_c, status_of(w_c)))
-
-        # W4 — check integrative (3hr AE), then AP+AX courses
-        # Integrative satisfies W4 alone; AP+AX together also satisfy it
-        w4_def = fw.get("W4", {})
-        w4_year_data = w4_def.get("courses", {}).get(yr, {})
-        if isinstance(w4_year_data, dict):
-            w4_ae = w4_year_data.get("integrative", [])
-            w4_ap = w4_year_data.get("AP", [])
-            w4_ax = w4_year_data.get("AX", [])
-            w4_all = w4_ae + w4_ap + w4_ax
-        else:
-            w4_all = w4_year_data
-        # W4: also match transfer art courses — ART_ prefix = transfer alias for ARTS_
-        _W4_ART_PREFIXES = ["ART_", "ARTS_", "ARTH_", "MUSC_", "THEA_", "DANC_", "MUPF_"]
-        w4_c = find_any_or_prefix(w4_all + map_by_area.get("W4", []), _W4_ART_PREFIXES)
-        la.append(
-            make_row(
-                "W4",
-                None,
-                w4_def.get("label", "W4 Aesthetic Ways of Knowing"),
-                3,
-                w4_c,
-                status_of(w4_c),
-            )
-        )
+            # After W3, insert W4 immediately (correct ordering: W3 → W4 → W5)
+            if wkey == "W3":
+                # W4: satisfied by ONE 3hr AE course, OR by ONE AP course (2hr) + ONE AX course (1hr)
+                w4_def = fw.get("W4", {})
+                w4_year_data = w4_def.get("courses", {}).get(yr, {})
+                if isinstance(w4_year_data, dict):
+                    w4_ae = w4_year_data.get("integrative", [])
+                    w4_ap = w4_year_data.get("AP", [])
+                    w4_ax = w4_year_data.get("AX", [])
+                else:
+                    w4_ae = w4_year_data
+                    w4_ap = []
+                    w4_ax = []
+                w4_mapped = map_by_area.get("W4", [])
+                _W4_ART_PREFIXES = ["ART_", "ARTS_", "ARTH_", "MUSC_", "THEA_", "DANC_", "MUPF_"]
+                w4_ae_c = find_any_or_prefix(w4_ae + w4_mapped, _W4_ART_PREFIXES)
+                w4_ap_c = find_any(w4_ap + w4_mapped) if w4_ap else None
+                w4_ax_c = find_any(w4_ax) if w4_ax else None
+                if w4_ae_c and status_of(w4_ae_c) == "Satisfied":
+                    w4_display_c = w4_ae_c
+                    w4_status = "Satisfied"
+                elif w4_ap_c and w4_ax_c and status_of(w4_ap_c) == "Satisfied" and status_of(w4_ax_c) == "Satisfied":
+                    w4_display_c = w4_ap_c
+                    w4_status = "Satisfied"
+                elif w4_ae_c and status_of(w4_ae_c) in ("Current", "Scheduled"):
+                    w4_display_c = w4_ae_c
+                    w4_status = "Current"
+                elif w4_ap_c and w4_ax_c and (
+                    status_of(w4_ap_c) in ("Satisfied", "Current", "Scheduled") and
+                    status_of(w4_ax_c) in ("Satisfied", "Current", "Scheduled")
+                ):
+                    w4_display_c = w4_ap_c
+                    w4_status = "Current"
+                elif w4_ap_c and status_of(w4_ap_c) == "Satisfied" and not w4_ax_c:
+                    w4_display_c = w4_ap_c
+                    w4_status = "Not Satisfied"
+                else:
+                    w4_display_c = w4_ae_c or w4_ap_c
+                    w4_status = "Not Satisfied"
+                if w4_ap_c and w4_ax_c and not w4_ae_c:
+                    ap_label = f"{w4_ap_c['raw']} {w4_ap_c['name']}"
+                    ax_label = f"{w4_ax_c['raw']} {w4_ax_c['name']}"
+                    w4_course_col = f"{ap_label} + {ax_label}"
+                else:
+                    w4_course_col = None
+                la.append(
+                    make_row(
+                        "W4",
+                        w4_course_col,
+                        w4_def.get("label", "W4 Aesthetic Ways of Knowing"),
+                        3,
+                        w4_display_c,
+                        w4_status,
+                    )
+                )
 
         # W8 — non-FSB: NO F1 auto-satisfy. Use major-specific course list from W8 sheet.
         # Special rule: POSC-2840 (Model UN) only satisfies W8 if taken TWO semesters (>=6 cr total earned).
@@ -2160,6 +2190,7 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
                 "COMM_2000",
                 "COMM_2130",
                 "COMM_2140",
+                "COMM_3420",  # Cinema Studies — confirmed SI course
                 "ARTH_3040",
                 "BSNS_3210",
                 "BSNS_4480",
