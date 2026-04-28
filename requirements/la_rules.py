@@ -536,20 +536,31 @@ def evaluate_la(course_map: dict, catalog_year: str, major_key: str) -> list:
             note="Grade of C- or better required",
         ))
 
-    # ── F4 — Speaking and Listening ──────────────────────────────────────────
+    # ── F4 — Speaking and Listening (COMM-1000 *or* any SI course) ────────────
     f4_status = course_status("COMM-1000", course_map)
     f4_display = course_display("COMM-1000", course_map) if f4_status != "Not Satisfied" else "COMM-1000"
+    f4_credits = course_credits("COMM-1000", course_map) if f4_status != "Not Satisfied" else 0
+    f4_grade = course_grade("COMM-1000", course_map)
     if f4_status != "Not Satisfied":
         _assign("COMM-1000")
-
+    else:
+        # Fallback: check SI-designated courses as alternative for F4
+        si_alt_codes = [c.replace("_", "-") for c in SI_COURSES]
+        f4_alt_code, f4_alt_status = _find_best(si_alt_codes, course_map, assigned)
+        if f4_alt_code and f4_alt_status != "Not Satisfied":
+            f4_status = f4_alt_status
+            f4_display = course_display(f4_alt_code, course_map)
+            f4_credits = course_credits(f4_alt_code, course_map)
+            f4_grade = course_grade(f4_alt_code, course_map)
+            _assign(f4_alt_code)
     rows.append(LAResult(
         area="F4",
         label="F4 Speaking and Listening",
         course_display=f4_display,
         status=f4_status,
         credits_required=3,
-        credits_earned=course_credits("COMM-1000", course_map) if f4_status != "Not Satisfied" else 0,
-        grade=course_grade("COMM-1000", course_map),
+        credits_earned=f4_credits,
+        grade=f4_grade,
     ))
 
     # ── F5 — Quantitative Reasoning ──────────────────────────────────────────

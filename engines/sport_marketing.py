@@ -2007,10 +2007,22 @@ def build_la_rows_for_non_fsb(courses, catalog_year, major_key=""):
             )
         )
 
-        # F4
-        f4_req = fw["F4"].get("required_courses", ["COMM 1000"])
-        f4_opts = [c for c in f4_req if "COMM" in c] or ["COMM 1000"]
+        # F4 — satisfied by COMM-1000 *or* any SI-designated course
+        f4_req = fw["F4"].get("required_courses", ["COMM_1000"])
+        f4_opts = [c for c in f4_req if "COMM" in c] or ["COMM_1000"]
         f4_c = find_any_or_ip_or_sched(f4_opts + map_by_area.get("F4", []))
+        if not f4_c:
+            # Fallback: check SI course list as alternative for F4
+            si_def_f4 = fw.get("SI", {})
+            si_opts_f4 = si_def_f4.get("courses", {}).get(yr, [])
+            if not si_opts_f4:
+                si_opts_f4 = [
+                    "COMM_2000", "COMM_2130", "COMM_2140", "COMM_3420",
+                    "ARTH_3040", "BSNS_3210", "BSNS_4480",
+                    "ENGL_2220", "HIST_2300", "HNRS_2125",
+                    "PSYC_3200", "SPAN_3020",
+                ]
+            f4_c = find_any_or_ip_or_sched(si_opts_f4 + map_by_area.get("SI", []))
         la.append(make_row("F4", None, fw["F4"]["label"], 3, f4_c, status_of(f4_c)))
 
         # F5
