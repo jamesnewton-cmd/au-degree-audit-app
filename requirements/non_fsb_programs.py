@@ -1498,10 +1498,11 @@ EDUCATION = {
                     "name": "Government and Citizenship elective (choose 1)",
                     "credits": 3,
                     "min_courses": 1,
-                    "choose_from": ["POSC-2120", "POSC-3010"],
+                    "choose_from": ["POSC-2120", "POSC-3010", "POSC-3250"],
                 },
                 {
                     "name": "Third Field: Economics (choose if declared)",
+                    "optional": True,
                     "credits": 9,
                     "min_courses": 3,
                     "choose_from": [
@@ -1510,6 +1511,7 @@ EDUCATION = {
                 },
                 {
                     "name": "Third Field: Psychology (choose if declared)",
+                    "optional": True,
                     "credits": 11,
                     "min_courses": 3,
                     "choose_from": [
@@ -1518,6 +1520,7 @@ EDUCATION = {
                 },
                 {
                     "name": "Third Field: Sociology (choose if declared)",
+                    "optional": True,
                     "credits": 9,
                     "min_courses": 3,
                     "choose_from": [
@@ -1527,6 +1530,7 @@ EDUCATION = {
                 },
                 {
                     "name": "Third Field: Special Education (choose if declared)",
+                    "optional": True,
                     "credits": 15,
                     "min_courses": 5,
                     "choose_from": [

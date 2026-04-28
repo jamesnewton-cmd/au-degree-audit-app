@@ -55,6 +55,7 @@ ROW_EVEN = colors.white
 SATISFIED = colors.HexColor("#375623")
 CURRENT_CLR = colors.HexColor("#7F4700")
 NOT_SAT = colors.HexColor("#8B1A2B")
+ADVISORY = colors.HexColor("#5B5B5B")  # Gray for optional/advisory items
 TERM_CLR = colors.HexColor("#1A1A1A")
 TRANSFER_CLR = colors.HexColor("#8B6914")
 XMARK_CLR = colors.HexColor("#CC3300")
@@ -99,6 +100,7 @@ P = {
     "sat": ps("sat", fontName="Helvetica-Bold", fontSize=8.5, textColor=SATISFIED, leading=11),
     "cur": ps("cur", fontName="Helvetica-Bold", fontSize=8.5, textColor=CURRENT_CLR, leading=11),
     "nos": ps("nos", fontName="Helvetica-Bold", fontSize=8.5, textColor=NOT_SAT, leading=11),
+    "opt": ps("opt", fontName="Helvetica", fontSize=8.5, textColor=ADVISORY, leading=11),
     "term": ps("term", fontName="Helvetica", fontSize=8, textColor=TERM_CLR, leading=10),
     "term_tr": ps(
         "term_tr", fontName="Helvetica-Oblique", fontSize=8, textColor=TRANSFER_CLR, leading=10
@@ -239,6 +241,8 @@ def status_para(s):
         return Paragraph("✓ Satisfied (pending)", P["sat"])
     if s == "Scheduled":
         return Paragraph("✓ Satisfied (pending)", P["sat"])
+    if s == "Optional":
+        return Paragraph("— Encouraged (not required)", P["opt"])
     return Paragraph("✗ Not Satisfied", P["nos"])
 
 
@@ -370,7 +374,7 @@ def build(res, student_name, major_label, out, exceptions=""):
 
     la_ok = all(r["status"] == "Satisfied" for r in res["la"])
     bc_ok = all(r["status"] == "Satisfied" for r in res.get("bc", []))
-    mr_ok = all(r["status"] == "Satisfied" for r in res["mr"])
+    mr_ok = all(r["status"] in ("Satisfied", "Optional") for r in res["mr"])
     elec_ok = (elec_required_hrs == 0) or (ehrs + ehrs_ip >= elec_required_hrs)
     prog_ok = bc_ok and mr_ok and elec_ok
 
@@ -391,7 +395,7 @@ def build(res, student_name, major_label, out, exceptions=""):
     bc_ok_pend = all(
         r["status"] in ("Satisfied", "Current", "Scheduled") for r in res.get("bc", [])
     )
-    mr_ok_pend = all(r["status"] in ("Satisfied", "Current", "Scheduled") for r in res["mr"])
+    mr_ok_pend = all(r["status"] in ("Satisfied", "Current", "Scheduled", "Optional") for r in res["mr"])
     elec_ok_pend = (elec_required_hrs == 0) or (ehrs + ehrs_ip >= elec_required_hrs)
     prog_ok_pend = bc_ok_pend and mr_ok_pend and elec_ok_pend
     wi_ok_pend = (

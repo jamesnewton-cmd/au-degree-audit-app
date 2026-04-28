@@ -675,6 +675,10 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
         else:
             grp_status = "Not Satisfied"
             display_course = first_earned_course or first_ip_course
+        # Optional groups (e.g. Third Field): show as advisory, not blocking
+        is_optional = group.get("optional", False)
+        if is_optional and grp_status == "Not Satisfied":
+            grp_status = "Optional"
         preview = ", ".join(choose_from[:3]) + ("..." if len(choose_from) > 3 else "")
         rows.append(
             {
