@@ -402,12 +402,12 @@ def build(res, student_name, major_label, out, exceptions=""):
         sum(
             1
             for r in res["la"]
-            if r["area"] == "WI" and r["status"] in ("Satisfied", "Current", "In Progress")
+            if r["area"] == "WI" and r["status"] in ("Satisfied", "Current", "Scheduled", "In Progress")
         )
         >= 2
     )
     si_ok_pend = any(
-        r["area"] == "SI" and r["status"] in ("Satisfied", "Current", "In Progress")
+        r["area"] == "SI" and r["status"] in ("Satisfied", "Current", "Scheduled", "In Progress")
         for r in res["la"]
     )
     elig_pend = (

@@ -1042,7 +1042,7 @@ def _compute_gpa(raw_courses, major_codes_set):
         g = c["grade"].upper()
         if g in ("W", "DRP") or c["status"] == "dropped":
             continue
-        if c["status"] == "current":
+        if c["status"] in ("current", "scheduled"):
             ip_hrs += c["cr"]
             continue
         if c["status"] != "grade posted":
