@@ -435,6 +435,80 @@ def _safe_credits(val, fallback=3):
     return fallback
 
 
+def _convert_xlsx_to_csv(raw_bytes: bytes) -> bytes:
+    """
+    Convert a registrar Grades-Pull XLSX to the CSV format expected by parse_csv.
+
+    XLSX columns: Term, Term Start Date, Course Name, Course Code, Section,
+                  Equivalent Course, Status, Credits, Numeric Grade, Letter Grade
+    CSV columns:  Course Code, Course Name, Equivalent Course, Registration Date,
+                  Section, Credits, Status, Campus, Instructor, Numeric Grade, Letter Grade
+
+    Status mapping:  CG -> Grade Posted,  AC -> Current,  AS -> Scheduled,
+                     ID -> Current (incomplete/deferred treated as in-progress)
+    """
+    import openpyxl
+    wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), data_only=True)
+    ws = wb.active
+
+    # Read header row to detect format
+    headers = [str(cell.value or '').strip() for cell in ws[1]]
+
+    # Check if this is the Grades Pull format (has "Term" as first column)
+    if headers and headers[0] == 'Term':
+        STATUS_MAP = {
+            'CG': 'Grade Posted',
+            'AC': 'Current',
+            'AS': 'Scheduled',
+            'ID': 'Current',       # Incomplete/deferred → treat as in-progress
+        }
+        csv_buf = io.StringIO()
+        writer = csv.writer(csv_buf)
+        # Write CSV header in the expected format
+        writer.writerow([
+            'Course Code', 'Course Name', 'Equivalent Course',
+            'Registration Date', 'Section', 'Credits', 'Status',
+            'Campus', 'Instructor', 'Numeric Grade', 'Letter Grade'
+        ])
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if row is None or all(v is None for v in row):
+                continue
+            term         = str(row[0] or '')
+            term_date    = str(row[1] or '')
+            course_name  = str(row[2] or '')
+            course_code  = str(row[3] or '')
+            section      = str(row[4] or '')
+            equiv        = str(row[5] or '')
+            status_raw   = str(row[6] or '').strip().upper()
+            credits      = str(row[7] or '0')
+            num_grade    = str(row[8] or '')
+            letter_grade = str(row[9] or '')
+
+            if not course_code.strip():
+                continue
+
+            # Map status code
+            status = STATUS_MAP.get(status_raw, status_raw)
+
+            # Use term_date as registration date; format for consistency
+            reg_date = term_date
+
+            writer.writerow([
+                course_code, course_name, equiv,
+                reg_date, section, credits, status,
+                'Main AU Campus', '',  # Campus, Instructor (not in XLSX)
+                num_grade, letter_grade
+            ])
+        return csv_buf.getvalue().encode('utf-8')
+    else:
+        # Fallback: not Grades Pull format — dump raw cells as-is
+        csv_buf = io.StringIO()
+        writer = csv.writer(csv_buf)
+        for row in ws.iter_rows(values_only=True):
+            writer.writerow(['' if v is None else str(v) for v in row])
+        return csv_buf.getvalue().encode('utf-8')
+
+
 def _download_name_from_student(student_name: str) -> str:
     """
     Build download filename stem as FirstName_LastInitial.
@@ -1139,14 +1213,8 @@ async def generate(
     raw_bytes = await transcript.read()
     filename = (transcript.filename or "").lower()
     if filename.endswith(".xlsx") or filename.endswith(".xls"):
-        # Convert Excel to CSV in-memory
-        wb = openpyxl.load_workbook(io.BytesIO(raw_bytes), data_only=True)
-        ws = wb.active
-        csv_buf = io.StringIO()
-        writer = csv.writer(csv_buf)
-        for row in ws.iter_rows(values_only=True):
-            writer.writerow(['' if v is None else str(v) for v in row])
-        csv_bytes = csv_buf.getvalue().encode('utf-8')
+        # Convert Excel (Grades Pull) to CSV in-memory with column/status mapping
+        csv_bytes = _convert_xlsx_to_csv(raw_bytes)
     else:
         csv_bytes = raw_bytes
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp_in:
