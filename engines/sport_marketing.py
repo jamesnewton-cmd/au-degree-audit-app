@@ -593,6 +593,7 @@ def best(courses, codes):
 def cmap(courses):
     m = {}
     for c in courses:
+        if drop(c): continue
         k = c["code"]
         if k not in m:
             m[k] = c
