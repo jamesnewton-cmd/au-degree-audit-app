@@ -398,12 +398,12 @@ def build(res, student_name, major_label, out, exceptions=""):
         sum(
             1
             for r in res["la"]
-            if r["area"] == "WI" and r["status"] in ("Satisfied", "Current", "Scheduled")
+            if r["area"] == "WI" and r["status"] in ("Satisfied", "Current", "In Progress")
         )
         >= 2
     )
     si_ok_pend = any(
-        r["area"] == "SI" and r["status"] in ("Satisfied", "Current", "Scheduled")
+        r["area"] == "SI" and r["status"] in ("Satisfied", "Current", "In Progress")
         for r in res["la"]
     )
     elig_pend = (
@@ -439,8 +439,8 @@ def build(res, student_name, major_label, out, exceptions=""):
         [Paragraph("Projected Hours ≥120", P["elig_lbl"]), yn(proj120)],
         [Paragraph("Cumulative GPA ≥2.0", P["elig_lbl"]), yn(gpa_ok)],
         [Paragraph("Major GPA ≥2.0", P["elig_lbl"]), yn(mgpa_ok)],
-        [Paragraph("Writing Intensive (WI) ≥2 courses (≥1 upper-div)", P["elig_lbl"]), yn(wi_ok)],
-        [Paragraph("Speaking Intensive (SI) ≥1 beyond COMM-1000", P["elig_lbl"]), yn(si_ok)],
+        [Paragraph("Writing Intensive (WI) ≥2 courses (≥1 upper-div)", P["elig_lbl"]), yn(wi_ok or wi_ok_pend)],
+        [Paragraph("Speaking Intensive (SI) ≥1 beyond COMM-1000", P["elig_lbl"]), yn(si_ok or si_ok_pend)],
         [Paragraph(grad_lbl, P["elig_lbl"]), yn(elig or elig_pend)],
         [Paragraph(walk_lbl, P["elig_lbl"]), yn(res.get("eligible_to_walk", (elig or elig_pend)))],
     ]
