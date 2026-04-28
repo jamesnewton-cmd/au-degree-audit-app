@@ -400,6 +400,8 @@ COURSE_CROSS_LISTINGS = {
     "SOCI-2510": ["CRIM-2510"],
     "PSYC-3010": ["SOCI-3010"],
     "SOCI-3010": ["PSYC-3010"],
+    "MUPF-4910": ["MUTR-4910"],
+    "MUTR-4910": ["MUPF-4910"],
 }
 
 SKIP_KEYS = {
