@@ -388,6 +388,20 @@ def load_engine(engine_name: str):
 
 
 # ── SHARED HELPERS ────────────────────────────────────────────────────────────
+
+# Cross-listed courses: when a required course isn't found, also check these alternatives.
+# Key = required course code, Value = list of equivalent course codes.
+COURSE_CROSS_LISTINGS = {
+    "PHIL-3250": ["RLGN-3250"],
+    "RLGN-3250": ["PHIL-3250"],
+    "CRIM-3350": ["POSC-3350"],
+    "POSC-3350": ["CRIM-3350"],
+    "CRIM-2510": ["SOCI-2510"],
+    "SOCI-2510": ["CRIM-2510"],
+    "PSYC-3010": ["SOCI-3010"],
+    "SOCI-3010": ["PSYC-3010"],
+}
+
 SKIP_KEYS = {
     "name",
     "total_credits",
@@ -597,7 +611,11 @@ def _build_major_rows(prog_reqs, raw_courses, sm_mod, concentration=""):
                     continue
                 if "xxx" in course_id.lower() or course_id.upper().count("X") >= 3:
                     continue
-                c = _find_course([course_id])
+                # Try the exact course first, then check cross-listed equivalents
+                search_codes = [course_id]
+                cross_alts = COURSE_CROSS_LISTINGS.get(course_id, [])
+                search_codes.extend(cross_alts)
+                c = _find_course(search_codes)
                 rows.append(
                     {
                         "id": _norm_code(course_id),
