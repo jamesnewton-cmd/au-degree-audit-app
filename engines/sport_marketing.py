@@ -333,20 +333,31 @@ def parse_csv(path):
     # Courses that are repeatable for credit — all instances are kept and credits summed
     REPEATABLE_COURSES = {
         "COMM_2860",  # CMA practicum (4 hrs total)
+        "COMM_3600",  # Topics in Communication (different sections/topics, all count)
         "COMM_4800",  # CMA internship (1-4 hrs)
         "THEA_2890",  # Theatre practicum (repeatable)
         "HIST_4800",  # Public History internship
         "COMM_4810",  # Communication internship variants
         "COMM_4820",
     }
-    # For repeatable courses, accumulate all completed instances
+    # For repeatable courses, accumulate all completed AND in-progress/scheduled instances
     repeat_totals = {}  # code -> {cr: total, best_record: dict}
     for c in rows:
         k = c["code"]
-        if k in REPEATABLE_COURSES and c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "DRP", "NC", "F"):
-            if k not in repeat_totals:
-                repeat_totals[k] = {"cr": 0, "best": c}
-            repeat_totals[k]["cr"] += c["cr"]
+        if k in REPEATABLE_COURSES:
+            is_done = c["status"] == "grade posted" and c["grade"].upper() not in ("", "W", "DRP", "NC", "F")
+            is_ip_or_sched = c["status"] in ("current", "scheduled")
+            if is_done or is_ip_or_sched:
+                if k not in repeat_totals:
+                    repeat_totals[k] = {"cr": 0, "best": c, "done_cr": 0, "ip_cr": 0}
+                repeat_totals[k]["cr"] += c["cr"]
+                if is_done:
+                    repeat_totals[k]["done_cr"] += c["cr"]
+                else:
+                    repeat_totals[k]["ip_cr"] += c["cr"]
+                # Prefer done records as the representative
+                if is_done and repeat_totals[k]["best"]["status"] != "grade posted":
+                    repeat_totals[k]["best"] = c
 
     seen = {}
 
@@ -377,9 +388,9 @@ def parse_csv(path):
 
     # Apply summed credits for repeatable courses
     for k, data in repeat_totals.items():
-        if k in seen:
-            seen[k] = dict(data["best"])
-            seen[k]["cr"] = data["cr"]
+        best = dict(data["best"])
+        best["cr"] = data["cr"]
+        seen[k] = best
 
     # Apply institutional blanket exceptions automatically
     # ENGR-3100 -> ENGR-3140 AND ENGR-3150
